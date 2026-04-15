@@ -71,7 +71,8 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 3. **Association onboarding**
    - Association registration form (name, city, contact, RPN affiliation proof)
-   - Platform admin review & approval workflow
+   - Platform admin manual review & approval workflow (v1)
+   - Future: API-based verification to confirm association legitimacy automatically (replaces manual review)
    - Association profile page (public info, admin contact)
 
 4. **RPN member registration (referral-only, v1)**
