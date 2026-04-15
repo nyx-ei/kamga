@@ -58,6 +58,7 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 1. **Project setup**
    - Initialize Next.js 14 (App Router, TypeScript, Tailwind, Lucide)
    - Supabase project: database, auth, storage bucket (for documents)
+   - Additional deps: `zod` (form validation), `nanoid` (referral tokens), `sanitize-html` (admin rich text), `resend` (emails)
    - Vercel deployment + GitHub Actions CI (lint, typecheck, build)
    - next-intl setup (EN/FR)
    - PWA manifest + service worker shell
@@ -66,20 +67,56 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
    - Supabase Auth (magic link passwordless, Google OAuth, Facebook OAuth)
    - Role model: `platform_admin`, `association_admin`, `member`
    - RLS policies per role
-   - Protected routes & middleware
+   - Protected routes & middleware (public: `/register`, `/auth/*`; authenticated: `/dashboard/*`; admin-only: `/admin/*`)
 
 3. **Association onboarding**
    - Association registration form (name, city, contact, RPN affiliation proof)
    - Platform admin review & approval workflow
    - Association profile page (public info, admin contact)
 
-4. **RPN member registration**
-   - Registration form (personal info, ID document upload)
-   - Distinction from association membership (separate RPN ID)
-   - Admin verification workflow: admin views uploaded evidence (ID, proof of status), approves or rejects
-   - Evidence lifecycle: documents stored temporarily in Supabase Storage, **auto-deleted once the admin makes a decision** (approve or reject) — no personal documents retained on the platform
-   - Consent notice: member is informed that their documents will be viewed by the association admin and destroyed after verification
-   - Member status tracking (pending, verified, active, suspended)
+4. **RPN member registration (referral-only, v1)**
+
+   **Referral system**
+   - Admins generate unique referral links tied to their association
+   - Members can also generate referral links if the association admin enables it (per-association toggle)
+   - Referral link encodes: referrer ID, association ID, unique token (nanoid); expires after 30 days
+   - Any association can re-invite a previously declined applicant, including the same one that declined
+
+   **Registration flow**
+   - Aspiring member receives referral link via email or direct share
+   - Clicks link → token validated (exists, not expired, not used, association active) → registration form rendered with association info
+   - Registration form collects: first name, last name, email, phone, date of arrival in Canada
+   - SIN (Social Insurance Number): collected in the form but **never stored in the database** — encrypted (AES-256-GCM) and held in a transient `sin_tokens` table, visible to the reviewing admin only, destroyed alongside evidence on terminal decision
+   - Evidence uploads: government-issued ID, proof of immigration status (PR card, work permit, etc.)
+   - Consent checkbox: member is informed that documents will be viewed by the association admin and destroyed after verification
+   - On submit: user creates an account (magic link, Google OAuth, or Facebook OAuth), then registration data is persisted server-side
+   - Referral token consumed atomically (prevents double-use)
+
+   **Post-registration**
+   - Account created with `pending` status
+   - User receives "application under review" email (Resend)
+   - User can log in anytime to check application status on their dashboard
+
+   **Admin review**
+   - Admin sees: who referred this applicant, applicant personal info, uploaded evidence
+   - Evidence viewer: admin can **view** documents inline (images via `<img>`, PDFs via `<iframe>`) but **cannot download** — served through a server-side proxy with short-lived signed URLs, right-click prevention, and watermark overlay
+   - SIN displayed masked (`***-***-***`) with a reveal button (shown for 30 seconds, then re-masked)
+   - Three review outcomes:
+     - **Accepted**: member status → `active`, evidence + SIN destroyed, approval email sent
+     - **Declined**: admin provides mandatory explanation in rich HTML format, evidence + SIN destroyed, decline email sent with the explanation
+     - **Need more evidence**: admin selects which documents are still needed (government ID, immigration proof), user receives email with a link to a simple upload form
+
+   **Evidence lifecycle**
+   - Documents stored temporarily in Supabase Storage (private bucket, path: `{association_id}/{membership_id}/{type}_{timestamp}.{ext}`)
+   - **Auto-destroyed on terminal review decision** (accepted or declined) — no personal documents retained
+   - Periodic cleanup cron sweeps for any evidence marked `destroyed` that still has storage objects
+
+   **Post-decision outcomes**
+   - If accepted: user status changes to `active`, full access to their RPN member dashboard
+   - If declined: user receives the explanation, can close their account or keep it — they may receive a new referral from any association (including the one that declined)
+   - If more evidence needed: user receives upload link, submits documents, review resumes
+
+   **Member status tracking**: `pending` → `active` | `declined` | `suspended`
 
 5. **Relative association (share management)**
    - Add/remove dependents per member (name, relationship, ID if applicable)
