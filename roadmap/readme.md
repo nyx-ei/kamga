@@ -1,13 +1,11 @@
-# CHIFOR FUNDRAIZER - Roadmap
+# KAMGA - Roadmap
 
 **Version**: 0.2
-**Date**: April 2026
 
 ---
 
 ## Tech Stack
 
-Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly footprint.
 
 | Layer | Technology |
 |---|---|
@@ -25,20 +23,6 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 ---
 
-## Projections
-
-| Year | Adoption | Associations | Members (avg) | Revenue | Net Profit |
-|---|---|---|---|---|---|
-| 1 | 0.5% | 100 | 4,000 | $144K | $134K |
-| 2 | 1% | 200 | 8,000 | $293K | $283K |
-| 3 | 2% | 400 | 16,000 | $586K | $574K |
-| 4 | 3.5% | 700 | 28,000 | $1.02M | $1.01M |
-| 5 | 5% | 1,000 | 40,000 | $1.46M | $1.44M |
-
-5-year cumulative profit: **$3.44M** on $7.5K bootstrap.
-
----
-
 ## Stakeholders
 
 | Role | Description |
@@ -49,11 +33,11 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 ---
 
-## MVP Roadmap
+## Feature Modules
 
-### Phase 1 - Foundation (Month 1-2)
+### Foundation
 
-**Goal**: Project scaffolding + core data model for associations and members.
+Project scaffolding + core data model for associations and members.
 
 1. **Project setup**
    - Initialize Next.js 14 (App Router, TypeScript, Tailwind, Lucide)
@@ -127,9 +111,9 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 ---
 
-### Phase 2 - Call-to-Contribute (Month 3-4)
+### Call-to-Contribute
 
-**Goal**: End-to-end levee lifecycle, from death event to fund remittance.
+End-to-end levee lifecycle, from death event to fund remittance.
 
 1. **Levee initiation**
    - Platform admin creates a levee (deceased info, target amount, deadline)
@@ -161,9 +145,9 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 ---
 
-### Phase 3 - Member Experience (Month 5-6)
+### Member Experience
 
-**Goal**: Self-service for members and discoverability for aspiring members.
+Self-service for members and discoverability for aspiring members.
 
 1. **Association directory**
    - Public searchable list of RPN associations (by city, name)
@@ -194,62 +178,21 @@ Same as [ActiveBoard](https://github.com/nyx-ei/activeboard) — minimal monthly
 
 ---
 
-### Phase 4 - Launch & Growth (Month 7-12)
+### Operations & Tooling
 
-**Goal**: Real-world validation, admin compensation, and operational tooling.
-
-1. **Pilot program**
-   - Onboard 3-5 pilot associations
-   - Guided setup & data migration support
-   - Feedback collection & iteration loop
-
-2. **Admin fees tracking & payout**
-   - Define admin fee model (per-member or per-levee)
+1. **Admin fees tracking & payout**
+   - Admin fee model (per-member or per-levee)
    - Track accrued fees per association admin
    - Payout mechanism (Stripe Connect or manual)
    - Fee transparency for members
 
-3. **Reporting & audit trail**
+2. **Reporting & audit trail**
    - Levee reports: collection rate, timeline, per-association breakdown
    - Member reports: contribution history, fiscal summary
    - Admin reports: member roster, share counts, fee earnings
    - Full audit log (who did what, when) for transparency
 
-4. **RPN-wide rollout**
-   - Marketing site / landing page
-   - Onboarding documentation for associations
-   - Support channel setup
-   - Scalability review (Supabase plan, Vercel limits)
-
-5. **Mobile optimization**
+3. **Mobile optimization**
    - PWA enhancements (offline contribution view, push notifications)
    - Responsive design audit across all flows
    - Performance optimization (bundle size, image loading)
-
----
-
-## Risks & Mitigations
-
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Low adoption | Revenue below projections | RPN endorsement, pilot proof points |
-| Member churn | Shrinking user base | Natural recruitment > churn in active associations |
-| Levee volume overestimated | Commission revenue lower | Membership fees carry the business regardless |
-| Competition | Market share loss | First-mover + switching costs + network effects |
-
-Worst case (0.1% adoption, 20 associations): still profitable at ~$19K net.
-
----
-
-## Next Steps
-
-1. Secure $10-15K bootstrap (founder + grant)
-2. Finalize RPN partnership & pilot associations (3-5)
-3. Start MVP development
-4. Launch pilot at Month 5
-5. Measure: adoption rate, MRR, churn
-6. Decide: scale organically or raise seed
-
----
-
-*Status: Ready for execution. Bootstrap: $7.5-15K. Timeline: 6 months to launch.*
