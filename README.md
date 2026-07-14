@@ -1,6 +1,6 @@
-# Chifor Fundraizer
+# Kamga
 
-A platform for managing fundraising operations (levees) within RPN associations. Chifor Fundraizer brings transparency, traceability, and simplicity to the way associations collect and distribute funds.
+A platform for managing fundraising operations (levees) within RPN associations. Kamga brings transparency, traceability, and simplicity to the way associations collect and distribute funds.
 
 ## The Problem
 
@@ -11,7 +11,7 @@ RPN associations manage levees manually -- often with paper records, spreadsheet
 - No audit trail for financial operations
 - Difficulty scaling across large member bases
 
-## What Chifor Fundraizer Does
+## What Kamga Does
 
 **For Association Members**
 - View upcoming and ongoing levees in real time
