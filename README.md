@@ -44,8 +44,8 @@ RPN associations manage levees manually -- often with paper records, spreadsheet
 ### Installation
 
 ```bash
-git clone https://github.com/NYX-EI/chifor-fundraizer.git
-cd chifor-fundraizer
+git clone https://github.com/nyx-ei/kamga.git
+cd kamga
 ```
 
 Setup instructions will be added as development progresses.
