@@ -1,4 +1,4 @@
-﻿{
+{
   "home": {
     "badge": "Layer 1 · Lookup foundation",
     "title": "Find an RPN association near you",
@@ -32,7 +32,8 @@
     "roleLabel": "Current role",
     "unknownRole": "No platform role assigned yet",
     "registerAssociationAction": "Register an association",
-    "associationSubmitted": "Your association registration was submitted for platform review."
+    "associationSubmitted": "Your association registration was submitted for platform review.",
+    "memberRegistrationPending": "Your member registration is pending association admin review."
   },
   "admin": {
     "badge": "Platform administration",
@@ -151,12 +152,57 @@
         "KMG-REF-003": "This referral link has expired.",
         "KMG-REF-004": "This referral link has already been used.",
         "KMG-SYS-000": "We could not validate this referral link. Try again or contact support."
-      }
+      },
+      "referredByLabel": "Referral source",
+      "bannerTitle": "Referred by {name} to join {association}",
+      "unknownReferrer": "a Kamga user"
     }
   },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
     "description": "Public RPN association lookup and contribution management foundation."
+  },
+  "memberRegistration": {
+    "form": {
+      "associationEyebrow": "Referral target",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "emailLabel": "Email address",
+      "phoneLabel": "Phone",
+      "arrivalDateLabel": "Date of arrival in Canada",
+      "sinLabel": "Social Insurance Number",
+      "sinHelp": "Your SIN is encrypted, held only for administrator review, and destroyed after the review decision. It is never stored permanently in your profile.",
+      "governmentIdLabel": "Government-issued ID",
+      "immigrationProofLabel": "Proof of immigration status",
+      "consentLabel": "I consent to the association administrator viewing my documents for verification, and I understand the documents will be destroyed after verification.",
+      "magicLinkAction": "Continue with magic link",
+      "sending": "Sending...",
+      "sentMessage": "Check your inbox, then return to Kamga from the secure link to complete registration.",
+      "googleAction": "Continue with Google",
+      "facebookAction": "Continue with Facebook",
+      "connecting": "Connecting...",
+      "authError": "Authentication could not be started. Try again or contact support.",
+      "errors": {
+        "KMG-RG-001": "Check the required fields and consent before continuing.",
+        "KMG-RG-003": "The selected files are too large for secure browser handoff. Use smaller files or compressed images.",
+        "KMG-RG-004": "Use PDF, PNG, or JPEG files under the allowed size."
+      }
+    },
+    "complete": {
+      "badge": "Registration completion",
+      "title": "Completing your registration",
+      "description": "Kamga is creating your pending membership and securely storing the verification documents.",
+      "errors": {
+        "KMG-AUTH-401": "Sign in again to complete registration.",
+        "KMG-REF-001": "The referral token is invalid.",
+        "KMG-REF-004": "This referral token is no longer available.",
+        "KMG-RG-001": "Your saved registration data is incomplete. Please restart from the referral link.",
+        "KMG-RG-002": "A required document is missing.",
+        "KMG-RG-003": "The saved documents are too large. Please restart with smaller files.",
+        "KMG-RG-004": "The verification documents could not be uploaded.",
+        "KMG-SYS-000": "Registration could not be completed. Try again or contact support."
+      }
+    }
   }
 }

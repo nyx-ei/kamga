@@ -20,6 +20,7 @@ export type ReferralTokenValidationResult =
       token: string;
       associationId: string;
       associationName: string;
+      referredByName: string;
       expiresAt: string;
     }
   | {
@@ -46,6 +47,10 @@ const referralTokenRowSchema = z.object({
   expires_at: z.string(),
   used_by: z.string().uuid().nullable(),
   association_id: z.string().uuid(),
+  users: z.object({
+    first_name: z.string().nullable(),
+    last_name: z.string().nullable()
+  }).nullable(),
   associations: z.object({
     id: z.string().uuid(),
     name: z.string(),
@@ -89,7 +94,7 @@ export async function validateReferralToken(token: string): Promise<ReferralToke
   // CV-DB-04 / CV-SEC-06: public referral validation exposes only the association summary needed for registration gating.
   const { data, error } = await supabase
     .from('referral_tokens')
-    .select('id,token,expires_at,used_by,association_id,associations!inner(id,name,status)')
+    .select('id,token,expires_at,used_by,association_id,users!referral_tokens_created_by_fkey(first_name,last_name),associations!inner(id,name,status)')
     .eq('token', parsedToken.token)
     .maybeSingle();
 
@@ -119,11 +124,14 @@ export async function validateReferralToken(token: string): Promise<ReferralToke
     return { ok: false, code: 'KMG-REF-002' };
   }
 
+  const referredByName = [parsedRow.data.users?.first_name, parsedRow.data.users?.last_name].filter(Boolean).join(' ').trim();
+
   return {
     ok: true,
     token: parsedRow.data.token,
     associationId: parsedRow.data.association_id,
     associationName: parsedRow.data.associations.name,
+    referredByName,
     expiresAt: parsedRow.data.expires_at
   };
 }
@@ -163,4 +171,5 @@ export async function consumeReferralToken(token: string): Promise<ReferralToken
     referralTokenId: parsedRow.data.referral_token_id
   };
 }
+
 
