@@ -1,10 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import sanitizeHtml from 'sanitize-html';
 
-import { type MembershipActionState, membershipReviewSchema, type SINRevealResult, sinRevealSchema } from '@/features/memberships/membership-types';
+import {
+  declineMemberSchema,
+  type MembershipActionState,
+  membershipReviewSchema,
+  type RequestableEvidenceType,
+  requestMoreEvidenceSchema,
+  type SINRevealResult,
+  sinRevealSchema
+} from '@/features/memberships/membership-types';
 import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
 import { decryptSIN } from '@/lib/crypto/sin';
+import { emailDefaults, resend } from '@/lib/email/resend';
+import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -14,6 +25,10 @@ const INITIAL_ERROR_STATE: MembershipActionState = { ok: true };
 function valueFromFormData(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === 'string' ? value : '';
+}
+
+function valuesFromFormData(formData: FormData, key: string): string[] {
+  return formData.getAll(key).flatMap((value) => (typeof value === 'string' ? [value] : []));
 }
 
 function byteaToBuffer(value: unknown): Buffer | null {
@@ -39,6 +54,130 @@ function membershipErrorCode(message: string): MembershipActionState {
   }
 
   return { ok: false, code: 'KMG-SYS-000' };
+}
+
+function sanitizedDeclineReason(html: string): string {
+  return sanitizeHtml(html, {
+    allowedAttributes: {
+      a: ['href', 'rel', 'target']
+    },
+    allowedTags: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'a']
+  });
+}
+
+type ReviewEmailMembership = {
+  associationName: string;
+  email: string;
+};
+
+async function membershipEmailRecipient(membershipId: string): Promise<ReviewEmailMembership | null> {
+  const adminSupabase = createSupabaseAdminClient();
+  // CV-DB-04 / CV-SEC-06: service role shapes the minimal email recipient DTO for an admin-triggered notification.
+  const { data, error } = await adminSupabase
+    .from('association_members')
+    .select('associations:association_id(name),users:user_id(email)')
+    .eq('id', membershipId)
+    .maybeSingle();
+
+  if (error || data === null) {
+    return null;
+  }
+
+  const association = Array.isArray(data.associations) ? data.associations[0] : data.associations;
+  const user = Array.isArray(data.users) ? data.users[0] : data.users;
+  const email = typeof user?.email === 'string' ? user.email : null;
+  const associationName = typeof association?.name === 'string' ? association.name : 'Kamga';
+
+  return email === null ? null : { associationName, email };
+}
+
+async function sendApprovalEmail(membershipId: string, locale: 'en' | 'fr') {
+  const recipient = await membershipEmailRecipient(membershipId);
+
+  if (recipient === null) {
+    return;
+  }
+
+  const subject = locale === 'fr' ? 'Kamga - Demande membre approuvee' : 'Kamga - Member application approved';
+  const text =
+    locale === 'fr'
+      ? `Votre demande membre pour ${recipient.associationName} a ete approuvee.`
+      : `Your member application for ${recipient.associationName} was approved.`;
+
+  await resend.emails.send({ from: emailDefaults.from, to: recipient.email, subject, text });
+}
+
+async function sendDeclineEmail(membershipId: string, locale: 'en' | 'fr', explanationHtml: string) {
+  const recipient = await membershipEmailRecipient(membershipId);
+
+  if (recipient === null) {
+    return;
+  }
+
+  const subject = locale === 'fr' ? 'Kamga - Demande membre refusee' : 'Kamga - Member application declined';
+  const text =
+    locale === 'fr'
+      ? `Votre demande membre pour ${recipient.associationName} a ete refusee. Consultez l'explication fournie dans le message HTML.`
+      : `Your member application for ${recipient.associationName} was declined. Review the explanation in the HTML message.`;
+
+  await resend.emails.send({ from: emailDefaults.from, html: explanationHtml, to: recipient.email, subject, text });
+}
+
+function evidenceTypeLabel(evidenceType: RequestableEvidenceType, locale: 'en' | 'fr'): string {
+  if (evidenceType === 'government_id') {
+    return locale === 'fr' ? "piece d'identite gouvernementale" : 'government ID';
+  }
+
+  return locale === 'fr' ? "preuve du statut d'immigration" : 'proof of immigration status';
+}
+
+async function sendMoreEvidenceEmail(membershipId: string, locale: 'en' | 'fr', evidenceTypes: RequestableEvidenceType[]) {
+  const recipient = await membershipEmailRecipient(membershipId);
+
+  if (recipient === null) {
+    return;
+  }
+
+  const uploadUrl = new URL(`/${locale}/dashboard/upload-evidence`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const requested = evidenceTypes.map((type) => evidenceTypeLabel(type, locale)).join(', ');
+  const subject = locale === 'fr' ? 'Kamga - Preuves complementaires requises' : 'Kamga - Additional evidence required';
+  const text =
+    locale === 'fr'
+      ? `Des preuves complementaires sont requises pour ${recipient.associationName}: ${requested}. Televersez-les ici: ${uploadUrl}`
+      : `Additional evidence is required for ${recipient.associationName}: ${requested}. Upload it here: ${uploadUrl}`;
+
+  await resend.emails.send({ from: emailDefaults.from, to: recipient.email, subject, text });
+}
+
+async function runTerminalReview(membershipId: string, decision: 'active' | 'declined', locale: 'en' | 'fr', declineReasonHtml: string | null) {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('review_member_application', {
+    decline_reason_html_value: declineReasonHtml,
+    decision_value: decision,
+    membership_uuid: membershipId
+  });
+
+  if (error) {
+    return membershipErrorCode(error.message);
+  }
+
+  const storagePaths = Array.isArray(data)
+    ? data.flatMap((row: { destroyed_storage_path?: unknown }) => (typeof row.destroyed_storage_path === 'string' ? [row.destroyed_storage_path] : []))
+    : [];
+
+  if (storagePaths.length > 0) {
+    const adminSupabase = createSupabaseAdminClient();
+    // CV-DB-04 / CV-SEC-07: terminal review destroys private evidence objects after DB state is terminal.
+    await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).remove(storagePaths);
+  }
+
+  revalidatePath('/admin/members');
+  revalidatePath(`/${locale}/admin/members`);
+  revalidatePath(`/${locale}/admin/members/${membershipId}`);
+  revalidatePath('/admin/associations');
+  revalidatePath(`/${locale}/admin/associations`);
+
+  return { ok: true } satisfies MembershipActionState;
 }
 
 export async function revealSIN(membershipId: string): Promise<SINRevealResult> {
@@ -106,29 +245,97 @@ export async function reviewMembership(
     return { ok: false, code: 'KMG-RG-001' };
   }
 
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase.rpc('review_member_application', {
-    decline_reason_html_value: null,
-    decision_value: parsed.data.decision,
-    membership_uuid: parsed.data.membershipId
+  return runTerminalReview(parsed.data.membershipId, parsed.data.decision, parsed.data.locale, null);
+}
+
+export async function approveMember(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = membershipReviewSchema.safeParse({
+    decision: 'active',
+    locale: valueFromFormData(formData, 'locale'),
+    membershipId: valueFromFormData(formData, 'membershipId')
   });
 
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const result = await runTerminalReview(parsed.data.membershipId, 'active', parsed.data.locale, null);
+
+  if (result.ok) {
+    await sendApprovalEmail(parsed.data.membershipId, parsed.data.locale);
+  }
+
+  return result;
+}
+
+export async function declineMember(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = declineMemberSchema.safeParse({
+    declineReasonHtml: valueFromFormData(formData, 'declineReasonHtml'),
+    locale: valueFromFormData(formData, 'locale'),
+    membershipId: valueFromFormData(formData, 'membershipId')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const explanation = sanitizedDeclineReason(parsed.data.declineReasonHtml);
+
+  if (explanation.trim().length < 10) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const result = await runTerminalReview(parsed.data.membershipId, 'declined', parsed.data.locale, explanation);
+
+  if (result.ok) {
+    await sendDeclineEmail(parsed.data.membershipId, parsed.data.locale, explanation);
+  }
+
+  return result;
+}
+
+export async function requestMoreEvidence(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = requestMoreEvidenceSchema.safeParse({
+    evidenceTypes: valuesFromFormData(formData, 'evidenceTypes'),
+    locale: valueFromFormData(formData, 'locale'),
+    membershipId: valueFromFormData(formData, 'membershipId')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('association_members')
+    .update({
+      reviewed_by: null,
+      reviewed_at: null,
+      status: 'needs_more_evidence'
+    })
+    .eq('id', parsed.data.membershipId)
+    .in('status', ['pending', 'needs_more_evidence'])
+    .select('id')
+    .maybeSingle();
+
   if (error) {
-    return membershipErrorCode(error.message);
+    return { ok: false, code: 'KMG-SYS-000' };
   }
 
-  const storagePaths = Array.isArray(data)
-    ? data.flatMap((row: { destroyed_storage_path?: unknown }) => (typeof row.destroyed_storage_path === 'string' ? [row.destroyed_storage_path] : []))
-    : [];
-
-  if (storagePaths.length > 0) {
-    const adminSupabase = createSupabaseAdminClient();
-    // CV-DB-04 / CV-SEC-07: terminal review destroys private evidence objects after DB state is terminal.
-    await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).remove(storagePaths);
+  if (data === null) {
+    return { ok: false, code: 'KMG-RG-409' };
   }
 
-  revalidatePath('/admin/associations');
-  revalidatePath(`/${parsed.data.locale}/admin/associations`);
+  await sendMoreEvidenceEmail(parsed.data.membershipId, parsed.data.locale, parsed.data.evidenceTypes);
+  revalidatePath('/admin/members');
+  revalidatePath(`/${parsed.data.locale}/admin/members`);
+  revalidatePath(`/${parsed.data.locale}/admin/members/${parsed.data.membershipId}`);
 
   return { ok: true };
 }

@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 export const MEMBERSHIP_REVIEW_DECISIONS = ['active', 'declined'] as const;
+export const REQUESTABLE_EVIDENCE_TYPES = ['government_id', 'immigration_proof'] as const;
 
 export type MembershipReviewDecision = (typeof MEMBERSHIP_REVIEW_DECISIONS)[number];
+export type RequestableEvidenceType = (typeof REQUESTABLE_EVIDENCE_TYPES)[number];
 
 export type MembershipActionCode = 'KMG-AUTH-403' | 'KMG-RG-001' | 'KMG-RG-404' | 'KMG-RG-409' | 'KMG-SYS-000';
 
@@ -29,6 +31,18 @@ export const membershipReviewSchema = z.object({
   membershipId: z.string().uuid(),
   decision: z.enum(MEMBERSHIP_REVIEW_DECISIONS),
   locale: z.enum(['en', 'fr'])
+});
+
+export const declineMemberSchema = z.object({
+  declineReasonHtml: z.string().trim().min(10).max(4000),
+  locale: z.enum(['en', 'fr']),
+  membershipId: z.string().uuid()
+});
+
+export const requestMoreEvidenceSchema = z.object({
+  evidenceTypes: z.array(z.enum(REQUESTABLE_EVIDENCE_TYPES)).min(1),
+  locale: z.enum(['en', 'fr']),
+  membershipId: z.string().uuid()
 });
 
 export const sinRevealSchema = z.object({

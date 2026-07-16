@@ -41,7 +41,8 @@
     "title": "Admin access confirmed",
     "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here.",
     "associationReviewAction": "Review associations",
-    "referralsAction": "Manage referrals"
+    "referralsAction": "Manage referrals",
+    "membersAction": "Review members"
   },
   "associations": {
     "status": {
@@ -160,6 +161,72 @@
     }
   },
   "memberships": {
+    "adminMembers": {
+      "badge": "Member review",
+      "title": "Member applications",
+      "description": "Filter member applications by status, open each full review file, and make a controlled decision with evidence and SIN lifecycle handling.",
+      "backToAdmin": "Admin overview",
+      "emptyState": "No member application matches this filter.",
+      "unknownAssociation": "Unknown association",
+      "unknownMember": "Unknown member",
+      "notProvided": "Not provided",
+      "reviewAction": "Open review",
+      "statusLabel": "Status",
+      "submittedAtLabel": "Submitted",
+      "filters": {
+        "pending": "Pending",
+        "needs_more_evidence": "Needs evidence",
+        "active": "Active",
+        "declined": "Declined",
+        "all": "All"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "needs_more_evidence": "Needs more evidence",
+        "active": "Active",
+        "declined": "Declined",
+        "suspended": "Suspended"
+      }
+    },
+    "review": {
+      "badge": "Application review",
+      "description": "Inspect the applicant, referrer, transient SIN, and verification evidence before making a final decision.",
+      "backToMembers": "Member queue",
+      "unknownMember": "Unknown member",
+      "notProvided": "Not provided",
+      "applicantTitle": "Applicant",
+      "associationLabel": "Association",
+      "statusLabel": "Status",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "arrivalDateLabel": "Arrival in Canada",
+      "submittedAtLabel": "Submitted",
+      "referrerTitle": "Referrer",
+      "referrerNameLabel": "Name",
+      "referrerEmailLabel": "Email",
+      "sinLabel": "Social Insurance Number",
+      "evidenceTitle": "Verification evidence",
+      "decisionTitle": "Review decision",
+      "approveAction": "Approve",
+      "declineAction": "Decline",
+      "requestEvidenceAction": "Request evidence",
+      "decisionPending": "Updating...",
+      "declineReasonLabel": "Decline explanation",
+      "declineReasonPlaceholder": "<p>Explain clearly why this application is declined.</p>",
+      "declineReasonHelp": "Allowed formatting: paragraphs, bold, italic, lists, and links. The explanation is sanitized before storage and email delivery.",
+      "requestEvidenceLabel": "Missing documents",
+      "evidenceTypes": {
+        "government_id": "Government ID",
+        "immigration_proof": "Immigration proof"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to review this member application.",
+        "KMG-RG-001": "The review request is invalid.",
+        "KMG-RG-404": "This member application or SIN token could not be found.",
+        "KMG-RG-409": "This member application cannot be reviewed in its current state.",
+        "KMG-SYS-000": "The member application could not be updated. Try again or contact support."
+      }
+    },
     "admin": {
       "badge": "Member review",
       "title": "Pending member applications",
