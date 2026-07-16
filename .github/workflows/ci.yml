@@ -39,4 +39,4 @@ jobs:
           SUPABASE_STORAGE_EVIDENCE_BUCKET: association-evidence
           RESEND_API_KEY: re_ci_placeholder
           RESEND_FROM_EMAIL: Kamga <notifications@example.com>
-          SIN_ENCRYPTION_KEY: ci-placeholder-key
+          SIN_ENCRYPTION_KEY: 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
