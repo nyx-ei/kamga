@@ -1,5 +1,5 @@
 ﻿import { getTranslations } from 'next-intl/server';
-import { Building2 } from 'lucide-react';
+import { Building2, Upload } from 'lucide-react';
 
 import { LogoutButton } from '@/features/auth';
 import { Link } from '@/i18n/navigation';
@@ -45,6 +45,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           >
             <Building2 aria-hidden="true" size={16} />
             {t('registerAssociationAction')}
+          </Link>
+          <Link
+            className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
+            href="/dashboard/upload-evidence"
+          >
+            <Upload aria-hidden="true" size={16} />
+            {t('uploadEvidenceAction')}
           </Link>
           <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
         </div>

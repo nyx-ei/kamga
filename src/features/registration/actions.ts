@@ -3,14 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
+import { dataUrlToEvidenceBuffer, removeEvidenceObjects, uploadEvidenceObject } from '@/features/evidence/storage';
 import { memberRegistrationSchema } from '@/features/registration/registration-schema';
-import type { MemberEvidenceMimeType, MemberRegistrationActionResult, StoredEvidenceFile, StoredMemberRegistration } from '@/features/registration/registration-types';
+import type { MemberRegistrationActionResult, StoredEvidenceFile, StoredMemberRegistration } from '@/features/registration/registration-types';
 import { getCurrentUser } from '@/lib/auth';
 import { emailDefaults, resend } from '@/lib/email/resend';
-import { env } from '@/lib/env/server-env';
-import { parseReferralToken } from '@/lib/referrals/tokens';
+import { parseReferralToken, validateReferralToken } from '@/lib/referrals/tokens';
 import { encryptSin } from '@/lib/security/sin-encryption';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const completedRegistrationSchema = z.object({
@@ -18,56 +17,28 @@ const completedRegistrationSchema = z.object({
   association_id: z.string().uuid()
 });
 
-function evidenceExtension(mimeType: MemberEvidenceMimeType): 'pdf' | 'jpg' | 'png' {
-  switch (mimeType) {
-    case 'application/pdf':
-      return 'pdf';
-    case 'image/jpeg':
-      return 'jpg';
-    case 'image/png':
-      return 'png';
-  }
-}
-
-function dataUrlToBuffer(evidence: StoredEvidenceFile): Buffer | null {
-  const prefix = `data:${evidence.mimeType};base64,`;
-
-  if (!evidence.dataUrl.startsWith(prefix)) {
-    return null;
-  }
-
-  return Buffer.from(evidence.dataUrl.slice(prefix.length), 'base64');
-}
-
-async function uploadEvidence(membershipId: string, evidence: StoredEvidenceFile, type: 'government_id' | 'immigration_proof') {
-  const body = dataUrlToBuffer(evidence);
+async function uploadRegistrationEvidence(
+  associationId: string,
+  membershipId: string,
+  evidence: StoredEvidenceFile,
+  type: 'government_id' | 'immigration_proof'
+) {
+  const body = dataUrlToEvidenceBuffer(evidence);
 
   if (body === null || body.length === 0) {
     return { ok: false as const };
   }
 
-  const storagePath = `members/${membershipId}/${type}-${Date.now()}.${evidenceExtension(evidence.mimeType)}`;
-  const adminSupabase = createSupabaseAdminClient();
-  // CV-DB-04 / CV-SEC-07: private evidence upload is performed server-side into the private evidence bucket.
-  const { error } = await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).upload(storagePath, body, {
-    contentType: evidence.mimeType,
-    upsert: false
+  const evidenceBytes = new Uint8Array(body.length);
+  evidenceBytes.set(body);
+
+  return uploadEvidenceObject({
+    associationId,
+    body: new Blob([evidenceBytes], { type: evidence.mimeType }),
+    evidenceType: type,
+    membershipId,
+    mimeType: evidence.mimeType
   });
-
-  if (error) {
-    return { ok: false as const };
-  }
-
-  return { ok: true as const, storagePath };
-}
-
-async function removeEvidence(paths: string[]) {
-  if (paths.length === 0) {
-    return;
-  }
-
-  const adminSupabase = createSupabaseAdminClient();
-  await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).remove(paths);
 }
 
 function registrationEmailCopy(registration: StoredMemberRegistration): { subject: string; text: string } {
@@ -118,17 +89,23 @@ export async function completeRegistration(registration: unknown): Promise<Membe
     return { ok: false, code: 'KMG-REF-001' };
   }
 
+  const referral = await validateReferralToken(parsed.data.referralToken);
+
+  if (!referral.ok) {
+    return { ok: false, code: referral.code === 'KMG-REF-004' ? 'KMG-REF-004' : 'KMG-REF-001' };
+  }
+
   const membershipId = crypto.randomUUID();
-  const governmentUpload = await uploadEvidence(membershipId, parsed.data.governmentId, 'government_id');
+  const governmentUpload = await uploadRegistrationEvidence(referral.associationId, membershipId, parsed.data.governmentId, 'government_id');
 
   if (!governmentUpload.ok) {
     return { ok: false, code: 'KMG-RG-004' };
   }
 
-  const immigrationUpload = await uploadEvidence(membershipId, parsed.data.immigrationProof, 'immigration_proof');
+  const immigrationUpload = await uploadRegistrationEvidence(referral.associationId, membershipId, parsed.data.immigrationProof, 'immigration_proof');
 
   if (!immigrationUpload.ok) {
-    await removeEvidence([governmentUpload.storagePath]);
+    await removeEvidenceObjects([governmentUpload.storagePath]);
     return { ok: false, code: 'KMG-RG-004' };
   }
 
@@ -149,7 +126,7 @@ export async function completeRegistration(registration: unknown): Promise<Membe
   });
 
   if (error) {
-    await removeEvidence([governmentUpload.storagePath, immigrationUpload.storagePath]);
+    await removeEvidenceObjects([governmentUpload.storagePath, immigrationUpload.storagePath]);
 
     if (error.message === 'KMG-AUTH-401') {
       return { ok: false, code: 'KMG-AUTH-401' };

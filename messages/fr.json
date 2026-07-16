@@ -32,6 +32,7 @@
     "roleLabel": "Rôle actuel",
     "unknownRole": "Aucun rôle plateforme n’est encore assigné",
     "registerAssociationAction": "Inscrire une association",
+    "uploadEvidenceAction": "Televerser une preuve",
     "associationSubmitted": "Votre demande d’inscription d’association a été envoyée pour revue plateforme.",
     "memberRegistrationPending": "Votre inscription membre est en attente de revue par l?administrateur de l?association."
   },
@@ -188,6 +189,37 @@
         "KMG-RG-404": "Cette demande membre ou son token NAS est introuvable.",
         "KMG-RG-409": "Cette demande membre a deja ete revue.",
         "KMG-SYS-000": "La demande membre n'a pas pu etre mise a jour. Reessayez ou contactez le support."
+      }
+    }
+  },
+  "evidence": {
+    "viewer": {
+      "frameTitle": "Document de preuve : {name}"
+    },
+    "upload": {
+      "badge": "Cycle de vie des preuves",
+      "title": "Televerser une preuve complementaire",
+      "description": "Ajoutez un document de verification demande a une adhesion membre en attente. Les fichiers sont stockes en prive et revus en ligne par un administrateur.",
+      "backToDashboard": "Tableau de bord",
+      "emptyState": "Aucune adhesion en attente ne peut recevoir de preuve complementaire pour le moment.",
+      "membershipLabel": "Adhesion",
+      "typeLabel": "Type de document",
+      "fileLabel": "Fichier de preuve",
+      "help": "Utilisez un fichier PDF, PNG ou JPEG de 10 Mo maximum.",
+      "submit": "Televerser la preuve",
+      "submitting": "Televersement...",
+      "types": {
+        "government_id": "Piece d'identite gouvernementale",
+        "immigration_proof": "Preuve du statut d'immigration"
+      },
+      "errors": {
+        "KMG-AUTH-401": "Connectez-vous avant de televerser une preuve.",
+        "KMG-AUTH-403": "Vous ne pouvez pas televerser de preuve pour cette adhesion.",
+        "KMG-RG-001": "La demande de televersement est invalide.",
+        "KMG-RG-002": "Selectionnez un fichier de preuve.",
+        "KMG-RG-003": "Le fichier doit peser 10 Mo ou moins.",
+        "KMG-RG-004": "Utilisez un fichier PDF, PNG ou JPEG.",
+        "KMG-SYS-000": "La preuve n'a pas pu etre televersee. Reessayez ou contactez le support."
       }
     }
   },
