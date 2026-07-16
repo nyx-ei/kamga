@@ -1,8 +1,8 @@
+import { type NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
-import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { type CookieOptions, createServerClient } from '@supabase/ssr';
 
-import { routing, type Locale } from '@/i18n/routing';
+import { type Locale, routing } from '@/i18n/routing';
 import { publicEnv } from '@/lib/env/public-env';
 
 const handleI18nRouting = createMiddleware(routing);
