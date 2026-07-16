@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kamga">
+  <rect width="512" height="512" rx="64" fill="#FFF8DE"/>
+  <rect x="96" y="96" width="320" height="320" rx="28" fill="#1D2B5E"/>
+  <path d="M174 350V162h44v76l72-76h56l-82 86 88 102h-58l-76-88v88h-44Z" fill="#8CA9FF"/>
+</svg>

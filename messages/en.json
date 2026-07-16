@@ -1,0 +1,14 @@
+{
+  "home": {
+    "badge": "Layer 1 · Lookup foundation",
+    "title": "Find an RPN association near you",
+    "description": "Kamga starts with a public directory that helps people discover associations while building the verified dataset for future contribution workflows.",
+    "primaryAction": "Search the directory",
+    "secondaryAction": "Register an association"
+  },
+  "pwa": {
+    "name": "Kamga",
+    "shortName": "Kamga",
+    "description": "Public RPN association lookup and contribution management foundation."
+  }
+}
