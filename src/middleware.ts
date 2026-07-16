@@ -80,9 +80,11 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    const { data: roleRow } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle();
+    const { data: isPlatformAdmin, error: roleError } = await supabase.rpc('has_role', {
+      required_role: 'platform_admin'
+    });
 
-    if (roleRow?.role !== 'platform_admin') {
+    if (roleError || isPlatformAdmin !== true) {
       return NextResponse.redirect(new URL(localizedPath(locale, '/dashboard'), request.url));
     }
   }
