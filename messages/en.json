@@ -158,6 +158,39 @@
       "unknownReferrer": "a Kamga user"
     }
   },
+  "memberships": {
+    "admin": {
+      "badge": "Member review",
+      "title": "Pending member applications",
+      "description": "Review referred member applications, inspect private evidence, reveal the SIN only when needed, then accept or decline the application. Terminal decisions destroy the transient SIN and verification evidence.",
+      "emptyState": "No member application is waiting for review.",
+      "submittedAtLabel": "Submitted",
+      "sinLabel": "Social Insurance Number",
+      "sinRevealAction": "Reveal",
+      "sinRevealing": "Revealing...",
+      "sinMaskAction": "Mask",
+      "sinMaskedHelp": "Masked by default. Reveals are audited.",
+      "sinRevealedHelp": "Visible for 30 seconds. Do not copy or store this value.",
+      "evidenceLabel": "Verification evidence",
+      "notProvided": "Not provided",
+      "unknownAssociation": "Unknown association",
+      "unknownMember": "Unknown member",
+      "activeAction": "Accept",
+      "declinedAction": "Decline",
+      "decisionPending": "Updating...",
+      "evidenceTypes": {
+        "government_id": "Government ID",
+        "immigration_proof": "Immigration proof"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to review this member application.",
+        "KMG-RG-001": "The review request is invalid.",
+        "KMG-RG-404": "This member application or SIN token could not be found.",
+        "KMG-RG-409": "This member application has already been reviewed.",
+        "KMG-SYS-000": "The member application could not be updated. Try again or contact support."
+      }
+    }
+  },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",

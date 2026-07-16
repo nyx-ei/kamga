@@ -9,7 +9,7 @@ const serverEnvSchema = z.object({
   SUPABASE_STORAGE_EVIDENCE_BUCKET: z.string().min(1),
   RESEND_API_KEY: z.string().min(1),
   RESEND_FROM_EMAIL: z.string().min(1),
-  SIN_ENCRYPTION_KEY: z.string().min(1),
+  SIN_ENCRYPTION_KEY: z.string().regex(/^[\da-f]{64}$/i, 'SIN_ENCRYPTION_KEY must be a 32-byte hex string.'),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   SUPABASE_WEBHOOK_SECRET: z.string().optional()
