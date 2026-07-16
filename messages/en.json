@@ -6,6 +6,37 @@
     "primaryAction": "Search the directory",
     "secondaryAction": "Register an association"
   },
+  "auth": {
+    "login": {
+      "badge": "Secure access",
+      "title": "Sign in to Kamga",
+      "description": "Use a magic link or your organization-approved social account to access protected Kamga workspaces.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "name@example.com",
+      "magicLinkAction": "Send magic link",
+      "sending": "Sending...",
+      "sentMessage": "Check your inbox for a secure sign-in link.",
+      "errorMessage": "We could not start sign-in. Try again or contact support.",
+      "googleAction": "Continue with Google",
+      "facebookAction": "Continue with Facebook",
+      "connecting": "Connecting..."
+    },
+    "logout": {
+      "action": "Sign out"
+    }
+  },
+  "dashboard": {
+    "badge": "Member workspace",
+    "title": "Dashboard access confirmed",
+    "description": "You are signed in. Upcoming tickets will replace this foundation screen with the member and association workflows.",
+    "roleLabel": "Current role",
+    "unknownRole": "No platform role assigned yet"
+  },
+  "admin": {
+    "badge": "Platform administration",
+    "title": "Admin access confirmed",
+    "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here."
+  },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
