@@ -83,3 +83,23 @@ for all
 to authenticated
 using (public.has_role('platform_admin'))
 with check (public.has_role('platform_admin'));
+create or replace function public.handle_new_user_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.user_roles (user_id, role)
+  values (new.id, 'member')
+  on conflict (user_id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists create_default_user_role on auth.users;
+create trigger create_default_user_role
+after insert on auth.users
+for each row
+execute function public.handle_new_user_role();
