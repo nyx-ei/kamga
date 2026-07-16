@@ -12,6 +12,10 @@ export type CurrentUser = {
   role: AppRole | null;
 };
 
+function isAppRole(role: unknown): role is AppRole {
+  return APP_ROLES.some((appRole) => appRole === role);
+}
+
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const supabase = createSupabaseServerClient();
   const {
@@ -23,13 +27,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     return null;
   }
 
-  const { data: roleRow, error: roleError } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle();
+  const { data: role, error: roleError } = await supabase.rpc('get_current_user_role');
 
-  if (roleError) {
+  if (roleError || !isAppRole(role)) {
     return { user, role: null };
   }
 
-  return { user, role: roleRow?.role ?? null };
+  return { user, role };
 }
 
 export async function requireUser(): Promise<CurrentUser> {
