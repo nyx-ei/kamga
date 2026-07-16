@@ -32,6 +32,7 @@
     "roleLabel": "Current role",
     "unknownRole": "No platform role assigned yet",
     "registerAssociationAction": "Register an association",
+    "uploadEvidenceAction": "Upload evidence",
     "associationSubmitted": "Your association registration was submitted for platform review.",
     "memberRegistrationPending": "Your member registration is pending association admin review."
   },
@@ -188,6 +189,37 @@
         "KMG-RG-404": "This member application or SIN token could not be found.",
         "KMG-RG-409": "This member application has already been reviewed.",
         "KMG-SYS-000": "The member application could not be updated. Try again or contact support."
+      }
+    }
+  },
+  "evidence": {
+    "viewer": {
+      "frameTitle": "Evidence document: {name}"
+    },
+    "upload": {
+      "badge": "Evidence lifecycle",
+      "title": "Upload additional evidence",
+      "description": "Add a requested verification document to a pending member application. Files are stored privately and reviewed inline by an administrator.",
+      "backToDashboard": "Dashboard",
+      "emptyState": "No pending membership can receive additional evidence right now.",
+      "membershipLabel": "Membership",
+      "typeLabel": "Document type",
+      "fileLabel": "Evidence file",
+      "help": "Use a PDF, PNG, or JPEG file up to 10 MB.",
+      "submit": "Upload evidence",
+      "submitting": "Uploading...",
+      "types": {
+        "government_id": "Government ID",
+        "immigration_proof": "Immigration proof"
+      },
+      "errors": {
+        "KMG-AUTH-401": "Sign in before uploading evidence.",
+        "KMG-AUTH-403": "You cannot upload evidence for this membership.",
+        "KMG-RG-001": "The upload request is invalid.",
+        "KMG-RG-002": "Select an evidence file.",
+        "KMG-RG-003": "The file must be 10 MB or smaller.",
+        "KMG-RG-004": "Use a PDF, PNG, or JPEG file.",
+        "KMG-SYS-000": "The evidence could not be uploaded. Try again or contact support."
       }
     }
   },

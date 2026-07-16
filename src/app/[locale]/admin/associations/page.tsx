@@ -1,10 +1,11 @@
 ﻿import { getFormatter, getTranslations } from 'next-intl/server';
-import { Building2, ExternalLink, FileCheck2 } from 'lucide-react';
+import { Building2, ExternalLink } from 'lucide-react';
 import { z } from 'zod';
 
 import { ASSOCIATION_STATUSES, type AssociationStatus } from '@/features/associations/association-types';
 import { AssociationReviewActions } from '@/features/associations/components/AssociationReviewActions';
 import { AssociationStatusBadge } from '@/features/associations/components/AssociationStatusBadge';
+import { EvidenceViewer } from '@/features/evidence';
 import { MembershipReviewActions } from '@/features/memberships/components/MembershipReviewActions';
 import { SINReveal } from '@/features/memberships/components/SINReveal';
 import { Link } from '@/i18n/navigation';
@@ -27,6 +28,7 @@ const adminAssociationSchema = z.object({
 
 const adminMembershipEvidenceSchema = z.object({
   evidence_type: z.enum(['government_id', 'immigration_proof']),
+  id: z.string().uuid(),
   status: z.enum(['pending', 'uploaded', 'destroyed']),
   storage_path: z.string()
 });
@@ -56,7 +58,7 @@ type AdminAssociation = z.infer<typeof adminAssociationSchema> & {
 };
 
 type AdminMembership = Omit<z.infer<typeof adminMembershipSchema>, 'evidence_uploads'> & {
-  evidence: Array<z.infer<typeof adminMembershipEvidenceSchema> & { signedUrl: string | null }>;
+  evidence: Array<z.infer<typeof adminMembershipEvidenceSchema>>;
 };
 
 async function listAdminAssociations(): Promise<AdminAssociation[]> {
@@ -97,7 +99,7 @@ async function listPendingMemberships(): Promise<AdminMembership[]> {
   const { data, error } = await supabase
     .from('association_members')
     .select(
-      'id,created_at,associations:association_id(name),users:user_id(first_name,last_name,email),evidence_uploads(evidence_type,status,storage_path)'
+      'id,created_at,associations:association_id(name),users:user_id(first_name,last_name,email),evidence_uploads(id,evidence_type,status,storage_path)'
     )
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -106,42 +108,22 @@ async function listPendingMemberships(): Promise<AdminMembership[]> {
     return [];
   }
 
-  const adminSupabase = createSupabaseAdminClient();
   const rows = data.flatMap((row: unknown) => {
     const parsed = adminMembershipSchema.safeParse(row);
     return parsed.success ? [parsed.data] : [];
   });
 
-  return Promise.all(
-    rows.map(async (row) => {
-      const evidence = await Promise.all(
-        (row.evidence_uploads ?? []).map(async (evidenceRow) => {
-          if (evidenceRow.status === 'destroyed') {
-            return { ...evidenceRow, signedUrl: null };
-          }
-
-          // CV-DB-04 / CV-SEC-07: platform admin review needs a short-lived private storage URL.
-          const { data: signedUrlData } = await adminSupabase.storage
-            .from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET)
-            .createSignedUrl(evidenceRow.storage_path, 300);
-
-          return { ...evidenceRow, signedUrl: signedUrlData?.signedUrl ?? null };
-        })
-      );
-
-      return {
-        associations: row.associations,
-        created_at: row.created_at,
-        evidence,
-        id: row.id,
-        users: row.users
-      };
-    })
-  );
+  return rows.map((row) => ({
+    associations: row.associations,
+    created_at: row.created_at,
+    evidence: row.evidence_uploads ?? [],
+    id: row.id,
+    users: row.users
+  }));
 }
 
 export default async function AdminAssociationsPage({ params }: AdminAssociationsPageProps) {
-  await requirePlatformAdmin();
+  const currentUser = await requirePlatformAdmin();
 
   const t = await getTranslations('associations.admin');
   const membershipT = await getTranslations('memberships.admin');
@@ -149,6 +131,7 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
   const format = await getFormatter();
   const associations = await listAdminAssociations();
   const pendingMemberships = await listPendingMemberships();
+  const adminLabel = currentUser.user.email ?? currentUser.user.id;
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -259,21 +242,18 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
                         <dd className="mt-2 grid gap-2">
                           {membership.evidence.length === 0 ? <span className="text-muted">{membershipT('notProvided')}</span> : null}
                           {membership.evidence.map((evidence) =>
-                            evidence.signedUrl === null ? (
-                              <span className="text-muted" key={evidence.storage_path}>
+                            evidence.status === 'destroyed' ? (
+                              <span className="text-muted" key={evidence.id}>
                                 {membershipT(`evidenceTypes.${evidence.evidence_type}`)}
                               </span>
                             ) : (
-                              <a
-                                className="inline-flex items-center gap-2 font-medium text-link transition hover:text-link-hover"
-                                href={evidence.signedUrl}
-                                key={evidence.storage_path}
-                                rel="noreferrer"
-                                target="_blank"
-                              >
-                                <FileCheck2 aria-hidden="true" size={14} />
-                                {membershipT(`evidenceTypes.${evidence.evidence_type}`)}
-                              </a>
+                              <EvidenceViewer
+                                adminLabel={adminLabel}
+                                evidenceId={evidence.id}
+                                fileName={membershipT(`evidenceTypes.${evidence.evidence_type}`)}
+                                key={evidence.id}
+                                storagePath={evidence.storage_path}
+                              />
                             )
                           )}
                         </dd>
