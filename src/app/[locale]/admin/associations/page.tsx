@@ -1,10 +1,12 @@
 ﻿import { getFormatter, getTranslations } from 'next-intl/server';
-import { Building2, ExternalLink } from 'lucide-react';
+import { Building2, ExternalLink, FileCheck2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { ASSOCIATION_STATUSES, type AssociationStatus } from '@/features/associations/association-types';
 import { AssociationReviewActions } from '@/features/associations/components/AssociationReviewActions';
 import { AssociationStatusBadge } from '@/features/associations/components/AssociationStatusBadge';
+import { MembershipReviewActions } from '@/features/memberships/components/MembershipReviewActions';
+import { SINReveal } from '@/features/memberships/components/SINReveal';
 import { Link } from '@/i18n/navigation';
 import { requirePlatformAdmin } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
@@ -23,6 +25,26 @@ const adminAssociationSchema = z.object({
   rpn_affiliation_proof_path: z.string().nullable()
 });
 
+const adminMembershipEvidenceSchema = z.object({
+  evidence_type: z.enum(['government_id', 'immigration_proof']),
+  status: z.enum(['pending', 'uploaded', 'destroyed']),
+  storage_path: z.string()
+});
+
+const adminMembershipSchema = z.object({
+  id: z.string().uuid(),
+  created_at: z.string(),
+  associations: z.object({ name: z.string() }).nullable(),
+  users: z
+    .object({
+      email: z.string().nullable(),
+      first_name: z.string().nullable(),
+      last_name: z.string().nullable()
+    })
+    .nullable(),
+  evidence_uploads: z.array(adminMembershipEvidenceSchema).nullable()
+});
+
 type AdminAssociationsPageProps = {
   params: {
     locale: 'en' | 'fr';
@@ -31,6 +53,10 @@ type AdminAssociationsPageProps = {
 
 type AdminAssociation = z.infer<typeof adminAssociationSchema> & {
   proofUrl: string | null;
+};
+
+type AdminMembership = Omit<z.infer<typeof adminMembershipSchema>, 'evidence_uploads'> & {
+  evidence: Array<z.infer<typeof adminMembershipEvidenceSchema> & { signedUrl: string | null }>;
 };
 
 async function listAdminAssociations(): Promise<AdminAssociation[]> {
@@ -66,13 +92,63 @@ async function listAdminAssociations(): Promise<AdminAssociation[]> {
   );
 }
 
+async function listPendingMemberships(): Promise<AdminMembership[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('association_members')
+    .select(
+      'id,created_at,associations:association_id(name),users:user_id(first_name,last_name,email),evidence_uploads(evidence_type,status,storage_path)'
+    )
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error || data === null) {
+    return [];
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const rows = data.flatMap((row: unknown) => {
+    const parsed = adminMembershipSchema.safeParse(row);
+    return parsed.success ? [parsed.data] : [];
+  });
+
+  return Promise.all(
+    rows.map(async (row) => {
+      const evidence = await Promise.all(
+        (row.evidence_uploads ?? []).map(async (evidenceRow) => {
+          if (evidenceRow.status === 'destroyed') {
+            return { ...evidenceRow, signedUrl: null };
+          }
+
+          // CV-DB-04 / CV-SEC-07: platform admin review needs a short-lived private storage URL.
+          const { data: signedUrlData } = await adminSupabase.storage
+            .from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET)
+            .createSignedUrl(evidenceRow.storage_path, 300);
+
+          return { ...evidenceRow, signedUrl: signedUrlData?.signedUrl ?? null };
+        })
+      );
+
+      return {
+        associations: row.associations,
+        created_at: row.created_at,
+        evidence,
+        id: row.id,
+        users: row.users
+      };
+    })
+  );
+}
+
 export default async function AdminAssociationsPage({ params }: AdminAssociationsPageProps) {
   await requirePlatformAdmin();
 
   const t = await getTranslations('associations.admin');
+  const membershipT = await getTranslations('memberships.admin');
   const statusT = await getTranslations('associations.status');
   const format = await getFormatter();
   const associations = await listAdminAssociations();
+  const pendingMemberships = await listPendingMemberships();
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -141,6 +217,74 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
             ))}
           </div>
         )}
+
+        <div className="border-t border-border pt-6">
+          <div className="mb-4 space-y-2">
+            <p className="text-xs font-semibold uppercase text-muted">{membershipT('badge')}</p>
+            <h2 className="text-2xl font-semibold text-heading">{membershipT('title')}</h2>
+            <p className="max-w-3xl text-sm leading-6 text-secondary">{membershipT('description')}</p>
+          </div>
+
+          {pendingMemberships.length === 0 ? (
+            <div className="rounded-md border border-border bg-sunken p-6 text-sm leading-6 text-secondary">{membershipT('emptyState')}</div>
+          ) : (
+            <div className="grid gap-4">
+              {pendingMemberships.map((membership) => {
+                const fullName = [membership.users?.first_name, membership.users?.last_name].filter(Boolean).join(' ');
+
+                return (
+                  <article className="grid gap-5 rounded-md border border-border bg-raised p-5 shadow-card" key={membership.id}>
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase text-muted">{membership.associations?.name ?? membershipT('unknownAssociation')}</p>
+                        <h3 className="text-xl font-semibold text-heading">{fullName.length > 0 ? fullName : membershipT('unknownMember')}</h3>
+                        <p className="text-sm text-secondary">{membership.users?.email ?? membershipT('notProvided')}</p>
+                      </div>
+                      <MembershipReviewActions locale={params.locale} membershipId={membership.id} />
+                    </div>
+
+                    <dl className="grid gap-4 rounded-sm border border-border bg-sunken p-4 text-sm lg:grid-cols-3">
+                      <div>
+                        <dt className="font-medium text-secondary">{membershipT('submittedAtLabel')}</dt>
+                        <dd className="mt-1 text-heading">{format.dateTime(new Date(membership.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{membershipT('sinLabel')}</dt>
+                        <dd className="mt-2">
+                          <SINReveal membershipId={membership.id} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{membershipT('evidenceLabel')}</dt>
+                        <dd className="mt-2 grid gap-2">
+                          {membership.evidence.length === 0 ? <span className="text-muted">{membershipT('notProvided')}</span> : null}
+                          {membership.evidence.map((evidence) =>
+                            evidence.signedUrl === null ? (
+                              <span className="text-muted" key={evidence.storage_path}>
+                                {membershipT(`evidenceTypes.${evidence.evidence_type}`)}
+                              </span>
+                            ) : (
+                              <a
+                                className="inline-flex items-center gap-2 font-medium text-link transition hover:text-link-hover"
+                                href={evidence.signedUrl}
+                                key={evidence.storage_path}
+                                rel="noreferrer"
+                                target="_blank"
+                              >
+                                <FileCheck2 aria-hidden="true" size={14} />
+                                {membershipT(`evidenceTypes.${evidence.evidence_type}`)}
+                              </a>
+                            )
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );

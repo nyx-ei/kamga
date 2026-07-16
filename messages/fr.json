@@ -158,6 +158,39 @@
       "unknownReferrer": "un utilisateur Kamga"
     }
   },
+  "memberships": {
+    "admin": {
+      "badge": "Revue membre",
+      "title": "Demandes membre en attente",
+      "description": "Revoyez les demandes membre par parrainage, consultez les preuves privees, revelez le NAS uniquement si necessaire, puis acceptez ou refusez la demande. Les decisions terminales detruisent le NAS transitoire et les preuves de verification.",
+      "emptyState": "Aucune demande membre n'est en attente de revue.",
+      "submittedAtLabel": "Soumise le",
+      "sinLabel": "Numero d'assurance sociale",
+      "sinRevealAction": "Reveler",
+      "sinRevealing": "Revelation...",
+      "sinMaskAction": "Masquer",
+      "sinMaskedHelp": "Masque par defaut. Les revelations sont auditees.",
+      "sinRevealedHelp": "Visible pendant 30 secondes. Ne copiez pas et ne stockez pas cette valeur.",
+      "evidenceLabel": "Preuves de verification",
+      "notProvided": "Non fourni",
+      "unknownAssociation": "Association inconnue",
+      "unknownMember": "Membre inconnu",
+      "activeAction": "Accepter",
+      "declinedAction": "Refuser",
+      "decisionPending": "Mise a jour...",
+      "evidenceTypes": {
+        "government_id": "Piece d'identite gouvernementale",
+        "immigration_proof": "Preuve du statut d'immigration"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n'avez pas l'autorisation de revoir cette demande membre.",
+        "KMG-RG-001": "La demande de revue est invalide.",
+        "KMG-RG-404": "Cette demande membre ou son token NAS est introuvable.",
+        "KMG-RG-409": "Cette demande membre a deja ete revue.",
+        "KMG-SYS-000": "La demande membre n'a pas pu etre mise a jour. Reessayez ou contactez le support."
+      }
+    }
+  },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
