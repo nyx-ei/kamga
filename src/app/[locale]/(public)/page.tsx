@@ -26,7 +26,7 @@ export default function HomePage() {
           </Link>
           <Link
             className="inline-flex items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
-            href="/"
+            href="/register"
           >
             <Building2 aria-hidden="true" size={16} />
             {t('secondaryAction')}

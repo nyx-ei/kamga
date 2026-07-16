@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -37,6 +37,16 @@ export async function requireUser(): Promise<CurrentUser> {
 
   if (currentUser === null) {
     redirect('/auth/login');
+  }
+
+  return currentUser;
+}
+
+export async function requirePlatformAdmin(): Promise<CurrentUser> {
+  const currentUser = await requireUser();
+
+  if (currentUser.role !== 'platform_admin') {
+    redirect('/dashboard');
   }
 
   return currentUser;
