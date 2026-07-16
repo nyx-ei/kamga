@@ -1,4 +1,4 @@
-﻿-- Ticket #6: association onboarding support and review transitions.
+-- Ticket #6: association onboarding support and review transitions.
 alter table public.associations
 add column if not exists rpn_affiliation_proof_path text;
 
