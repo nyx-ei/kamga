@@ -38,7 +38,8 @@
     "badge": "Platform administration",
     "title": "Admin access confirmed",
     "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here.",
-    "associationReviewAction": "Review associations"
+    "associationReviewAction": "Review associations",
+    "referralsAction": "Manage referrals"
   },
   "associations": {
     "status": {
@@ -101,6 +102,56 @@
       "cityLabel": "City",
       "contactLabel": "Admin contact",
       "contactDescription": "Contact is mediated by Kamga until the association explicitly opts in to publish a contact channel."
+    }
+  },
+  "referrals": {
+    "admin": {
+      "badge": "Referral system",
+      "title": "Referral links",
+      "description": "Generate referral links for active associations, monitor token usage, and decide whether active members may invite new applicants.",
+      "backToAdmin": "Admin overview",
+      "noActiveAssociations": "No active association is available for referral links yet.",
+      "associationLabel": "Association",
+      "generateAction": "Generate link",
+      "generating": "Generating...",
+      "settingsTitle": "Member referral settings",
+      "allowMemberReferralsLabel": "Allow active members to generate referral links for this association.",
+      "saveSettingsAction": "Save setting",
+      "saving": "Saving...",
+      "tokensTitle": "Recent referral tokens",
+      "emptyTokens": "No referral token has been generated yet.",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "createdAtLabel": "Created",
+      "expiresAtLabel": "Expires",
+      "statuses": {
+        "active": "Active",
+        "expired": "Expired",
+        "used": "Used"
+      },
+      "errors": {
+        "KMG-AUTH-401": "Sign in before managing referral links.",
+        "KMG-AUTH-403": "You do not have permission to manage referral links for this association.",
+        "KMG-REF-001": "The referral request is invalid.",
+        "KMG-REF-002": "The association is not active for referrals.",
+        "KMG-SYS-000": "We could not update referral links. Try again or contact support."
+      }
+    },
+    "registration": {
+      "badge": "Referral registration",
+      "title": "Validate your referral link",
+      "description": "Kamga checks the referral link before opening member registration for an active association.",
+      "associationLabel": "Association",
+      "expiresAt": "This referral link expires on {date}.",
+      "signInAction": "Sign in to continue",
+      "readyMessage": "This referral is valid. The member registration form will open in the next registration step.",
+      "errors": {
+        "KMG-REF-001": "This referral link is malformed.",
+        "KMG-REF-002": "This referral link is not available for an active association.",
+        "KMG-REF-003": "This referral link has expired.",
+        "KMG-REF-004": "This referral link has already been used.",
+        "KMG-SYS-000": "We could not validate this referral link. Try again or contact support."
+      }
     }
   },
   "pwa": {

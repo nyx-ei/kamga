@@ -38,7 +38,8 @@
     "badge": "Administration plateforme",
     "title": "Accès administrateur confirmé",
     "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici.",
-    "associationReviewAction": "Revoir les associations"
+    "associationReviewAction": "Revoir les associations",
+    "referralsAction": "Gérer les parrainages"
   },
   "associations": {
     "status": {
@@ -101,6 +102,56 @@
       "cityLabel": "Ville",
       "contactLabel": "Contact admin",
       "contactDescription": "Le contact est médié par Kamga tant que l’association n’a pas explicitement choisi de publier un canal de contact."
+    }
+  },
+  "referrals": {
+    "admin": {
+      "badge": "Système de parrainage",
+      "title": "Liens de parrainage",
+      "description": "Générez des liens de parrainage pour les associations actives, suivez l’usage des tokens et décidez si les membres actifs peuvent inviter de nouveaux candidats.",
+      "backToAdmin": "Vue admin",
+      "noActiveAssociations": "Aucune association active n’est encore disponible pour les liens de parrainage.",
+      "associationLabel": "Association",
+      "generateAction": "Générer le lien",
+      "generating": "Génération...",
+      "settingsTitle": "Paramètres de parrainage membre",
+      "allowMemberReferralsLabel": "Autoriser les membres actifs à générer des liens de parrainage pour cette association.",
+      "saveSettingsAction": "Enregistrer",
+      "saving": "Enregistrement...",
+      "tokensTitle": "Tokens récents",
+      "emptyTokens": "Aucun token de parrainage n’a encore été généré.",
+      "copyLabel": "Copier",
+      "copiedLabel": "Copié",
+      "createdAtLabel": "Créé le",
+      "expiresAtLabel": "Expire le",
+      "statuses": {
+        "active": "Actif",
+        "expired": "Expiré",
+        "used": "Utilisé"
+      },
+      "errors": {
+        "KMG-AUTH-401": "Connectez-vous avant de gérer les liens de parrainage.",
+        "KMG-AUTH-403": "Vous n’avez pas l’autorisation de gérer les liens de parrainage pour cette association.",
+        "KMG-REF-001": "La demande de parrainage est invalide.",
+        "KMG-REF-002": "L’association n’est pas active pour les parrainages.",
+        "KMG-SYS-000": "Les liens de parrainage n’ont pas pu être mis à jour. Réessayez ou contactez le support."
+      }
+    },
+    "registration": {
+      "badge": "Inscription par parrainage",
+      "title": "Valider votre lien de parrainage",
+      "description": "Kamga vérifie le lien de parrainage avant d’ouvrir l’inscription membre pour une association active.",
+      "associationLabel": "Association",
+      "expiresAt": "Ce lien de parrainage expire le {date}.",
+      "signInAction": "Se connecter pour continuer",
+      "readyMessage": "Ce parrainage est valide. Le formulaire d’inscription membre s’ouvrira à l’étape d’inscription suivante.",
+      "errors": {
+        "KMG-REF-001": "Ce lien de parrainage est mal formé.",
+        "KMG-REF-002": "Ce lien de parrainage n’est pas disponible pour une association active.",
+        "KMG-REF-003": "Ce lien de parrainage a expiré.",
+        "KMG-REF-004": "Ce lien de parrainage a déjà été utilisé.",
+        "KMG-SYS-000": "Ce lien de parrainage n’a pas pu être validé. Réessayez ou contactez le support."
+      }
     }
   },
   "pwa": {
