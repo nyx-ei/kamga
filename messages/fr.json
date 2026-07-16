@@ -41,7 +41,8 @@
     "title": "Accès administrateur confirmé",
     "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici.",
     "associationReviewAction": "Revoir les associations",
-    "referralsAction": "Gérer les parrainages"
+    "referralsAction": "Gérer les parrainages",
+    "membersAction": "Revoir les membres"
   },
   "associations": {
     "status": {
@@ -160,6 +161,72 @@
     }
   },
   "memberships": {
+    "adminMembers": {
+      "badge": "Revue membre",
+      "title": "Demandes membre",
+      "description": "Filtrez les demandes membre par statut, ouvrez chaque dossier de revue complet, puis prenez une decision controlee avec gestion du cycle de vie des preuves et du NAS.",
+      "backToAdmin": "Vue admin",
+      "emptyState": "Aucune demande membre ne correspond a ce filtre.",
+      "unknownAssociation": "Association inconnue",
+      "unknownMember": "Membre inconnu",
+      "notProvided": "Non fourni",
+      "reviewAction": "Ouvrir la revue",
+      "statusLabel": "Statut",
+      "submittedAtLabel": "Soumise le",
+      "filters": {
+        "pending": "En attente",
+        "needs_more_evidence": "Preuves requises",
+        "active": "Actif",
+        "declined": "Refuse",
+        "all": "Tous"
+      },
+      "statuses": {
+        "pending": "En attente",
+        "needs_more_evidence": "Preuves complementaires requises",
+        "active": "Actif",
+        "declined": "Refuse",
+        "suspended": "Suspendu"
+      }
+    },
+    "review": {
+      "badge": "Revue de demande",
+      "description": "Consultez le candidat, le parrain, le NAS transitoire et les preuves de verification avant de prendre une decision finale.",
+      "backToMembers": "File membre",
+      "unknownMember": "Membre inconnu",
+      "notProvided": "Non fourni",
+      "applicantTitle": "Candidat",
+      "associationLabel": "Association",
+      "statusLabel": "Statut",
+      "emailLabel": "Courriel",
+      "phoneLabel": "Telephone",
+      "arrivalDateLabel": "Arrivee au Canada",
+      "submittedAtLabel": "Soumise le",
+      "referrerTitle": "Parrain",
+      "referrerNameLabel": "Nom",
+      "referrerEmailLabel": "Courriel",
+      "sinLabel": "Numero d'assurance sociale",
+      "evidenceTitle": "Preuves de verification",
+      "decisionTitle": "Decision de revue",
+      "approveAction": "Approuver",
+      "declineAction": "Refuser",
+      "requestEvidenceAction": "Demander des preuves",
+      "decisionPending": "Mise a jour...",
+      "declineReasonLabel": "Explication du refus",
+      "declineReasonPlaceholder": "<p>Expliquez clairement pourquoi cette demande est refusee.</p>",
+      "declineReasonHelp": "Formats autorises : paragraphes, gras, italique, listes et liens. L'explication est nettoyee avant stockage et envoi email.",
+      "requestEvidenceLabel": "Documents manquants",
+      "evidenceTypes": {
+        "government_id": "Piece d'identite gouvernementale",
+        "immigration_proof": "Preuve du statut d'immigration"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n'avez pas l'autorisation de revoir cette demande membre.",
+        "KMG-RG-001": "La demande de revue est invalide.",
+        "KMG-RG-404": "Cette demande membre ou son token NAS est introuvable.",
+        "KMG-RG-409": "Cette demande membre ne peut pas etre revue dans son etat actuel.",
+        "KMG-SYS-000": "La demande membre n'a pas pu etre mise a jour. Reessayez ou contactez le support."
+      }
+    },
     "admin": {
       "badge": "Revue membre",
       "title": "Demandes membre en attente",
