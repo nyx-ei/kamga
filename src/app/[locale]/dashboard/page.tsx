@@ -8,6 +8,7 @@ import { requireUser } from '@/lib/auth';
 type DashboardPageProps = {
   searchParams: {
     associationSubmitted?: string;
+    registration?: string;
   };
 };
 
@@ -26,6 +27,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         {searchParams.associationSubmitted === '1' ? (
           <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">
             {t('associationSubmitted')}
+          </p>
+        ) : null}
+        {searchParams.registration === 'pending' ? (
+          <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">
+            {t('memberRegistrationPending')}
           </p>
         ) : null}
         <dl className="rounded-sm border border-border bg-sunken p-4">

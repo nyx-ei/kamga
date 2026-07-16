@@ -1,4 +1,4 @@
-﻿{
+{
   "home": {
     "badge": "Couche 1 · Fondation annuaire",
     "title": "Trouvez une association RPN près de vous",
@@ -32,7 +32,8 @@
     "roleLabel": "Rôle actuel",
     "unknownRole": "Aucun rôle plateforme n’est encore assigné",
     "registerAssociationAction": "Inscrire une association",
-    "associationSubmitted": "Votre demande d’inscription d’association a été envoyée pour revue plateforme."
+    "associationSubmitted": "Votre demande d’inscription d’association a été envoyée pour revue plateforme.",
+    "memberRegistrationPending": "Votre inscription membre est en attente de revue par l?administrateur de l?association."
   },
   "admin": {
     "badge": "Administration plateforme",
@@ -151,12 +152,57 @@
         "KMG-REF-003": "Ce lien de parrainage a expiré.",
         "KMG-REF-004": "Ce lien de parrainage a déjà été utilisé.",
         "KMG-SYS-000": "Ce lien de parrainage n’a pas pu être validé. Réessayez ou contactez le support."
-      }
+      },
+      "referredByLabel": "Source du parrainage",
+      "bannerTitle": "Parrain? par {name} pour rejoindre {association}",
+      "unknownReferrer": "un utilisateur Kamga"
     }
   },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
     "description": "Fondation pour l’annuaire public des associations RPN et la gestion des contributions."
+  },
+  "memberRegistration": {
+    "form": {
+      "associationEyebrow": "Association cible",
+      "firstNameLabel": "Pr?nom",
+      "lastNameLabel": "Nom",
+      "emailLabel": "Adresse courriel",
+      "phoneLabel": "T?l?phone",
+      "arrivalDateLabel": "Date d?arriv?e au Canada",
+      "sinLabel": "Num?ro d?assurance sociale",
+      "sinHelp": "Votre NAS est chiffr?, conserv? uniquement pour la revue administrateur, puis d?truit apr?s la d?cision. Il n?est jamais stock? durablement dans votre profil.",
+      "governmentIdLabel": "Pi?ce d?identit? gouvernementale",
+      "immigrationProofLabel": "Preuve du statut d?immigration",
+      "consentLabel": "J?autorise l?administrateur de l?association ? consulter mes documents pour v?rification, et je comprends que les documents seront d?truits apr?s v?rification.",
+      "magicLinkAction": "Continuer avec un lien magique",
+      "sending": "Envoi...",
+      "sentMessage": "Consultez votre bo?te de r?ception, puis revenez sur Kamga depuis le lien s?curis? pour compl?ter l?inscription.",
+      "googleAction": "Continuer avec Google",
+      "facebookAction": "Continuer avec Facebook",
+      "connecting": "Connexion...",
+      "authError": "L?authentification n?a pas pu d?marrer. R?essayez ou contactez le support.",
+      "errors": {
+        "KMG-RG-001": "V?rifiez les champs requis et le consentement avant de continuer.",
+        "KMG-RG-003": "Les fichiers s?lectionn?s sont trop volumineux pour le transfert navigateur s?curis?. Utilisez des fichiers plus petits ou des images compress?es.",
+        "KMG-RG-004": "Utilisez des fichiers PDF, PNG ou JPEG sous la taille autoris?e."
+      }
+    },
+    "complete": {
+      "badge": "Finalisation de l?inscription",
+      "title": "Finalisation de votre inscription",
+      "description": "Kamga cr?e votre adh?sion en attente et stocke les documents de v?rification de mani?re s?curis?e.",
+      "errors": {
+        "KMG-AUTH-401": "Reconnectez-vous pour compl?ter l?inscription.",
+        "KMG-REF-001": "Le token de parrainage est invalide.",
+        "KMG-REF-004": "Ce token de parrainage n?est plus disponible.",
+        "KMG-RG-001": "Vos donn?es d?inscription sauvegard?es sont incompl?tes. Recommencez depuis le lien de parrainage.",
+        "KMG-RG-002": "Un document requis est manquant.",
+        "KMG-RG-003": "Les documents sauvegard?s sont trop volumineux. Recommencez avec des fichiers plus petits.",
+        "KMG-RG-004": "Les documents de v?rification n?ont pas pu ?tre t?l?vers?s.",
+        "KMG-SYS-000": "L?inscription n?a pas pu ?tre compl?t?e. R?essayez ou contactez le support."
+      }
+    }
   }
 }
