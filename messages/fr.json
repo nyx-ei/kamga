@@ -1,0 +1,14 @@
+{
+  "home": {
+    "badge": "Couche 1 · Fondation annuaire",
+    "title": "Trouvez une association RPN près de vous",
+    "description": "Kamga commence par un annuaire public qui aide les personnes à découvrir les associations tout en construisant la base vérifiée des futurs parcours de contribution.",
+    "primaryAction": "Chercher dans l’annuaire",
+    "secondaryAction": "Inscrire une association"
+  },
+  "pwa": {
+    "name": "Kamga",
+    "shortName": "Kamga",
+    "description": "Fondation pour l’annuaire public des associations RPN et la gestion des contributions."
+  }
+}
