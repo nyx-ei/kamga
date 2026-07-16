@@ -6,6 +6,37 @@
     "primaryAction": "Chercher dans l’annuaire",
     "secondaryAction": "Inscrire une association"
   },
+  "auth": {
+    "login": {
+      "badge": "Accès sécurisé",
+      "title": "Connexion à Kamga",
+      "description": "Utilisez un lien magique ou un compte social approuvé par l’organisation pour accéder aux espaces protégés de Kamga.",
+      "emailLabel": "Adresse courriel",
+      "emailPlaceholder": "nom@exemple.com",
+      "magicLinkAction": "Envoyer le lien magique",
+      "sending": "Envoi en cours...",
+      "sentMessage": "Consultez votre boîte de réception pour ouvrir le lien de connexion sécurisé.",
+      "errorMessage": "La connexion n’a pas pu démarrer. Réessayez ou contactez le support.",
+      "googleAction": "Continuer avec Google",
+      "facebookAction": "Continuer avec Facebook",
+      "connecting": "Connexion en cours..."
+    },
+    "logout": {
+      "action": "Se déconnecter"
+    }
+  },
+  "dashboard": {
+    "badge": "Espace membre",
+    "title": "Accès au tableau de bord confirmé",
+    "description": "Vous êtes connecté. Les prochains tickets remplaceront cet écran de fondation par les parcours membre et association.",
+    "roleLabel": "Rôle actuel",
+    "unknownRole": "Aucun rôle plateforme n’est encore assigné"
+  },
+  "admin": {
+    "badge": "Administration plateforme",
+    "title": "Accès administrateur confirmé",
+    "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici."
+  },
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
