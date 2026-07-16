@@ -1,4 +1,4 @@
-{
+﻿{
   "home": {
     "badge": "Layer 1 · Lookup foundation",
     "title": "Find an RPN association near you",
@@ -30,12 +30,78 @@
     "title": "Dashboard access confirmed",
     "description": "You are signed in. Upcoming tickets will replace this foundation screen with the member and association workflows.",
     "roleLabel": "Current role",
-    "unknownRole": "No platform role assigned yet"
+    "unknownRole": "No platform role assigned yet",
+    "registerAssociationAction": "Register an association",
+    "associationSubmitted": "Your association registration was submitted for platform review."
   },
   "admin": {
     "badge": "Platform administration",
     "title": "Admin access confirmed",
-    "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here."
+    "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here.",
+    "associationReviewAction": "Review associations"
+  },
+  "associations": {
+    "status": {
+      "pending_review": "Pending",
+      "active": "Active",
+      "declined": "Declined",
+      "suspended": "Suspended"
+    },
+    "registration": {
+      "badge": "Association onboarding",
+      "title": "Register an RPN association",
+      "description": "Submit the association profile and proof of RPN affiliation. A platform administrator will review the request before the association becomes active.",
+      "reviewNotice": "New associations remain pending until a platform administrator approves or suspends the record after manual review.",
+      "authRequiredTitle": "Sign-in required",
+      "authRequiredDescription": "Create or access your Kamga account before submitting an association for review.",
+      "authRequiredAction": "Sign in to continue",
+      "nameLabel": "Association name",
+      "namePlaceholder": "RPN Association of Montreal",
+      "cityLabel": "City",
+      "cityPlaceholder": "Montreal",
+      "contactEmailLabel": "Administrative contact email",
+      "contactEmailPlaceholder": "admin@example.org",
+      "proofLabel": "RPN affiliation proof",
+      "proofHelp": "Upload a PDF, PNG, or JPEG document. The file is stored privately and visible only to platform administrators during review.",
+      "submit": "Submit for review",
+      "submitting": "Submitting...",
+      "errors": {
+        "KMG-AUTH-401": "Sign in before submitting an association.",
+        "KMG-RG-001": "Check the required fields and try again.",
+        "KMG-RG-002": "Upload an RPN affiliation proof.",
+        "KMG-RG-003": "The proof file must be 10 MB or smaller.",
+        "KMG-RG-004": "Use a PDF, PNG, or JPEG proof file.",
+        "KMG-SYS-000": "We could not complete the request. Try again or contact support."
+      }
+    },
+    "admin": {
+      "badge": "Manual review",
+      "title": "Association review queue",
+      "description": "Review self-registered associations, inspect their private RPN proof, and move each record from pending to active or suspended.",
+      "backToAdmin": "Admin overview",
+      "emptyState": "No associations are waiting in the review queue.",
+      "contactEmailLabel": "Admin contact",
+      "submittedAtLabel": "Submitted",
+      "proofLabel": "RPN proof",
+      "notProvided": "Not provided",
+      "openProofAction": "Open proof",
+      "approveAction": "Approve",
+      "suspendAction": "Suspend",
+      "decisionPending": "Updating...",
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to review associations.",
+        "KMG-RG-001": "The review request is invalid.",
+        "KMG-RG-404": "This association could not be found.",
+        "KMG-SYS-000": "We could not update the association. Try again or contact support."
+      }
+    },
+    "profile": {
+      "badge": "Association profile",
+      "directoryAction": "Back to directory",
+      "cityLabel": "City",
+      "contactLabel": "Admin contact",
+      "contactDescription": "Contact is mediated by Kamga until the association explicitly opts in to publish a contact channel."
+    }
   },
   "pwa": {
     "name": "Kamga",

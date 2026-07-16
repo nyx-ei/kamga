@@ -1,4 +1,4 @@
-{
+﻿{
   "home": {
     "badge": "Couche 1 · Fondation annuaire",
     "title": "Trouvez une association RPN près de vous",
@@ -30,12 +30,78 @@
     "title": "Accès au tableau de bord confirmé",
     "description": "Vous êtes connecté. Les prochains tickets remplaceront cet écran de fondation par les parcours membre et association.",
     "roleLabel": "Rôle actuel",
-    "unknownRole": "Aucun rôle plateforme n’est encore assigné"
+    "unknownRole": "Aucun rôle plateforme n’est encore assigné",
+    "registerAssociationAction": "Inscrire une association",
+    "associationSubmitted": "Votre demande d’inscription d’association a été envoyée pour revue plateforme."
   },
   "admin": {
     "badge": "Administration plateforme",
     "title": "Accès administrateur confirmé",
-    "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici."
+    "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici.",
+    "associationReviewAction": "Revoir les associations"
+  },
+  "associations": {
+    "status": {
+      "pending_review": "En attente",
+      "active": "Active",
+      "declined": "Refusée",
+      "suspended": "Suspendue"
+    },
+    "registration": {
+      "badge": "Onboarding association",
+      "title": "Inscrire une association RPN",
+      "description": "Soumettez le profil de l’association et la preuve d’affiliation RPN. Un administrateur plateforme examinera la demande avant activation.",
+      "reviewNotice": "Les nouvelles associations restent en attente jusqu’à ce qu’un administrateur plateforme approuve ou suspende le dossier après revue manuelle.",
+      "authRequiredTitle": "Connexion requise",
+      "authRequiredDescription": "Créez ou ouvrez votre compte Kamga avant de soumettre une association à la revue.",
+      "authRequiredAction": "Se connecter pour continuer",
+      "nameLabel": "Nom de l’association",
+      "namePlaceholder": "Association RPN de Montréal",
+      "cityLabel": "Ville",
+      "cityPlaceholder": "Montréal",
+      "contactEmailLabel": "Courriel de contact administratif",
+      "contactEmailPlaceholder": "admin@example.org",
+      "proofLabel": "Preuve d’affiliation RPN",
+      "proofHelp": "Téléversez un document PDF, PNG ou JPEG. Le fichier est stocké en privé et visible uniquement par les administrateurs plateforme pendant la revue.",
+      "submit": "Soumettre pour revue",
+      "submitting": "Soumission en cours...",
+      "errors": {
+        "KMG-AUTH-401": "Connectez-vous avant de soumettre une association.",
+        "KMG-RG-001": "Vérifiez les champs requis puis réessayez.",
+        "KMG-RG-002": "Téléversez une preuve d’affiliation RPN.",
+        "KMG-RG-003": "La preuve doit peser 10 Mo ou moins.",
+        "KMG-RG-004": "Utilisez un fichier PDF, PNG ou JPEG.",
+        "KMG-SYS-000": "La demande n’a pas pu être complétée. Réessayez ou contactez le support."
+      }
+    },
+    "admin": {
+      "badge": "Revue manuelle",
+      "title": "File de revue des associations",
+      "description": "Examinez les associations auto-inscrites, consultez leur preuve RPN privée, puis faites passer chaque dossier de l’attente à l’état actif ou suspendu.",
+      "backToAdmin": "Vue admin",
+      "emptyState": "Aucune association n’est en attente dans la file de revue.",
+      "contactEmailLabel": "Contact admin",
+      "submittedAtLabel": "Soumise le",
+      "proofLabel": "Preuve RPN",
+      "notProvided": "Non fourni",
+      "openProofAction": "Ouvrir la preuve",
+      "approveAction": "Approuver",
+      "suspendAction": "Suspendre",
+      "decisionPending": "Mise à jour...",
+      "errors": {
+        "KMG-AUTH-403": "Vous n’avez pas l’autorisation de revoir les associations.",
+        "KMG-RG-001": "La demande de revue est invalide.",
+        "KMG-RG-404": "Cette association est introuvable.",
+        "KMG-SYS-000": "L’association n’a pas pu être mise à jour. Réessayez ou contactez le support."
+      }
+    },
+    "profile": {
+      "badge": "Profil association",
+      "directoryAction": "Retour à l’annuaire",
+      "cityLabel": "Ville",
+      "contactLabel": "Contact admin",
+      "contactDescription": "Le contact est médié par Kamga tant que l’association n’a pas explicitement choisi de publier un canal de contact."
+    }
   },
   "pwa": {
     "name": "Kamga",

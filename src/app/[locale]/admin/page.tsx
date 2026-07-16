@@ -1,6 +1,8 @@
-import { useTranslations } from 'next-intl';
+﻿import { useTranslations } from 'next-intl';
+import { ClipboardList } from 'lucide-react';
 
 import { LogoutButton } from '@/features/auth';
+import { Link } from '@/i18n/navigation';
 
 export default function AdminPage() {
   const t = useTranslations('admin');
@@ -13,7 +15,16 @@ export default function AdminPage() {
           <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
           <p className="text-base leading-7 text-secondary">{t('description')}</p>
         </div>
-        <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
+        <div className="flex flex-wrap gap-3">
+          <Link
+            className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-medium text-on-brand shadow-card transition hover:bg-brand-strong"
+            href="/admin/associations"
+          >
+            <ClipboardList aria-hidden="true" size={16} />
+            {t('associationReviewAction')}
+          </Link>
+          <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
+        </div>
       </section>
     </main>
   );
