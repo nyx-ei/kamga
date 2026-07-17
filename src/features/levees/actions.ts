@@ -1,10 +1,19 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import { createLeveeSchema, type LeveeActionState, recordMemberContributionPaymentSchema, updateAssociationLeveeCallStatusSchema } from '@/features/levees/levee-types';
+import {
+  createLeveeSchema,
+  type LeveeActionState,
+  recordMemberContributionPaymentSchema,
+  startStripeContributionCheckoutSchema,
+  updateAssociationLeveeCallStatusSchema
+} from '@/features/levees/levee-types';
 import { requirePlatformAdmin, requireUser } from '@/lib/auth';
+import { env } from '@/lib/env/server-env';
+import { createStripeServerClient } from '@/lib/stripe/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const INITIAL_ERROR_STATE: LeveeActionState = { ok: true };
@@ -13,6 +22,34 @@ const createdLeveeSchema = z.object({
   id: z.string().uuid(),
   per_share_amount_cents: z.number(),
   pool_size: z.number().int()
+});
+
+const contributionCheckoutSchema = z.object({
+  amount_due_cents: z.number(),
+  amount_paid_cents: z.number(),
+  association_levee_calls: z
+    .object({
+      associations: z.union([z.object({ name: z.string() }), z.array(z.object({ name: z.string() }))]).nullable(),
+      levees: z
+        .object({
+          deceased_full_name: z.string()
+        })
+        .nullable()
+    })
+    .nullable(),
+  association_members: z
+    .union([
+      z.object({
+        user_id: z.string().uuid()
+      }),
+      z.array(
+        z.object({
+          user_id: z.string().uuid()
+        })
+      )
+    ])
+    .nullable(),
+  id: z.string().uuid()
 });
 
 function valueFromFormData(formData: FormData, key: string): string {
@@ -53,7 +90,23 @@ function leveeErrorCode(message: string): LeveeActionState {
     return { ok: false, code: message };
   }
 
+  if (message === 'KMG-PAY-001' || message === 'KMG-PAY-CONFIG' || message === 'KMG-PAY-STRIPE-CONFIG') {
+    return { ok: false, code: message === 'KMG-PAY-STRIPE-CONFIG' ? 'KMG-PAY-CONFIG' : message };
+  }
+
   return { ok: false, code: 'KMG-SYS-000' };
+}
+
+function contributionAssociationName(contribution: z.infer<typeof contributionCheckoutSchema>): string {
+  const association = Array.isArray(contribution.association_levee_calls?.associations)
+    ? contribution.association_levee_calls?.associations[0]
+    : contribution.association_levee_calls?.associations;
+  return association?.name ?? 'Kamga';
+}
+
+function contributionOwnerId(contribution: z.infer<typeof contributionCheckoutSchema>): string | null {
+  const membership = Array.isArray(contribution.association_members) ? contribution.association_members[0] : contribution.association_members;
+  return membership?.user_id ?? null;
 }
 
 export async function createLevee(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
@@ -180,4 +233,80 @@ export async function recordMemberContributionPayment(_previousState: LeveeActio
   revalidatePath(`/${parsed.data.locale}/admin/levees`);
 
   return { ok: true };
+}
+
+export async function startStripeContributionCheckout(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  const currentUser = await requireUser();
+  const parsed = startStripeContributionCheckoutSchema.safeParse({
+    contributionId: valueFromFormData(formData, 'contributionId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-PAY-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('member_contributions')
+    .select('id,amount_due_cents,amount_paid_cents,association_members:membership_id(user_id),association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name))')
+    .eq('id', parsed.data.contributionId)
+    .maybeSingle();
+
+  if (error || data === null) {
+    return { ok: false, code: 'KMG-LV-404' };
+  }
+
+  const contribution = contributionCheckoutSchema.safeParse(data);
+
+  if (!contribution.success || contributionOwnerId(contribution.data) !== currentUser.user.id) {
+    return { ok: false, code: 'KMG-AUTH-403' };
+  }
+
+  const remainingCents = Math.max(0, Math.round(contribution.data.amount_due_cents - contribution.data.amount_paid_cents));
+
+  if (remainingCents <= 0) {
+    return { ok: false, code: 'KMG-PAY-001' };
+  }
+
+  let checkoutUrl: string;
+
+  try {
+    const stripe = createStripeServerClient();
+    const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+    const localePrefix = `/${parsed.data.locale}`;
+    const session = await stripe.checkout.sessions.create({
+      cancel_url: `${baseUrl}${localePrefix}/dashboard?payment=cancelled`,
+      customer_email: currentUser.user.email ?? undefined,
+      line_items: [
+        {
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              description: contributionAssociationName(contribution.data),
+              name: contribution.data.association_levee_calls?.levees?.deceased_full_name ?? 'Kamga contribution'
+            },
+            unit_amount: remainingCents
+          },
+          quantity: 1
+        }
+      ],
+      metadata: {
+        contributionId: contribution.data.id,
+        userId: currentUser.user.id
+      },
+      mode: 'payment',
+      success_url: `${baseUrl}${localePrefix}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`
+    });
+
+    if (session.url === null) {
+      return { ok: false, code: 'KMG-SYS-000' };
+    }
+
+    checkoutUrl = session.url;
+  } catch (error) {
+    return leveeErrorCode(error instanceof Error ? error.message : 'KMG-SYS-000');
+  }
+
+  redirect(checkoutUrl);
 }

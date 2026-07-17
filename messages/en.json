@@ -126,7 +126,15 @@
     "collectionBreakdown": "Paid: {paid} · Partial: {partial} · Unpaid: {unpaid}",
     "noMemberContributions": "No member contribution has been generated for this call yet.",
     "memberCollectionTitle": "Member collection",
-    "recordedAtLabel": "Recorded at"
+    "recordedAtLabel": "Recorded at",
+    "paymentSuccess": "Payment confirmed. The receipt will appear here after Stripe confirms the session.",
+    "paymentCancelled": "Payment cancelled. No amount was applied.",
+    "receiptsTitle": "Stripe receipts",
+    "receiptDateLabel": "Date",
+    "receiptReceivedLabel": "Received",
+    "receiptAppliedLabel": "Applied",
+    "receiptReferenceLabel": "Stripe reference",
+    "receiptOverpaymentLabel": "Overpayment"
   },
   "admin": {
     "badge": "Platform administration",
@@ -216,6 +224,17 @@
         "KMG-LV-001": "Check the paid amount. It must be between 0 and the amount owed.",
         "KMG-LV-404": "This member contribution could not be found.",
         "KMG-SYS-000": "The payment could not be recorded. Try again or contact support."
+      }
+    },
+    "stripe": {
+      "payOnlineAction": "Pay online",
+      "redirecting": "Redirecting...",
+      "errors": {
+        "KMG-AUTH-403": "You can only pay your own contributions.",
+        "KMG-LV-404": "This contribution could not be found.",
+        "KMG-PAY-001": "This contribution cannot be paid online in its current state.",
+        "KMG-PAY-CONFIG": "Stripe is not configured for this environment yet.",
+        "KMG-SYS-000": "Online payment could not be started. Try again or contact support."
       }
     }
   },
