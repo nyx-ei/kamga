@@ -34,7 +34,52 @@
     "registerAssociationAction": "Inscrire une association",
     "uploadEvidenceAction": "Televerser une preuve",
     "associationSubmitted": "Votre demande d’inscription d’association a été envoyée pour revue plateforme.",
-    "memberRegistrationPending": "Votre inscription membre est en attente de revue par l?administrateur de l?association."
+    "memberRegistrationPending": "Votre inscription membre est en attente de revue par l’administrateur de l’association.",
+    "applicationsTitle": "Demandes",
+    "applicationsDescription": "Suivez chaque demande d’adhésion et répondez lorsqu’une preuve complémentaire est demandée.",
+    "noApplications": "Aucune demande membre n’a encore été soumise depuis ce compte.",
+    "application": {
+      "submittedAtLabel": "Soumise le",
+      "requestedEvidenceTitle": "Documents demandés",
+      "uploadAction": "Téléverser les preuves demandées",
+      "memberFeaturesPlaceholder": "Votre adhésion est active. Les fonctionnalités membre complètes apparaîtront ici selon la roadmap produit.",
+      "declineReasonTitle": "Explication du refus",
+      "declineReasonMissing": "Aucune explication n’a été fournie pour cette décision.",
+      "futureInvites": "Vous pourrez recevoir une nouvelle invitation si une association souhaite relancer votre inscription.",
+      "statusLabels": {
+        "pending": "En revue",
+        "needs_more_evidence": "Preuves requises",
+        "active": "Active",
+        "declined": "Refusée",
+        "suspended": "Suspendue"
+      },
+      "statuses": {
+        "pending": {
+          "title": "Demande en revue",
+          "description": "Votre dossier est en attente d’une décision administrateur. Kamga vous notifiera lorsque la revue sera terminée."
+        },
+        "needs_more_evidence": {
+          "title": "Preuves complémentaires requises",
+          "description": "Un administrateur a besoin de documents supplémentaires avant de poursuivre la revue."
+        },
+        "active": {
+          "title": "Adhésion active",
+          "description": "Bienvenue. Votre demande a été approuvée et votre adhésion est active."
+        },
+        "declined": {
+          "title": "Demande refusée",
+          "description": "Votre demande a été refusée après revue. L’explication est affichée ci-dessous."
+        },
+        "suspended": {
+          "title": "Adhésion suspendue",
+          "description": "Cette adhésion est actuellement suspendue."
+        }
+      },
+      "evidenceTypes": {
+        "government_id": "Pièce d’identité gouvernementale",
+        "immigration_proof": "Preuve du statut d’immigration"
+      }
+    }
   },
   "admin": {
     "badge": "Administration plateforme",
