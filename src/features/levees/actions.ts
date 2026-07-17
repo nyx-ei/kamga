@@ -5,8 +5,10 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import {
+  closeLeveeIfReadySchema,
   createLeveeSchema,
   type LeveeActionState,
+  markAssociationLeveeCallRemittedSchema,
   recordMemberContributionPaymentSchema,
   startStripeContributionCheckoutSchema,
   updateAssociationLeveeCallStatusSchema
@@ -86,7 +88,7 @@ function parseNullableCurrencyCents(value: string): number | null {
 }
 
 function leveeErrorCode(message: string): LeveeActionState {
-  if (message === 'KMG-AUTH-403' || message === 'KMG-LV-001' || message === 'KMG-LV-002' || message === 'KMG-LV-404') {
+  if (message === 'KMG-AUTH-403' || message === 'KMG-LV-001' || message === 'KMG-LV-002' || message === 'KMG-LV-003' || message === 'KMG-LV-404') {
     return { ok: false, code: message };
   }
 
@@ -192,6 +194,64 @@ export async function updateAssociationLeveeCallStatus(
   revalidatePath(`/${parsed.data.locale}/dashboard`);
   revalidatePath('/admin/levees');
   revalidatePath(`/${parsed.data.locale}/admin/levees`);
+
+  return { ok: true };
+}
+
+export async function markAssociationLeveeCallRemitted(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  await requireUser();
+
+  const parsed = markAssociationLeveeCallRemittedSchema.safeParse({
+    callId: valueFromFormData(formData, 'callId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-LV-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc('mark_association_levee_call_remitted', {
+    call_uuid: parsed.data.callId
+  });
+
+  if (error) {
+    return leveeErrorCode(error.message);
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
+  revalidatePath('/admin/levees');
+  revalidatePath(`/${parsed.data.locale}/admin/levees`);
+
+  return { ok: true };
+}
+
+export async function closeLeveeIfReady(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = closeLeveeIfReadySchema.safeParse({
+    leveeId: valueFromFormData(formData, 'leveeId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-LV-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc('close_levee_if_ready', {
+    levee_uuid: parsed.data.leveeId
+  });
+
+  if (error) {
+    return leveeErrorCode(error.message);
+  }
+
+  revalidatePath('/admin/levees');
+  revalidatePath(`/${parsed.data.locale}/admin/levees`);
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
 
   return { ok: true };
 }

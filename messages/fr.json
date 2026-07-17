@@ -134,7 +134,12 @@
     "receiptReceivedLabel": "Recu",
     "receiptAppliedLabel": "Applique",
     "receiptReferenceLabel": "Reference Stripe",
-    "receiptOverpaymentLabel": "Trop-percu"
+    "receiptOverpaymentLabel": "Trop-percu",
+    "outstandingLabel": "Restant du",
+    "remittanceStatusLabel": "Remise au board",
+    "remitted": "Remis",
+    "notRemitted": "Non remis",
+    "remittedAtLabel": "Remis le"
   },
   "admin": {
     "badge": "Administration plateforme",
@@ -196,7 +201,16 @@
         "pending": "En attente",
         "in_progress": "En cours",
         "completed": "Complete"
-      }
+      },
+      "leveeProgressTitle": "Progression globale",
+      "leveeProgressValue": "{collected} collectes sur {target}",
+      "collectedLabel": "Collecte",
+      "outstandingLabel": "Restant",
+      "associationCountLabel": "Associations",
+      "remittedCountLabel": "Remises",
+      "remittanceStatusLabel": "Remise",
+      "remitted": "Remis",
+      "notRemitted": "Non remis"
     },
     "calls": {
       "statusLabel": "Statut de traitement",
@@ -235,6 +249,28 @@
         "KMG-PAY-001": "Cette contribution ne peut pas etre payee en ligne dans son etat actuel.",
         "KMG-PAY-CONFIG": "Stripe n est pas encore configure pour cet environnement.",
         "KMG-SYS-000": "Le paiement en ligne n a pas pu demarrer. Reessayez ou contactez le support."
+      }
+    },
+    "remittance": {
+      "markRemittedAction": "Marquer remis au board",
+      "marking": "Mise a jour...",
+      "errors": {
+        "KMG-AUTH-403": "Vous n avez pas l autorisation de marquer cet appel comme remis.",
+        "KMG-LV-001": "La demande de remise est invalide.",
+        "KMG-LV-003": "La collecte doit etre complete avant la remise au board.",
+        "KMG-LV-404": "Cet appel est introuvable.",
+        "KMG-SYS-000": "La remise n a pas pu etre enregistree. Reessayez ou contactez le support."
+      }
+    },
+    "closure": {
+      "closeAction": "Fermer la levee",
+      "closing": "Fermeture...",
+      "errors": {
+        "KMG-AUTH-403": "Vous n avez pas l autorisation de fermer cette levee.",
+        "KMG-LV-001": "La demande de fermeture est invalide.",
+        "KMG-LV-003": "La levee ne peut etre fermee que si la cible est atteinte ou si l echeance est passee.",
+        "KMG-LV-404": "Cette levee est introuvable.",
+        "KMG-SYS-000": "La levee n a pas pu etre fermee. Reessayez ou contactez le support."
       }
     }
   },

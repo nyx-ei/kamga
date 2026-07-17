@@ -2,7 +2,7 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
-import { LeveeCreateForm } from '@/features/levees';
+import { CloseLeveeForm, LeveeCreateForm } from '@/features/levees';
 import { Link } from '@/i18n/navigation';
 import { requirePlatformAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -17,8 +17,18 @@ const leveeCallRowSchema = z.object({
   amount_due_cents: z.number(),
   associations: z.union([associationSummarySchema, z.array(associationSummarySchema)]).nullable(),
   id: z.string().uuid(),
+  remitted_at: z.string().nullable(),
   share_count: z.number().int(),
   status: z.enum(['pending', 'in_progress', 'completed'])
+});
+
+const leveeProgressSchema = z.object({
+  association_count: z.number().int(),
+  collected_amount_cents: z.number(),
+  levee_id: z.string().uuid(),
+  outstanding_amount_cents: z.number(),
+  remitted_association_count: z.number().int(),
+  target_amount_cents: z.number()
 });
 
 const leveeRowSchema = z.object({
@@ -42,6 +52,7 @@ type AdminLeveesPageProps = {
 };
 
 type LeveeCallRow = z.infer<typeof leveeCallRowSchema>;
+type LeveeProgress = z.infer<typeof leveeProgressSchema>;
 type LeveeRow = z.infer<typeof leveeRowSchema>;
 
 function callAssociationName(call: LeveeCallRow): string | null {
@@ -64,7 +75,7 @@ async function listLevees(): Promise<LeveeRow[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('levees')
-    .select('id,deceased_full_name,deceased_city,deceased_date_of_death,target_amount_cents,deadline,pool_size,per_share_amount_cents,status,created_at,association_levee_calls(id,share_count,amount_due_cents,status,associations:association_id(name))')
+    .select('id,deceased_full_name,deceased_city,deceased_date_of_death,target_amount_cents,deadline,pool_size,per_share_amount_cents,status,created_at,association_levee_calls(id,share_count,amount_due_cents,status,remitted_at,associations:association_id(name))')
     .order('created_at', { ascending: false });
 
   if (error || data === null) {
@@ -77,6 +88,29 @@ async function listLevees(): Promise<LeveeRow[]> {
   });
 }
 
+async function listLeveeProgress(leveeIds: string[]): Promise<Map<string, LeveeProgress>> {
+  if (leveeIds.length === 0) {
+    return new Map();
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('levee_collection_progress')
+    .select('levee_id,target_amount_cents,collected_amount_cents,outstanding_amount_cents,association_count,remitted_association_count')
+    .in('levee_id', leveeIds);
+
+  if (error || data === null) {
+    return new Map();
+  }
+
+  return new Map(
+    data.flatMap((row: unknown) => {
+      const parsed = leveeProgressSchema.safeParse(row);
+      return parsed.success ? [[parsed.data.levee_id, parsed.data] as const] : [];
+    })
+  );
+}
+
 export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) {
   await requirePlatformAdmin();
 
@@ -84,6 +118,7 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
   const format = await getFormatter();
   const poolSize = await currentPoolSize();
   const levees = await listLevees();
+  const progressByLevee = await listLeveeProgress(levees.map((levee) => levee.id));
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -130,7 +165,14 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
             <div className="rounded-md border border-border bg-sunken p-6 text-sm leading-6 text-secondary">{t('emptyState')}</div>
           ) : (
             <div className="grid gap-4">
-              {levees.map((levee) => (
+              {levees.map((levee) => {
+                const progress = progressByLevee.get(levee.id);
+                const collected = progress?.collected_amount_cents ?? 0;
+                const outstanding = progress?.outstanding_amount_cents ?? levee.target_amount_cents;
+                const progressPercent = Math.min(100, Math.round((collected / levee.target_amount_cents) * 100));
+                const canClose = levee.status === 'active' && (collected >= levee.target_amount_cents || new Date(levee.deadline) < new Date());
+
+                return (
                 <article className="grid gap-4 rounded-md border border-border bg-raised p-5 shadow-card" key={levee.id}>
                   <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                     <div>
@@ -159,6 +201,41 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
                       <dt className="font-medium text-secondary">{t('createdAtLabel')}</dt>
                       <dd className="mt-1 text-heading">{format.dateTime(new Date(levee.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</dd>
                     </div>                  </dl>
+                  <section className="grid gap-3 rounded-sm border border-border bg-sunken p-4">
+                    <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                      <div>
+                        <h4 className="text-base font-semibold text-heading">{t('leveeProgressTitle')}</h4>
+                        <p className="text-sm text-secondary">
+                          {t('leveeProgressValue', {
+                            collected: format.number(collected / 100, { currency: 'CAD', style: 'currency' }),
+                            target: format.number(levee.target_amount_cents / 100, { currency: 'CAD', style: 'currency' })
+                          })}
+                        </p>
+                      </div>
+                      <CloseLeveeForm disabled={!canClose} leveeId={levee.id} locale={params.locale} />
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-sm bg-card">
+                      <div className="h-full bg-brand" style={{ width: `${progressPercent}%` }} />
+                    </div>
+                    <dl className="grid gap-3 text-sm md:grid-cols-4">
+                      <div>
+                        <dt className="font-medium text-secondary">{t('collectedLabel')}</dt>
+                        <dd className="mt-1 text-heading">{format.number(collected / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('outstandingLabel')}</dt>
+                        <dd className="mt-1 text-heading">{format.number(outstanding / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('associationCountLabel')}</dt>
+                        <dd className="mt-1 font-mono text-heading">{progress?.association_count ?? 0}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('remittedCountLabel')}</dt>
+                        <dd className="mt-1 font-mono text-heading">{progress?.remitted_association_count ?? 0}</dd>
+                      </div>
+                    </dl>
+                  </section>
                   <section className="grid gap-3">
                     <div className="flex flex-col gap-1">
                       <h4 className="text-base font-semibold text-heading">{t('callsTitle')}</h4>
@@ -169,7 +246,7 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
                     ) : (
                       <div className="grid gap-3">
                         {levee.association_levee_calls.map((call) => (
-                          <div className="grid gap-3 rounded-sm border border-border bg-card p-4 text-sm md:grid-cols-4" key={call.id}>
+                          <div className="grid gap-3 rounded-sm border border-border bg-card p-4 text-sm md:grid-cols-5" key={call.id}>
                             <div>
                               <p className="font-medium text-secondary">{t('callAssociationLabel')}</p>
                               <p className="mt-1 text-heading">{callAssociationName(call) ?? t('unknownAssociation')}</p>
@@ -186,12 +263,17 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
                               <p className="font-medium text-secondary">{t('callStatusLabel')}</p>
                               <p className="mt-1 rounded-sm bg-warning-bg px-2 py-1 font-medium text-warning">{t(`callStatuses.${call.status}`)}</p>
                             </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('remittanceStatusLabel')}</p>
+                              <p className="mt-1 text-heading">{call.remitted_at === null ? t('notRemitted') : t('remitted')}</p>
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </section>                </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

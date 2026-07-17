@@ -5,7 +5,15 @@ export const MEMBER_CONTRIBUTION_STATUSES = ['unpaid', 'partial', 'paid'] as con
 
 export type AssociationLeveeCallStatus = (typeof ASSOCIATION_LEVEE_CALL_STATUSES)[number];
 export type MemberContributionStatus = (typeof MEMBER_CONTRIBUTION_STATUSES)[number];
-export type LeveeActionCode = 'KMG-AUTH-403' | 'KMG-LV-001' | 'KMG-LV-002' | 'KMG-LV-404' | 'KMG-PAY-001' | 'KMG-PAY-CONFIG' | 'KMG-SYS-000';
+export type LeveeActionCode =
+  | 'KMG-AUTH-403'
+  | 'KMG-LV-001'
+  | 'KMG-LV-002'
+  | 'KMG-LV-003'
+  | 'KMG-LV-404'
+  | 'KMG-PAY-001'
+  | 'KMG-PAY-CONFIG'
+  | 'KMG-SYS-000';
 
 export type LeveeActionState =
   | {
@@ -43,5 +51,15 @@ export const recordMemberContributionPaymentSchema = z.object({
 
 export const startStripeContributionCheckoutSchema = z.object({
   contributionId: z.string().uuid(),
+  locale: z.enum(['en', 'fr'])
+});
+
+export const markAssociationLeveeCallRemittedSchema = z.object({
+  callId: z.string().uuid(),
+  locale: z.enum(['en', 'fr'])
+});
+
+export const closeLeveeIfReadySchema = z.object({
+  leveeId: z.string().uuid(),
   locale: z.enum(['en', 'fr'])
 });
