@@ -3,7 +3,7 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
-import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, RecordContributionPaymentForm } from '@/features/levees';
+import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, RecordContributionPaymentForm, StripeContributionCheckoutForm } from '@/features/levees';
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -131,6 +131,18 @@ const memberContributionSchema = z.object({
     })
     .nullable(),
   id: z.string().uuid(),
+  member_contribution_payments: z
+    .array(
+      z.object({
+        amount_applied_cents: z.number(),
+        amount_received_cents: z.number(),
+        created_at: z.string(),
+        id: z.string().uuid(),
+        overpayment_cents: z.number(),
+        stripe_checkout_session_id: z.string()
+      })
+    )
+    .nullable(),
   share_count: z.number().int(),
   status: z.enum(['unpaid', 'partial', 'paid'])
 });
@@ -141,6 +153,7 @@ type DashboardPageProps = {
   };
   searchParams: {
     associationSubmitted?: string;
+    payment?: string;
     registration?: string;
   };
 };
@@ -238,7 +251,9 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('member_contributions')
-    .select('id,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline))')
+    .select(
+      'id,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline)),member_contribution_payments(id,amount_received_cents,amount_applied_cents,overpayment_cents,stripe_checkout_session_id,created_at)'
+    )
     .order('created_at', { ascending: false });
 
   if (error || data === null) {
@@ -274,6 +289,12 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         ) : null}
         {searchParams.registration === 'pending' ? (
           <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">{t('memberRegistrationPending')}</p>
+        ) : null}
+        {searchParams.payment === 'success' ? (
+          <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">{t('paymentSuccess')}</p>
+        ) : null}
+        {searchParams.payment === 'cancelled' ? (
+          <p className="rounded-sm border border-border bg-warning-bg px-4 py-3 text-sm font-medium text-warning">{t('paymentCancelled')}</p>
         ) : null}
 
         <dl className="rounded-sm border border-border bg-sunken p-4">
@@ -327,13 +348,22 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
             <div className="grid gap-4">
               {memberContributions.map((contribution) => (
                 <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
-                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                    <div>
-                      <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
-                      <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
-                    </div>
-                    <p className="rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
-                  </div>
+                  {(() => {
+                    const remainingCents = Math.max(0, Math.round(contribution.amount_due_cents - contribution.amount_paid_cents));
+
+                    return (
+                      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
+                          <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
+                        </div>
+                        <div className="flex flex-col items-start gap-2 md:items-end">
+                          <p className="rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
+                          <StripeContributionCheckoutForm contributionId={contribution.id} disabled={remainingCents <= 0} locale={params.locale} />
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <dl className="grid gap-3 rounded-sm border border-border bg-sunken p-4 text-sm md:grid-cols-4">
                     <div>
                       <dt className="font-medium text-secondary">{t('callSharesLabel')}</dt>
@@ -356,6 +386,37 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                       </dd>
                     </div>
                   </dl>
+                  {contribution.member_contribution_payments === null || contribution.member_contribution_payments.length === 0 ? null : (
+                    <section className="grid gap-2 rounded-sm border border-border bg-sunken p-4">
+                      <h4 className="text-sm font-semibold text-heading">{t('receiptsTitle')}</h4>
+                      <div className="grid gap-2">
+                        {contribution.member_contribution_payments.map((payment) => (
+                          <div className="grid gap-2 rounded-sm border border-border bg-card p-3 text-sm md:grid-cols-5" key={payment.id}>
+                            <div>
+                              <p className="font-medium text-secondary">{t('receiptDateLabel')}</p>
+                              <p className="mt-1 text-heading">{format.dateTime(new Date(payment.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('receiptReceivedLabel')}</p>
+                              <p className="mt-1 text-heading">{format.number(payment.amount_received_cents / 100, { currency: 'CAD', style: 'currency' })}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('receiptAppliedLabel')}</p>
+                              <p className="mt-1 text-heading">{format.number(payment.amount_applied_cents / 100, { currency: 'CAD', style: 'currency' })}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('receiptOverpaymentLabel')}</p>
+                              <p className="mt-1 text-heading">{format.number(payment.overpayment_cents / 100, { currency: 'CAD', style: 'currency' })}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('receiptReferenceLabel')}</p>
+                              <p className="mt-1 font-mono text-xs text-heading">{payment.stripe_checkout_session_id}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </article>
               ))}
             </div>

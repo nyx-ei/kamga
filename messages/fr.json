@@ -126,7 +126,15 @@
     "collectionBreakdown": "Payes : {paid} · Partiels : {partial} · Non payes : {unpaid}",
     "noMemberContributions": "Aucune contribution membre n a encore ete generee pour cet appel.",
     "memberCollectionTitle": "Collecte membre",
-    "recordedAtLabel": "Enregistre le"
+    "recordedAtLabel": "Enregistre le",
+    "paymentSuccess": "Paiement confirme. Le recu apparaitra ici des que Stripe aura confirme la session.",
+    "paymentCancelled": "Paiement annule. Aucun montant n a ete applique.",
+    "receiptsTitle": "Recus Stripe",
+    "receiptDateLabel": "Date",
+    "receiptReceivedLabel": "Recu",
+    "receiptAppliedLabel": "Applique",
+    "receiptReferenceLabel": "Reference Stripe",
+    "receiptOverpaymentLabel": "Trop-percu"
   },
   "admin": {
     "badge": "Administration plateforme",
@@ -216,6 +224,17 @@
         "KMG-LV-001": "Verifiez le montant paye. Il doit etre compris entre 0 et le montant du.",
         "KMG-LV-404": "Cette contribution membre est introuvable.",
         "KMG-SYS-000": "Le paiement n a pas pu etre enregistre. Reessayez ou contactez le support."
+      }
+    },
+    "stripe": {
+      "payOnlineAction": "Payer en ligne",
+      "redirecting": "Redirection...",
+      "errors": {
+        "KMG-AUTH-403": "Vous ne pouvez payer que vos propres contributions.",
+        "KMG-LV-404": "Cette contribution est introuvable.",
+        "KMG-PAY-001": "Cette contribution ne peut pas etre payee en ligne dans son etat actuel.",
+        "KMG-PAY-CONFIG": "Stripe n est pas encore configure pour cet environnement.",
+        "KMG-SYS-000": "Le paiement en ligne n a pas pu demarrer. Reessayez ou contactez le support."
       }
     }
   },
