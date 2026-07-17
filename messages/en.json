@@ -79,6 +79,25 @@
         "government_id": "Government ID",
         "immigration_proof": "Immigration proof"
       }
+    },
+    "shares": {
+      "title": "Relatives and shares",
+      "description": "Add relatives or dependents associated with this membership. Share count is the registrant plus every listed relative.",
+      "shareCountLabel": "Share count",
+      "emptyState": "No relative or dependent is associated with this membership yet.",
+      "fullNameLabel": "Full name",
+      "relationshipLabel": "Relationship",
+      "externalIdLabel": "ID if applicable",
+      "addAction": "Add relative",
+      "adding": "Adding...",
+      "removeAction": "Remove relative",
+      "errors": {
+        "KMG-AUTH-403": "You can manage relatives only for an active membership that belongs to you.",
+        "KMG-RG-001": "Check the relative details and try again.",
+        "KMG-RG-404": "This membership or relative could not be found.",
+        "KMG-RG-409": "This membership cannot be updated in its current state.",
+        "KMG-SYS-000": "The share list could not be updated. Try again or contact support."
+      }
     }
   },
   "admin": {
@@ -246,6 +265,10 @@
       "phoneLabel": "Phone",
       "arrivalDateLabel": "Arrival in Canada",
       "submittedAtLabel": "Submitted",
+      "shareCountLabel": "Member share count",
+      "associationShareTotalLabel": "Association share total",
+      "dependentsTitle": "Relatives and dependents",
+      "dependentsEmpty": "No relative or dependent is associated with this membership.",
       "referrerTitle": "Referrer",
       "referrerNameLabel": "Name",
       "referrerEmailLabel": "Email",

@@ -21,12 +21,21 @@ const evidenceSchema = z.object({
   storage_path: z.string()
 });
 
+const dependentSchema = z.object({
+  external_id: z.string().nullable(),
+  full_name: z.string(),
+  id: z.string().uuid(),
+  relationship: z.string()
+});
+
 const memberDetailSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string(),
   status: z.enum(['pending', 'needs_more_evidence', 'active', 'declined', 'suspended']),
+  association_id: z.string().uuid(),
   associations: z.object({ name: z.string() }).nullable(),
   evidence_uploads: z.array(evidenceSchema).nullable(),
+  member_dependents: z.array(dependentSchema).nullable(),
   users: z
     .object({
       date_of_arrival_canada: z.string().nullable(),
@@ -48,6 +57,10 @@ const referrerSchema = z.object({
   users: z.union([referrerUserSchema, z.array(referrerUserSchema)]).nullable()
 });
 
+const shareTotalSchema = z.object({
+  total_shares: z.number()
+});
+
 type AdminMemberDetailPageProps = {
   params: {
     locale: 'en' | 'fr';
@@ -61,7 +74,7 @@ async function getMemberDetail(membershipId: string) {
   const { data, error } = await adminSupabase
     .from('association_members')
     .select(
-      'id,created_at,status,associations:association_id(name),users:user_id(first_name,last_name,email,phone,date_of_arrival_canada),evidence_uploads(id,evidence_type,status,storage_path)'
+      'id,association_id,created_at,status,associations:association_id(name),users:user_id(first_name,last_name,email,phone,date_of_arrival_canada),evidence_uploads(id,evidence_type,status,storage_path),member_dependents(id,full_name,relationship,external_id)'
     )
     .eq('id', membershipId)
     .maybeSingle();
@@ -72,6 +85,18 @@ async function getMemberDetail(membershipId: string) {
 
   const parsed = memberDetailSchema.safeParse(data);
   return parsed.success ? parsed.data : null;
+}
+
+async function getAssociationShareTotal(associationId: string): Promise<number> {
+  const adminSupabase = createSupabaseAdminClient();
+  const { data, error } = await adminSupabase.from('association_share_totals').select('total_shares').eq('association_id', associationId).maybeSingle();
+
+  if (error || data === null) {
+    return 0;
+  }
+
+  const parsed = shareTotalSchema.safeParse(data);
+  return parsed.success ? parsed.data.total_shares : 0;
 }
 
 async function getReferrer(membershipId: string) {
@@ -109,6 +134,7 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
   }
 
   const referrer = await getReferrer(member.id);
+  const associationShareTotal = await getAssociationShareTotal(member.association_id);
   const fullName = [member.users?.first_name, member.users?.last_name].filter(Boolean).join(' ');
   const referrerName = [referrer?.first_name, referrer?.last_name].filter(Boolean).join(' ');
   const adminLabel = currentUser.user.email ?? currentUser.user.id;
@@ -164,6 +190,14 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
                 <dt className="font-medium text-secondary">{t('submittedAtLabel')}</dt>
                 <dd className="mt-1 text-heading">{format.dateTime(new Date(member.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</dd>
               </div>
+              <div>
+                <dt className="font-medium text-secondary">{t('shareCountLabel')}</dt>
+                <dd className="mt-1 font-mono text-heading">{1 + (member.member_dependents?.length ?? 0)}</dd>
+              </div>
+              <div>
+                <dt className="font-medium text-secondary">{t('associationShareTotalLabel')}</dt>
+                <dd className="mt-1 font-mono text-heading">{associationShareTotal}</dd>
+              </div>
             </dl>
           </section>
 
@@ -185,6 +219,25 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
             </div>
           </section>
         </div>
+
+        <section className="grid gap-4 rounded-md border border-border bg-raised p-5 shadow-card">
+          <h2 className="text-xl font-semibold text-heading">{t('dependentsTitle')}</h2>
+          {member.member_dependents === null || member.member_dependents.length === 0 ? (
+            <p className="text-sm text-secondary">{t('dependentsEmpty')}</p>
+          ) : (
+            <ul className="grid gap-3">
+              {member.member_dependents.map((dependent) => (
+                <li className="rounded-sm border border-border bg-sunken p-4" key={dependent.id}>
+                  <p className="font-medium text-heading">{dependent.full_name}</p>
+                  <p className="text-sm text-secondary">{dependent.relationship}</p>
+                  {dependent.external_id === null || dependent.external_id.length === 0 ? null : (
+                    <p className="mt-1 font-mono text-xs text-muted">{dependent.external_id}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <section className="grid gap-4 rounded-md border border-border bg-raised p-5 shadow-card">
           <h2 className="text-xl font-semibold text-heading">{t('evidenceTitle')}</h2>

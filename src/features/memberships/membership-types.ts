@@ -48,3 +48,15 @@ export const requestMoreEvidenceSchema = z.object({
 export const sinRevealSchema = z.object({
   membershipId: z.string().uuid()
 });
+
+export const dependentSchema = z.object({
+  externalId: z.string().trim().max(120).optional(),
+  fullName: z.string().trim().min(2).max(160),
+  membershipId: z.string().uuid(),
+  relationship: z.string().trim().min(2).max(80)
+});
+
+export const removeDependentSchema = z.object({
+  dependentId: z.string().uuid(),
+  membershipId: z.string().uuid()
+});

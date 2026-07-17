@@ -5,14 +5,16 @@ import sanitizeHtml from 'sanitize-html';
 
 import {
   declineMemberSchema,
+  dependentSchema,
   type MembershipActionState,
   membershipReviewSchema,
+  removeDependentSchema,
   type RequestableEvidenceType,
   requestMoreEvidenceSchema,
   type SINRevealResult,
   sinRevealSchema
 } from '@/features/memberships/membership-types';
-import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
+import { getCurrentUser, requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { decryptSIN } from '@/lib/crypto/sin';
 import { emailDefaults, resend } from '@/lib/email/resend';
 import { applicationApprovedEmail, applicationDeclinedEmail, moreEvidenceNeededEmail } from '@/lib/email/templates';
@@ -30,6 +32,11 @@ function valueFromFormData(formData: FormData, key: string): string {
 
 function valuesFromFormData(formData: FormData, key: string): string[] {
   return formData.getAll(key).flatMap((value) => (typeof value === 'string' ? [value] : []));
+}
+
+function optionalValueFromFormData(formData: FormData, key: string): string | undefined {
+  const value = valueFromFormData(formData, key).trim();
+  return value.length > 0 ? value : undefined;
 }
 
 function byteaToBuffer(value: unknown): Buffer | null {
@@ -322,6 +329,93 @@ export async function requestMoreEvidence(_previousState: MembershipActionState 
   revalidatePath('/admin/members');
   revalidatePath(`/${parsed.data.locale}/admin/members`);
   revalidatePath(`/${parsed.data.locale}/admin/members/${parsed.data.membershipId}`);
+
+  return { ok: true };
+}
+
+export async function addDependent(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  const currentUser = await requireUser();
+  const parsed = dependentSchema.safeParse({
+    externalId: optionalValueFromFormData(formData, 'externalId'),
+    fullName: valueFromFormData(formData, 'fullName'),
+    membershipId: valueFromFormData(formData, 'membershipId'),
+    relationship: valueFromFormData(formData, 'relationship')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: membership, error: membershipError } = await supabase
+    .from('association_members')
+    .select('id')
+    .eq('id', parsed.data.membershipId)
+    .eq('user_id', currentUser.user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (membershipError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (membership === null) {
+    return { ok: false, code: 'KMG-AUTH-403' };
+  }
+
+  const { error } = await supabase.from('member_dependents').insert({
+    external_id: parsed.data.externalId ?? null,
+    full_name: parsed.data.fullName,
+    membership_id: parsed.data.membershipId,
+    relationship: parsed.data.relationship
+  });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/admin/members');
+
+  return { ok: true };
+}
+
+export async function removeDependent(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  const currentUser = await requireUser();
+  const parsed = removeDependentSchema.safeParse({
+    dependentId: valueFromFormData(formData, 'dependentId'),
+    membershipId: valueFromFormData(formData, 'membershipId')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: membership, error: membershipError } = await supabase
+    .from('association_members')
+    .select('id')
+    .eq('id', parsed.data.membershipId)
+    .eq('user_id', currentUser.user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (membershipError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (membership === null) {
+    return { ok: false, code: 'KMG-AUTH-403' };
+  }
+
+  const { error } = await supabase.from('member_dependents').delete().eq('id', parsed.data.dependentId).eq('membership_id', parsed.data.membershipId);
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/admin/members');
 
   return { ok: true };
 }
