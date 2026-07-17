@@ -9,7 +9,20 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
+const associationSummarySchema = z.object({
+  name: z.string()
+});
+
+const leveeCallRowSchema = z.object({
+  amount_due_cents: z.number(),
+  associations: z.union([associationSummarySchema, z.array(associationSummarySchema)]).nullable(),
+  id: z.string().uuid(),
+  share_count: z.number().int(),
+  status: z.enum(['pending', 'in_progress', 'completed'])
+});
+
 const leveeRowSchema = z.object({
+  association_levee_calls: z.array(leveeCallRowSchema).nullable(),
   created_at: z.string(),
   deadline: z.string(),
   deceased_city: z.string().nullable(),
@@ -28,7 +41,13 @@ type AdminLeveesPageProps = {
   };
 };
 
+type LeveeCallRow = z.infer<typeof leveeCallRowSchema>;
 type LeveeRow = z.infer<typeof leveeRowSchema>;
+
+function callAssociationName(call: LeveeCallRow): string | null {
+  const association = Array.isArray(call.associations) ? call.associations[0] : call.associations;
+  return association?.name ?? null;
+}
 
 async function currentPoolSize(): Promise<number> {
   const supabase = createSupabaseServerClient();
@@ -45,7 +64,7 @@ async function listLevees(): Promise<LeveeRow[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('levees')
-    .select('id,deceased_full_name,deceased_city,deceased_date_of_death,target_amount_cents,deadline,pool_size,per_share_amount_cents,status,created_at')
+    .select('id,deceased_full_name,deceased_city,deceased_date_of_death,target_amount_cents,deadline,pool_size,per_share_amount_cents,status,created_at,association_levee_calls(id,share_count,amount_due_cents,status,associations:association_id(name))')
     .order('created_at', { ascending: false });
 
   if (error || data === null) {
@@ -139,9 +158,39 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
                     <div>
                       <dt className="font-medium text-secondary">{t('createdAtLabel')}</dt>
                       <dd className="mt-1 text-heading">{format.dateTime(new Date(levee.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</dd>
+                    </div>                  </dl>
+                  <section className="grid gap-3">
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-base font-semibold text-heading">{t('callsTitle')}</h4>
+                      <p className="text-sm leading-6 text-secondary">{t('callsDescription')}</p>
                     </div>
-                  </dl>
-                </article>
+                    {levee.association_levee_calls === null || levee.association_levee_calls.length === 0 ? (
+                      <div className="rounded-sm border border-border bg-sunken p-4 text-sm text-secondary">{t('callsEmpty')}</div>
+                    ) : (
+                      <div className="grid gap-3">
+                        {levee.association_levee_calls.map((call) => (
+                          <div className="grid gap-3 rounded-sm border border-border bg-card p-4 text-sm md:grid-cols-4" key={call.id}>
+                            <div>
+                              <p className="font-medium text-secondary">{t('callAssociationLabel')}</p>
+                              <p className="mt-1 text-heading">{callAssociationName(call) ?? t('unknownAssociation')}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('callSharesLabel')}</p>
+                              <p className="mt-1 font-mono text-heading">{call.share_count}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('callAmountLabel')}</p>
+                              <p className="mt-1 text-heading">{format.number(call.amount_due_cents / 100, { currency: 'CAD', style: 'currency' })}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-secondary">{t('callStatusLabel')}</p>
+                              <p className="mt-1 rounded-sm bg-warning-bg px-2 py-1 font-medium text-warning">{t(`callStatuses.${call.status}`)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>                </article>
               ))}
             </div>
           )}

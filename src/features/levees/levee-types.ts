@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-export type LeveeActionCode = 'KMG-AUTH-403' | 'KMG-LV-001' | 'KMG-LV-002' | 'KMG-SYS-000';
+export const ASSOCIATION_LEVEE_CALL_STATUSES = ['pending', 'in_progress', 'completed'] as const;
+
+export type AssociationLeveeCallStatus = (typeof ASSOCIATION_LEVEE_CALL_STATUSES)[number];
+export type LeveeActionCode = 'KMG-AUTH-403' | 'KMG-LV-001' | 'KMG-LV-002' | 'KMG-LV-404' | 'KMG-SYS-000';
 
 export type LeveeActionState =
   | {
@@ -21,4 +24,10 @@ export const createLeveeSchema = z.object({
   deceasedFullName: z.string().trim().min(2).max(180),
   locale: z.enum(['en', 'fr']),
   targetAmountCents: z.number().int().positive()
+});
+
+export const updateAssociationLeveeCallStatusSchema = z.object({
+  callId: z.string().uuid(),
+  locale: z.enum(['en', 'fr']),
+  status: z.enum(ASSOCIATION_LEVEE_CALL_STATUSES)
 });
