@@ -2,9 +2,11 @@ import { z } from 'zod';
 
 export const ASSOCIATION_LEVEE_CALL_STATUSES = ['pending', 'in_progress', 'completed'] as const;
 export const MEMBER_CONTRIBUTION_STATUSES = ['unpaid', 'partial', 'paid'] as const;
+export const PAYMENT_PREFERENCES = ['manual', 'auto_pay'] as const;
 
 export type AssociationLeveeCallStatus = (typeof ASSOCIATION_LEVEE_CALL_STATUSES)[number];
 export type MemberContributionStatus = (typeof MEMBER_CONTRIBUTION_STATUSES)[number];
+export type PaymentPreference = (typeof PAYMENT_PREFERENCES)[number];
 export type LeveeActionCode =
   | 'KMG-AUTH-403'
   | 'KMG-LV-001'
@@ -52,6 +54,15 @@ export const recordMemberContributionPaymentSchema = z.object({
 export const startStripeContributionCheckoutSchema = z.object({
   contributionId: z.string().uuid(),
   locale: z.enum(['en', 'fr'])
+});
+
+export const startStripeCustomerPortalSchema = z.object({
+  locale: z.enum(['en', 'fr'])
+});
+
+export const updatePaymentPreferenceSchema = z.object({
+  locale: z.enum(['en', 'fr']),
+  paymentPreference: z.enum(PAYMENT_PREFERENCES)
 });
 
 export const markAssociationLeveeCallRemittedSchema = z.object({

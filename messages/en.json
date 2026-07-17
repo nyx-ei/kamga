@@ -143,6 +143,7 @@
     "receiptAppliedLabel": "Applied",
     "receiptReferenceLabel": "Stripe reference",
     "receiptOverpaymentLabel": "Overpayment",
+    "receiptDownloadAction": "Open receipt",
     "outstandingLabel": "Outstanding",
     "remittanceStatusLabel": "Board remittance",
     "remitted": "Remitted",
@@ -155,7 +156,33 @@
     "activeLeveesDescription": "Track current levees and the payment status of your contribution.",
     "contributionHistoryTitle": "Contribution history",
     "contributionHistoryDescription": "Review all past contributions, paid amounts, receipts, and associated dates.",
-    "currentShareStatusLabel": "Status"
+    "currentShareStatusLabel": "Status",
+    "financialSettings": {
+      "title": "Financial settings",
+      "description": "Manage payment preferences and saved payment methods for future contribution calls.",
+      "preferenceLabel": "Payment preference",
+      "manualTitle": "Manual payment",
+      "manualDescription": "You choose when to pay each contribution after an active call is assigned.",
+      "autoPayTitle": "Auto-pay on call",
+      "autoPayDescription": "Use the saved Stripe payment method automatically when auto-pay support is enabled for calls.",
+      "savePreferenceAction": "Save preference",
+      "saving": "Saving...",
+      "paymentMethodSaved": "A Stripe customer profile is linked.",
+      "paymentMethodMissing": "No saved payment method yet.",
+      "portalDescription": "Open Stripe customer portal to add or update your saved payment method.",
+      "paymentMethodAction": "Manage payment method",
+      "openingPortal": "Opening...",
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to update these settings.",
+        "KMG-LV-001": "Check the submitted values and try again.",
+        "KMG-LV-002": "This levee cannot be updated.",
+        "KMG-LV-003": "This call cannot be updated.",
+        "KMG-LV-404": "This record could not be found.",
+        "KMG-PAY-001": "The payment settings request is invalid.",
+        "KMG-PAY-CONFIG": "Stripe is not configured for this environment yet.",
+        "KMG-SYS-000": "Financial settings could not be updated. Try again or contact support."
+      }
+    }
   },
   "admin": {
     "badge": "Platform administration",
