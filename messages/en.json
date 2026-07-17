@@ -207,6 +207,21 @@
     "membersAction": "Review members",
     "leveesAction": "Create levees"
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "{count, plural, =0 {No unread notification} one {# unread notification} other {# unread notifications}}",
+    "emptyState": "No notification yet.",
+    "openAction": "Open",
+    "markReadAction": "Mark as read",
+    "markAllReadAction": "Mark all as read",
+    "sendReminderAction": "Send reminder",
+    "sendingReminder": "Sending...",
+    "errors": {
+      "KMG-AUTH-403": "You do not have permission to send this notification.",
+      "KMG-NT-001": "This notification request is invalid.",
+      "KMG-SYS-000": "The notification could not be sent. Try again or contact support."
+    }
+  },
   "levees": {
     "admin": {
       "badge": "Levee initiation",

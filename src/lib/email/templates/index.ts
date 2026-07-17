@@ -4,3 +4,4 @@ export { applicationReceivedEmail } from '@/lib/email/templates/application-rece
 export type { EmailLocale, EmailTemplate } from '@/lib/email/templates/email-template-types';
 export { fiscalSlipEmail } from '@/lib/email/templates/fiscal-slip';
 export { moreEvidenceNeededEmail } from '@/lib/email/templates/more-evidence-needed';
+export { notificationEmail } from '@/lib/email/templates/notification';

@@ -16,6 +16,7 @@ import {
   updatePaymentPreferenceSchema} from '@/features/levees/levee-types';
 import { requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
+import { notifyLeveeDispatched } from '@/lib/notifications/server';
 import { createStripeServerClient } from '@/lib/stripe/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -205,6 +206,7 @@ export async function createLevee(_previousState: LeveeActionState = INITIAL_ERR
 
   revalidatePath('/admin/levees');
   revalidatePath(`/${parsed.data.locale}/admin/levees`);
+  await notifyLeveeDispatched({ leveeId: created.data.id, locale: parsed.data.locale });
 
   return {
     ok: true,
