@@ -134,7 +134,12 @@
     "receiptReceivedLabel": "Received",
     "receiptAppliedLabel": "Applied",
     "receiptReferenceLabel": "Stripe reference",
-    "receiptOverpaymentLabel": "Overpayment"
+    "receiptOverpaymentLabel": "Overpayment",
+    "outstandingLabel": "Outstanding",
+    "remittanceStatusLabel": "Board remittance",
+    "remitted": "Remitted",
+    "notRemitted": "Not remitted",
+    "remittedAtLabel": "Remitted at"
   },
   "admin": {
     "badge": "Platform administration",
@@ -196,7 +201,16 @@
         "pending": "Pending",
         "in_progress": "In progress",
         "completed": "Completed"
-      }
+      },
+      "leveeProgressTitle": "Overall progress",
+      "leveeProgressValue": "{collected} collected of {target}",
+      "collectedLabel": "Collected",
+      "outstandingLabel": "Outstanding",
+      "associationCountLabel": "Associations",
+      "remittedCountLabel": "Remitted",
+      "remittanceStatusLabel": "Remittance",
+      "remitted": "Remitted",
+      "notRemitted": "Not remitted"
     },
     "calls": {
       "statusLabel": "Processing status",
@@ -235,6 +249,28 @@
         "KMG-PAY-001": "This contribution cannot be paid online in its current state.",
         "KMG-PAY-CONFIG": "Stripe is not configured for this environment yet.",
         "KMG-SYS-000": "Online payment could not be started. Try again or contact support."
+      }
+    },
+    "remittance": {
+      "markRemittedAction": "Mark remitted to board",
+      "marking": "Updating...",
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to mark this call as remitted.",
+        "KMG-LV-001": "The remittance request is invalid.",
+        "KMG-LV-003": "Collection must be complete before remittance to the board.",
+        "KMG-LV-404": "This call could not be found.",
+        "KMG-SYS-000": "The remittance could not be recorded. Try again or contact support."
+      }
+    },
+    "closure": {
+      "closeAction": "Close levee",
+      "closing": "Closing...",
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to close this levee.",
+        "KMG-LV-001": "The closure request is invalid.",
+        "KMG-LV-003": "The levee can close only after target is met or deadline has passed.",
+        "KMG-LV-404": "This levee could not be found.",
+        "KMG-SYS-000": "The levee could not be closed. Try again or contact support."
       }
     }
   },

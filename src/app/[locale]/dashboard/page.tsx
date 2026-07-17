@@ -3,7 +3,7 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
-import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, RecordContributionPaymentForm, StripeContributionCheckoutForm } from '@/features/levees';
+import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, MarkAssociationRemittedForm, RecordContributionPaymentForm, StripeContributionCheckoutForm } from '@/features/levees';
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -112,6 +112,8 @@ const contributionProgressSchema = z.object({
   member_count: z.number().int(),
   paid_member_count: z.number().int(),
   partial_member_count: z.number().int(),
+  remitted_at: z.string().nullable(),
+  outstanding_amount_cents: z.number(),
   target_amount_cents: z.number(),
   unpaid_member_count: z.number().int()
 });
@@ -231,8 +233,8 @@ async function listContributionProgress(callIds: string[]): Promise<Map<string, 
 
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
-    .from('association_levee_collection_progress')
-    .select('association_levee_call_id,target_amount_cents,collected_amount_cents,member_count,paid_member_count,partial_member_count,unpaid_member_count')
+    .from('association_levee_collection_summary')
+    .select('association_levee_call_id,target_amount_cents,collected_amount_cents,outstanding_amount_cents,remitted_at,member_count,paid_member_count,partial_member_count,unpaid_member_count')
     .in('association_levee_call_id', callIds);
 
   if (error || data === null) {
@@ -437,7 +439,9 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                     const progress = contributionProgress.get(call.id);
                     const collected = progress?.collected_amount_cents ?? 0;
                     const target = progress?.target_amount_cents ?? call.amount_due_cents;
+                    const outstanding = progress?.outstanding_amount_cents ?? Math.max(call.amount_due_cents - collected, 0);
                     const progressPercent = target <= 0 ? 0 : Math.min(100, Math.round((collected / target) * 100));
+                    const isRemitted = progress?.remitted_at !== null && progress?.remitted_at !== undefined;
 
                     return (
                       <section className="grid gap-3 rounded-sm border border-border bg-sunken p-4">
@@ -463,6 +467,21 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                             unpaid: progress?.unpaid_member_count ?? 0
                           })}
                         </p>
+                        <dl className="grid gap-3 text-sm md:grid-cols-3">
+                          <div>
+                            <dt className="font-medium text-secondary">{t('outstandingLabel')}</dt>
+                            <dd className="mt-1 text-heading">{format.number(outstanding / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-secondary">{t('remittanceStatusLabel')}</dt>
+                            <dd className="mt-1 text-heading">{isRemitted ? t('remitted') : t('notRemitted')}</dd>
+                          </div>
+                          <div>
+                            <dt className="font-medium text-secondary">{t('remittedAtLabel')}</dt>
+                            <dd className="mt-1 text-heading">{progress?.remitted_at === null || progress?.remitted_at === undefined ? t('notAvailable') : format.dateTime(new Date(progress.remitted_at), { dateStyle: 'medium', timeStyle: 'short' })}</dd>
+                          </div>
+                        </dl>
+                        <MarkAssociationRemittedForm callId={call.id} disabled={isRemitted || outstanding > 0} locale={params.locale} />
                       </section>
                     );
                   })()}
