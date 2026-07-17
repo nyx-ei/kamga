@@ -20,6 +20,53 @@ type RegisterPageProps = {
   };
 };
 
+const claimCopy = {
+  en: {
+    badge: 'Claim your listing',
+    title: 'Confirm you manage this association',
+    selectTitle: 'Select an existing association',
+    selectDescription: 'Claim requests are not connected to the backend yet.',
+    unavailable: 'Unavailable',
+    placeholder: 'Design placeholder only',
+    proveTitle: 'Prove you control this association',
+    proveDescription:
+      'This screen preserves the approved product layout. The claim backend, association selector and email-code verification still need a dedicated ticket.',
+    registryLabel: 'Registry number (NEQ / federal)',
+    registryPlaceholder: 'Available after claim flow is implemented',
+    registryDisabled: 'Registry matching is disabled until a real verification service is added.',
+    emailDisabled: 'Email confirmation will be sent by the future claim workflow.',
+    disabled: 'Disabled',
+    codeLabel: 'Confirmation code',
+    codePlaceholder: '6-digit code',
+    authorized: "I am authorized to manage this association's listing.",
+    action: 'Claim this listing',
+    notMine: 'Not my association',
+    footnote: "On success, you can edit the record and manage what's public. Provenance stays invisible to members."
+  },
+  fr: {
+    badge: 'Revendication',
+    title: 'Confirmez que vous gerez cette association',
+    selectTitle: 'Selectionner une association existante',
+    selectDescription: "Les demandes de revendication ne sont pas encore connectees au backend.",
+    unavailable: 'Indisponible',
+    placeholder: 'Placeholder de design uniquement',
+    proveTitle: 'Prouvez que vous controlez cette association',
+    proveDescription:
+      "Cet ecran conserve le layout produit valide. Le backend de revendication, le selecteur d'association et la verification par code email demandent encore un ticket dedie.",
+    registryLabel: 'Numero de registre (NEQ / federal)',
+    registryPlaceholder: 'Disponible apres implementation du flow de revendication',
+    registryDisabled: "La verification du registre est desactivee jusqu'a l'ajout d'un vrai service de verification.",
+    emailDisabled: 'La confirmation email sera envoyee par le futur workflow de revendication.',
+    disabled: 'Desactive',
+    codeLabel: 'Code de confirmation',
+    codePlaceholder: 'Code a 6 chiffres',
+    authorized: "Je suis autorise a gerer la fiche de cette association.",
+    action: 'Revendiquer cette fiche',
+    notMine: "Ce n'est pas mon association",
+    footnote: 'Apres validation, vous pourrez modifier la fiche et gerer les informations publiques. La provenance reste invisible aux membres.'
+  }
+} as const;
+
 export default async function RegisterPage({ params, searchParams }: RegisterPageProps) {
   const t = await getTranslations('associations.registration');
   const referralT = await getTranslations('referrals.registration');
@@ -27,6 +74,7 @@ export default async function RegisterPage({ params, searchParams }: RegisterPag
   const currentUser = await getCurrentUser();
   const referralToken = searchParams.ref;
   const isClaimFlow = typeof searchParams.claim === 'string';
+  const claim = claimCopy[params.locale];
 
   if (referralToken !== undefined) {
     const validation = await validateReferralToken(referralToken);
@@ -65,88 +113,73 @@ export default async function RegisterPage({ params, searchParams }: RegisterPag
 
   if (isClaimFlow) {
     return (
-      <AssociationWorkspaceShell activeTab="claim" locale={params.locale}>
+      <AssociationWorkspaceShell locale={params.locale}>
         <section className="mx-auto max-w-3xl">
-          <p className="text-xs font-semibold uppercase text-[#3454b8]">Claim your listing</p>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight text-heading">Confirm you manage this association</h1>
+          <p className="text-xs font-semibold uppercase text-[#3454b8]">{claim.badge}</p>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight text-heading">{claim.title}</h1>
 
           <article className="mt-8 flex gap-5 rounded-md border border-border bg-card p-8 shadow-card">
             <span className="grid size-14 place-items-center rounded-md bg-[#f1f4ff] text-[#3454b8]">
               <Building2 aria-hidden="true" size={28} />
             </span>
             <div>
-              <h2 className="text-2xl font-semibold text-heading">Select an existing association</h2>
-              <p className="mt-2 text-secondary">Claim requests are not connected to the backend yet.</p>
+              <h2 className="text-2xl font-semibold text-heading">{claim.selectTitle}</h2>
+              <p className="mt-2 text-secondary">{claim.selectDescription}</p>
               <div className="mt-4 flex gap-2">
-                <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Unavailable</span>
-                <span className="rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">Design placeholder only</span>
+                <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">{claim.unavailable}</span>
+                <span className="rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">{claim.placeholder}</span>
               </div>
             </div>
           </article>
 
           <article className="mt-8 rounded-md border border-border bg-card p-8 shadow-card">
-            <h2 className="text-2xl font-semibold text-heading">Prove you control this association</h2>
-            <p className="mt-3 text-base leading-7 text-secondary">
-              This screen preserves the mockup layout. The claim backend, association selector and email-code verification still need a dedicated ticket.
-            </p>
+            <h2 className="text-2xl font-semibold text-heading">{claim.proveTitle}</h2>
+            <p className="mt-3 text-base leading-7 text-secondary">{claim.proveDescription}</p>
             <label className="mt-7 grid gap-2 text-sm font-semibold text-heading">
-              Registry number (NEQ / federal)
-              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-base text-muted shadow-card" disabled placeholder="Available after claim flow is implemented" />
+              {claim.registryLabel}
+              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-base text-muted shadow-card" disabled placeholder={claim.registryPlaceholder} />
             </label>
             <div className="mt-7 flex items-center gap-4 rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
               <Info aria-hidden="true" size={24} />
-              <span className="font-medium">Registry matching is disabled until a real verification service is added.</span>
+              <span className="font-medium">{claim.registryDisabled}</span>
             </div>
             <div className="mt-5 flex items-center justify-between rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
               <span className="inline-flex items-center gap-3">
                 <Mail aria-hidden="true" size={22} />
-                Email confirmation will be sent by the future claim workflow.
+                {claim.emailDisabled}
               </span>
-              <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Disabled</span>
+              <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">{claim.disabled}</span>
             </div>
             <label className="mt-5 grid gap-2 text-sm font-semibold text-heading">
-              Confirmation code
-              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 font-mono text-base text-muted shadow-card" disabled placeholder="6-digit code" />
+              {claim.codeLabel}
+              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 font-mono text-base text-muted shadow-card" disabled placeholder={claim.codePlaceholder} />
             </label>
             <label className="mt-6 inline-flex cursor-not-allowed items-center gap-3 text-sm font-medium text-muted">
               <input className="size-5" disabled type="checkbox" />
-              I am authorized to manage this association&apos;s listing.
+              {claim.authorized}
             </label>
             <div className="mt-7 flex gap-5">
               <button className="inline-flex cursor-not-allowed items-center gap-2 rounded-sm bg-[#d8def5] px-5 py-3 text-sm font-semibold text-muted shadow-card" disabled type="button">
                 <ShieldCheck aria-hidden="true" size={16} />
-                Claim this listing
+                {claim.action}
               </button>
               <Link className="inline-flex items-center rounded-sm px-5 py-3 text-sm font-semibold text-brand" href="/register">
-                Not my association
+                {claim.notMine}
               </Link>
             </div>
           </article>
-          <p className="mt-8 text-sm text-secondary">On success, you can edit the record and manage what&apos;s public. Provenance stays invisible to members.</p>
+          <p className="mt-8 text-sm text-secondary">{claim.footnote}</p>
         </section>
       </AssociationWorkspaceShell>
     );
   }
 
   return (
-    <AssociationWorkspaceShell activeTab="self-registration" locale={params.locale}>
+    <AssociationWorkspaceShell locale={params.locale}>
       <section className="mx-auto max-w-4xl">
         <p className="text-xs font-semibold uppercase text-[#3454b8]">{t('badge')}</p>
         <h1 className="mt-4 text-4xl font-semibold leading-tight text-heading">{t('title')}</h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-secondary">{t('description')}</p>
-
-        <div className="mt-10 rounded-md border border-border bg-card p-8 shadow-card">
-          <div className="flex items-center gap-5">
-            <span className="grid size-9 place-items-center rounded-full bg-[#4d67c7] text-white">OK</span>
-            <span className="font-semibold text-secondary">Identity & location</span>
-            <span className="h-px flex-1 bg-border" />
-            <span className="grid size-9 place-items-center rounded-full bg-blue-900 text-white">2</span>
-            <span className="font-semibold text-heading">Verify legitimacy</span>
-            <span className="h-px flex-1 bg-border" />
-            <span className="grid size-9 place-items-center rounded-full bg-[#eef1f7] text-secondary">3</span>
-            <span className="font-semibold text-secondary">Choose what&apos;s public</span>
-          </div>
-        </div>
 
         <div className="mt-8 rounded-md border border-border bg-card p-8 shadow-card">
           {currentUser === null ? (
