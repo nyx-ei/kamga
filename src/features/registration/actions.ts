@@ -8,6 +8,8 @@ import { memberRegistrationSchema } from '@/features/registration/registration-s
 import type { MemberRegistrationActionResult, StoredEvidenceFile, StoredMemberRegistration } from '@/features/registration/registration-types';
 import { getCurrentUser } from '@/lib/auth';
 import { emailDefaults, resend } from '@/lib/email/resend';
+import { applicationReceivedEmail } from '@/lib/email/templates';
+import { publicEnv } from '@/lib/env/public-env';
 import { parseReferralToken, validateReferralToken } from '@/lib/referrals/tokens';
 import { encryptSin } from '@/lib/security/sin-encryption';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -41,27 +43,20 @@ async function uploadRegistrationEvidence(
   });
 }
 
-function registrationEmailCopy(registration: StoredMemberRegistration): { subject: string; text: string } {
-  if (registration.locale === 'fr') {
-    return {
-      subject: 'Kamga - Demande membre reçue',
-      text: 'Votre demande membre a été reçue. Elle est maintenant en attente de revue par l’administrateur de l’association.'
-    };
-  }
-
-  return {
-    subject: 'Kamga - Member application received',
-    text: 'Your member application was received. It is now pending review by the association administrator.'
-  };
-}
-
-async function sendPendingReviewEmail(registration: StoredMemberRegistration) {
-  const copy = registrationEmailCopy(registration);
+async function sendPendingReviewEmail(registration: StoredMemberRegistration, associationName: string) {
+  const dashboardUrl = new URL(`/${registration.locale}/dashboard`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const template = applicationReceivedEmail({
+    associationName,
+    dashboardUrl,
+    firstName: registration.firstName,
+    locale: registration.locale
+  });
   const { error } = await resend.emails.send({
     from: emailDefaults.from,
+    html: template.html,
     to: registration.email,
-    subject: copy.subject,
-    text: copy.text
+    subject: template.subject,
+    text: template.text
   });
 
   // Email delivery is non-blocking for registration completion; Resend errors must not expose provider details to the client.
@@ -146,7 +141,7 @@ export async function completeRegistration(registration: unknown): Promise<Membe
     return { ok: false, code: 'KMG-SYS-000' };
   }
 
-  await sendPendingReviewEmail(parsed.data);
+  await sendPendingReviewEmail(parsed.data, referral.associationName);
   revalidatePath('/dashboard');
   revalidatePath(`/${parsed.data.locale}/dashboard`);
 
