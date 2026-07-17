@@ -15,6 +15,7 @@ import {
 import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
 import { decryptSIN } from '@/lib/crypto/sin';
 import { emailDefaults, resend } from '@/lib/email/resend';
+import { applicationApprovedEmail, applicationDeclinedEmail, moreEvidenceNeededEmail } from '@/lib/email/templates';
 import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -98,13 +99,10 @@ async function sendApprovalEmail(membershipId: string, locale: 'en' | 'fr') {
     return;
   }
 
-  const subject = locale === 'fr' ? 'Kamga - Demande membre approuvee' : 'Kamga - Member application approved';
-  const text =
-    locale === 'fr'
-      ? `Votre demande membre pour ${recipient.associationName} a ete approuvee.`
-      : `Your member application for ${recipient.associationName} was approved.`;
+  const dashboardUrl = new URL(`/${locale}/dashboard`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const template = applicationApprovedEmail({ associationName: recipient.associationName, dashboardUrl, locale });
 
-  await resend.emails.send({ from: emailDefaults.from, to: recipient.email, subject, text });
+  await resend.emails.send({ from: emailDefaults.from, html: template.html, to: recipient.email, subject: template.subject, text: template.text });
 }
 
 async function sendDeclineEmail(membershipId: string, locale: 'en' | 'fr', explanationHtml: string) {
@@ -114,21 +112,13 @@ async function sendDeclineEmail(membershipId: string, locale: 'en' | 'fr', expla
     return;
   }
 
-  const subject = locale === 'fr' ? 'Kamga - Demande membre refusee' : 'Kamga - Member application declined';
-  const text =
-    locale === 'fr'
-      ? `Votre demande membre pour ${recipient.associationName} a ete refusee. Consultez l'explication fournie dans le message HTML.`
-      : `Your member application for ${recipient.associationName} was declined. Review the explanation in the HTML message.`;
+  const template = applicationDeclinedEmail({
+    associationName: recipient.associationName,
+    declineReasonHtml: explanationHtml,
+    locale
+  });
 
-  await resend.emails.send({ from: emailDefaults.from, html: explanationHtml, to: recipient.email, subject, text });
-}
-
-function evidenceTypeLabel(evidenceType: RequestableEvidenceType, locale: 'en' | 'fr'): string {
-  if (evidenceType === 'government_id') {
-    return locale === 'fr' ? "piece d'identite gouvernementale" : 'government ID';
-  }
-
-  return locale === 'fr' ? "preuve du statut d'immigration" : 'proof of immigration status';
+  await resend.emails.send({ from: emailDefaults.from, html: template.html, to: recipient.email, subject: template.subject, text: template.text });
 }
 
 async function sendMoreEvidenceEmail(membershipId: string, locale: 'en' | 'fr', evidenceTypes: RequestableEvidenceType[]) {
@@ -139,14 +129,9 @@ async function sendMoreEvidenceEmail(membershipId: string, locale: 'en' | 'fr', 
   }
 
   const uploadUrl = new URL(`/${locale}/dashboard/upload-evidence`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
-  const requested = evidenceTypes.map((type) => evidenceTypeLabel(type, locale)).join(', ');
-  const subject = locale === 'fr' ? 'Kamga - Preuves complementaires requises' : 'Kamga - Additional evidence required';
-  const text =
-    locale === 'fr'
-      ? `Des preuves complementaires sont requises pour ${recipient.associationName}: ${requested}. Televersez-les ici: ${uploadUrl}`
-      : `Additional evidence is required for ${recipient.associationName}: ${requested}. Upload it here: ${uploadUrl}`;
+  const template = moreEvidenceNeededEmail({ associationName: recipient.associationName, evidenceTypes, locale, uploadUrl });
 
-  await resend.emails.send({ from: emailDefaults.from, to: recipient.email, subject, text });
+  await resend.emails.send({ from: emailDefaults.from, html: template.html, to: recipient.email, subject: template.subject, text: template.text });
 }
 
 async function runTerminalReview(membershipId: string, decision: 'active' | 'declined', locale: 'en' | 'fr', declineReasonHtml: string | null) {
