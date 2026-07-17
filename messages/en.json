@@ -4,7 +4,14 @@
     "title": "Find an RPN association near you",
     "description": "Kamga starts with a public directory that helps people discover associations while building the verified dataset for future contribution workflows.",
     "primaryAction": "Search the directory",
-    "secondaryAction": "Register an association"
+    "secondaryAction": "Register an association",
+    "searchLabel": "Search associations",
+    "searchPlaceholder": "Name or city",
+    "directoryTitle": "Active RPN associations",
+    "directoryDescription": "Browse verified associations and open a profile to request membership.",
+    "emptyState": "No active association matches this search.",
+    "descriptionFallback": "This association has not published a detailed description yet.",
+    "viewAssociationAction": "View profile"
   },
   "auth": {
     "login": {
@@ -139,7 +146,10 @@
     "remittanceStatusLabel": "Board remittance",
     "remitted": "Remitted",
     "notRemitted": "Not remitted",
-    "remittedAtLabel": "Remitted at"
+    "remittedAtLabel": "Remitted at",
+    "joinRequest": "Your membership request was sent to the association administrator.",
+    "joinRequestsTitle": "Direct join requests",
+    "joinRequestsDescription": "Review requests submitted from the public directory by applicants who want to join your associations."
   },
   "admin": {
     "badge": "Platform administration",
@@ -334,7 +344,21 @@
       "directoryAction": "Back to directory",
       "cityLabel": "City",
       "contactLabel": "Admin contact",
-      "contactDescription": "Contact is mediated by Kamga until the association explicitly opts in to publish a contact channel."
+      "contactDescription": "Contact is mediated by Kamga until the association explicitly opts in to publish a contact channel.",
+      "descriptionFallback": "This association has not published a detailed description yet.",
+      "memberCountLabel": "Active members"
+    },
+    "join": {
+      "action": "Request to join",
+      "submitting": "Submitting...",
+      "description": "Send a direct request to this association administrator. You will be notified after review.",
+      "errors": {
+        "KMG-AUTH-401": "Sign in before requesting to join an association.",
+        "KMG-RG-001": "The request is invalid.",
+        "KMG-RG-404": "This active association could not be found.",
+        "KMG-RG-409": "A request already exists for this association.",
+        "KMG-SYS-000": "The request could not be submitted. Try again or contact support."
+      }
     }
   },
   "referrals": {

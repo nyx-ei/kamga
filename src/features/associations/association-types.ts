@@ -12,6 +12,7 @@ export type AssociationActionCode =
   | 'KMG-RG-003'
   | 'KMG-RG-004'
   | 'KMG-RG-404'
+  | 'KMG-RG-409'
   | 'KMG-SYS-000';
 
 export type AssociationActionState =
@@ -32,6 +33,11 @@ export const associationRegistrationSchema = z.object({
 });
 
 export const associationDecisionSchema = z.object({
+  associationId: z.string().uuid(),
+  locale: z.enum(['en', 'fr'])
+});
+
+export const associationJoinRequestSchema = z.object({
   associationId: z.string().uuid(),
   locale: z.enum(['en', 'fr'])
 });
