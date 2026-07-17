@@ -10,6 +10,11 @@ function metadataValue(metadata: Stripe.Metadata | null, key: string): string | 
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+function receiptUrlFromPaymentIntent(paymentIntent: Stripe.PaymentIntent | null): string {
+  const charge = typeof paymentIntent?.latest_charge === 'string' ? null : paymentIntent?.latest_charge;
+  return charge?.receipt_url ?? '';
+}
+
 export async function POST(request: Request) {
   const stripe = createStripeServerClient();
   const webhookSecret = requireStripeWebhookSecret();
@@ -41,13 +46,20 @@ export async function POST(request: Request) {
     return new Response('Missing session metadata', { status: 400 });
   }
 
+  const paymentIntent =
+    paymentIntentId === null
+      ? null
+      : await stripe.paymentIntents.retrieve(paymentIntentId, {
+          expand: ['latest_charge']
+        });
   const adminSupabase = createSupabaseAdminClient();
   const { error } = await adminSupabase.rpc('apply_stripe_member_contribution_payment', {
     amount_received_cents_value: amountTotal,
     checkout_session_id_value: session.id,
     contribution_uuid: contributionId,
     payer_uuid: userId,
-    payment_intent_id_value: paymentIntentId ?? ''
+    payment_intent_id_value: paymentIntentId ?? '',
+    receipt_url_value: receiptUrlFromPaymentIntent(paymentIntent)
   });
 
   if (error) {

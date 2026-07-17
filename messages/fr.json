@@ -143,6 +143,7 @@
     "receiptAppliedLabel": "Applique",
     "receiptReferenceLabel": "Reference Stripe",
     "receiptOverpaymentLabel": "Trop-percu",
+    "receiptDownloadAction": "Ouvrir le recu",
     "outstandingLabel": "Restant du",
     "remittanceStatusLabel": "Remise au board",
     "remitted": "Remis",
@@ -155,7 +156,33 @@
     "activeLeveesDescription": "Suivez les levees en cours et le statut de paiement de votre contribution.",
     "contributionHistoryTitle": "Historique des contributions",
     "contributionHistoryDescription": "Consultez toutes vos contributions passees, les montants payes, les recus et les dates associees.",
-    "currentShareStatusLabel": "Statut"
+    "currentShareStatusLabel": "Statut",
+    "financialSettings": {
+      "title": "Parametres financiers",
+      "description": "Gerez les preferences de paiement et les moyens de paiement sauvegardes pour les prochains appels de contribution.",
+      "preferenceLabel": "Preference de paiement",
+      "manualTitle": "Paiement manuel",
+      "manualDescription": "Vous choisissez quand payer chaque contribution apres l attribution d un appel actif.",
+      "autoPayTitle": "Paiement automatique a l appel",
+      "autoPayDescription": "Utilise le moyen de paiement Stripe sauvegarde automatiquement lorsque le support auto-pay sera active pour les appels.",
+      "savePreferenceAction": "Enregistrer la preference",
+      "saving": "Enregistrement...",
+      "paymentMethodSaved": "Un profil client Stripe est lie.",
+      "paymentMethodMissing": "Aucun moyen de paiement sauvegarde.",
+      "portalDescription": "Ouvrez le portail client Stripe pour ajouter ou modifier votre moyen de paiement sauvegarde.",
+      "paymentMethodAction": "Gerer le moyen de paiement",
+      "openingPortal": "Ouverture...",
+      "errors": {
+        "KMG-AUTH-403": "Vous n avez pas l autorisation de modifier ces parametres.",
+        "KMG-LV-001": "Verifiez les valeurs envoyees puis reessayez.",
+        "KMG-LV-002": "Cette levee ne peut pas etre modifiee.",
+        "KMG-LV-003": "Cet appel ne peut pas etre modifie.",
+        "KMG-LV-404": "Cet enregistrement est introuvable.",
+        "KMG-PAY-001": "La demande de parametres de paiement est invalide.",
+        "KMG-PAY-CONFIG": "Stripe n est pas encore configure pour cet environnement.",
+        "KMG-SYS-000": "Les parametres financiers n ont pas pu etre mis a jour. Reessayez ou contactez le support."
+      }
+    }
   },
   "admin": {
     "badge": "Administration plateforme",

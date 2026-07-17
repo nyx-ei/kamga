@@ -3,7 +3,14 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
-import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, MarkAssociationRemittedForm, RecordContributionPaymentForm, StripeContributionCheckoutForm } from '@/features/levees';
+import {
+  AssociationLeveeCallStatusForm,
+  ContributionProgressRealtime,
+  FinancialSettingsForm,
+  MarkAssociationRemittedForm,
+  RecordContributionPaymentForm,
+  StripeContributionCheckoutForm
+} from '@/features/levees';
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { ApproveMemberForm } from '@/features/memberships/components/ApproveMemberForm';
 import { DeclineForm } from '@/features/memberships/components/DeclineForm';
@@ -145,7 +152,8 @@ const memberContributionSchema = z.object({
         created_at: z.string(),
         id: z.string().uuid(),
         overpayment_cents: z.number(),
-        stripe_checkout_session_id: z.string()
+        stripe_checkout_session_id: z.string(),
+        stripe_receipt_url: z.string().nullable()
       })
     )
     .nullable(),
@@ -176,6 +184,11 @@ const joinRequestSchema = z.object({
     .nullable()
 });
 
+const financialSettingsSchema = z.object({
+  payment_preference: z.enum(['manual', 'auto_pay']),
+  stripe_customer_id: z.string().nullable()
+});
+
 type DashboardPageProps = {
   params: {
     locale: 'en' | 'fr';
@@ -193,6 +206,7 @@ type AssociationLeveeCall = z.infer<typeof associationLeveeCallSchema>;
 type ContributionProgress = z.infer<typeof contributionProgressSchema>;
 type MemberContribution = z.infer<typeof memberContributionSchema>;
 type JoinRequest = z.infer<typeof joinRequestSchema>;
+type FinancialSettings = z.infer<typeof financialSettingsSchema>;
 
 async function listMemberApplications(userId: string): Promise<MemberApplication[]> {
   const supabase = createSupabaseServerClient();
@@ -304,7 +318,7 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
   const { data, error } = await supabase
     .from('member_contributions')
     .select(
-      'id,created_at,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline,status)),member_contribution_payments(id,amount_received_cents,amount_applied_cents,overpayment_cents,stripe_checkout_session_id,created_at)'
+      'id,created_at,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline,status)),member_contribution_payments(id,amount_received_cents,amount_applied_cents,overpayment_cents,stripe_checkout_session_id,stripe_receipt_url,created_at)'
     )
     .order('created_at', { ascending: false });
 
@@ -316,6 +330,29 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
     const parsed = memberContributionSchema.safeParse(row);
     return parsed.success ? [parsed.data] : [];
   });
+}
+
+async function getFinancialSettings(userId: string): Promise<FinancialSettings> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.from('user_financial_settings').select('payment_preference,stripe_customer_id').eq('user_id', userId).maybeSingle();
+
+  if (error || data === null) {
+    return {
+      payment_preference: 'manual',
+      stripe_customer_id: null
+    };
+  }
+
+  const parsed = financialSettingsSchema.safeParse(data);
+
+  if (!parsed.success) {
+    return {
+      payment_preference: 'manual',
+      stripe_customer_id: null
+    };
+  }
+
+  return parsed.data;
 }
 
 async function listJoinRequests(currentUserId: string): Promise<JoinRequest[]> {
@@ -349,6 +386,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const contributionProgress = await listContributionProgress(associationCalls.map((call) => call.id));
   const memberContributions = await listMemberContributions();
   const joinRequests = await listJoinRequests(currentUser.user.id);
+  const financialSettings = await getFinancialSettings(currentUser.user.id);
   const activeMemberContributions = memberContributions.filter(isActiveMemberContribution);
   const contributionHistory = memberContributions.filter((contribution) => !isActiveMemberContribution(contribution));
 
@@ -381,6 +419,8 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
           <dt className="text-sm font-medium text-secondary">{t('roleLabel')}</dt>
           <dd className="mt-1 font-mono text-sm text-heading">{currentUser.role ?? t('unknownRole')}</dd>
         </dl>
+
+        <FinancialSettingsForm hasStripeCustomer={financialSettings.stripe_customer_id !== null} locale={params.locale} paymentPreference={financialSettings.payment_preference} />
 
         <section className="grid gap-4">
           <div className="space-y-2">
@@ -563,6 +603,13 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                             <div>
                               <p className="font-medium text-secondary">{t('receiptReferenceLabel')}</p>
                               <p className="mt-1 font-mono text-xs text-heading">{payment.stripe_checkout_session_id}</p>
+                              <a
+                                className="mt-2 inline-flex w-fit rounded-sm border border-border bg-card px-3 py-2 text-xs font-medium text-heading shadow-card transition hover:border-border-strong"
+                                href={`/api/payments/${payment.id}/receipt`}
+                                target="_blank"
+                              >
+                                {t('receiptDownloadAction')}
+                              </a>
                             </div>
                           </div>
                         ))}

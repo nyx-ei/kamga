@@ -11,8 +11,9 @@ import {
   markAssociationLeveeCallRemittedSchema,
   recordMemberContributionPaymentSchema,
   startStripeContributionCheckoutSchema,
-  updateAssociationLeveeCallStatusSchema
-} from '@/features/levees/levee-types';
+  startStripeCustomerPortalSchema,
+  updateAssociationLeveeCallStatusSchema,
+  updatePaymentPreferenceSchema} from '@/features/levees/levee-types';
 import { requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
 import { createStripeServerClient } from '@/lib/stripe/server';
@@ -53,6 +54,13 @@ const contributionCheckoutSchema = z.object({
     .nullable(),
   id: z.string().uuid()
 });
+
+const financialSettingsSchema = z
+  .object({
+    payment_preference: z.enum(['manual', 'auto_pay']),
+    stripe_customer_id: z.string().nullable()
+  })
+  .nullable();
 
 function valueFromFormData(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -109,6 +117,48 @@ function contributionAssociationName(contribution: z.infer<typeof contributionCh
 function contributionOwnerId(contribution: z.infer<typeof contributionCheckoutSchema>): string | null {
   const membership = Array.isArray(contribution.association_members) ? contribution.association_members[0] : contribution.association_members;
   return membership?.user_id ?? null;
+}
+
+async function getOrCreateStripeCustomerId(userId: string, email: string | undefined): Promise<string> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.from('user_financial_settings').select('payment_preference,stripe_customer_id').eq('user_id', userId).maybeSingle();
+
+  if (error) {
+    throw new Error('KMG-SYS-000');
+  }
+
+  const parsed = financialSettingsSchema.safeParse(data);
+
+  if (!parsed.success) {
+    throw new Error('KMG-SYS-000');
+  }
+
+  if (parsed.data?.stripe_customer_id !== null && parsed.data?.stripe_customer_id !== undefined) {
+    return parsed.data.stripe_customer_id;
+  }
+
+  const stripe = createStripeServerClient();
+  const customer = await stripe.customers.create({
+    email,
+    metadata: {
+      kamgaUserId: userId
+    }
+  });
+
+  const { error: upsertError } = await supabase.from('user_financial_settings').upsert(
+    {
+      payment_preference: parsed.data?.payment_preference ?? 'manual',
+      stripe_customer_id: customer.id,
+      user_id: userId
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (upsertError) {
+    throw new Error('KMG-SYS-000');
+  }
+
+  return customer.id;
 }
 
 export async function createLevee(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
@@ -335,9 +385,10 @@ export async function startStripeContributionCheckout(_previousState: LeveeActio
     const stripe = createStripeServerClient();
     const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
     const localePrefix = `/${parsed.data.locale}`;
+    const customerId = await getOrCreateStripeCustomerId(currentUser.user.id, currentUser.user.email ?? undefined);
     const session = await stripe.checkout.sessions.create({
       cancel_url: `${baseUrl}${localePrefix}/dashboard?payment=cancelled`,
-      customer_email: currentUser.user.email ?? undefined,
+      customer: customerId,
       line_items: [
         {
           price_data: {
@@ -356,6 +407,9 @@ export async function startStripeContributionCheckout(_previousState: LeveeActio
         userId: currentUser.user.id
       },
       mode: 'payment',
+      payment_intent_data: {
+        setup_future_usage: 'off_session'
+      },
       success_url: `${baseUrl}${localePrefix}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`
     });
 
@@ -369,4 +423,75 @@ export async function startStripeContributionCheckout(_previousState: LeveeActio
   }
 
   redirect(checkoutUrl);
+}
+
+export async function startStripeCustomerPortal(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  const currentUser = await requireUser();
+  const parsed = startStripeCustomerPortalSchema.safeParse({
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-PAY-001' };
+  }
+
+  let portalUrl: string;
+
+  try {
+    const stripe = createStripeServerClient();
+    const baseUrl = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+    const localePrefix = `/${parsed.data.locale}`;
+    const customerId = await getOrCreateStripeCustomerId(currentUser.user.id, currentUser.user.email ?? undefined);
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${baseUrl}${localePrefix}/dashboard`
+    });
+
+    portalUrl = portal.url;
+  } catch (error) {
+    return leveeErrorCode(error instanceof Error ? error.message : 'KMG-SYS-000');
+  }
+
+  redirect(portalUrl);
+}
+
+export async function updatePaymentPreference(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  const currentUser = await requireUser();
+  const parsed = updatePaymentPreferenceSchema.safeParse({
+    locale: valueFromFormData(formData, 'locale'),
+    paymentPreference: valueFromFormData(formData, 'paymentPreference')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-PAY-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: existing, error: existingError } = await supabase
+    .from('user_financial_settings')
+    .select('stripe_customer_id')
+    .eq('user_id', currentUser.user.id)
+    .maybeSingle();
+
+  if (existingError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  const { error } = await supabase.from('user_financial_settings').upsert(
+    {
+      payment_preference: parsed.data.paymentPreference,
+      stripe_customer_id: existing?.stripe_customer_id ?? null,
+      user_id: currentUser.user.id
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
+
+  return { ok: true };
 }
