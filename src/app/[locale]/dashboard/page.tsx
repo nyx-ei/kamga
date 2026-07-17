@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
+import { MemberWorkspaceShell } from '@/components/kamga/MockupShell';
 import { LogoutButton } from '@/features/auth';
 import { FiscalSlipPanel } from '@/features/fiscal';
 import {
@@ -397,11 +398,14 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const contributionHistory = memberContributions.filter((contribution) => !isActiveMemberContribution(contribution));
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto flex max-w-5xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
-        <div className="flex flex-col gap-3">
+    <MemberWorkspaceShell
+      title={t('title')}
+      toolbar={<LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />}
+      userEmail={currentUser.user.email}
+    >
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3" id="overview">
           <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-          <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
           <p className="text-base leading-7 text-secondary">{t('description')}</p>
         </div>
 
@@ -426,19 +430,25 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
           <dd className="mt-1 font-mono text-sm text-heading">{currentUser.role ?? t('unknownRole')}</dd>
         </dl>
 
-        <FinancialSettingsForm hasStripeCustomer={financialSettings.stripe_customer_id !== null} locale={params.locale} paymentPreference={financialSettings.payment_preference} />
+        <div id="payments">
+          <FinancialSettingsForm hasStripeCustomer={financialSettings.stripe_customer_id !== null} locale={params.locale} paymentPreference={financialSettings.payment_preference} />
+        </div>
 
-        <NotificationCenter
-          notifications={notifications.map((notification) => ({
-            ...notification,
-            createdAtLabel: format.dateTime(new Date(notification.createdAt), { dateStyle: 'medium', timeStyle: 'short' })
-          }))}
-          unreadCount={notifications.filter((notification) => !notification.isRead).length}
-        />
+        <div id="notifications">
+          <NotificationCenter
+            notifications={notifications.map((notification) => ({
+              ...notification,
+              createdAtLabel: format.dateTime(new Date(notification.createdAt), { dateStyle: 'medium', timeStyle: 'short' })
+            }))}
+            unreadCount={notifications.filter((notification) => !notification.isRead).length}
+          />
+        </div>
 
-        <FiscalSlipPanel currentYear={fiscalYear} locale={params.locale} years={[fiscalYear, fiscalYear - 1, fiscalYear - 2]} />
+        <div id="receipts">
+          <FiscalSlipPanel currentYear={fiscalYear} locale={params.locale} years={[fiscalYear, fiscalYear - 1, fiscalYear - 2]} />
+        </div>
 
-        <section className="grid gap-4">
+        <section className="grid gap-4" id="applications">
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-heading">{t('applicationsTitle')}</h2>
             <p className="text-sm leading-6 text-secondary">{t('applicationsDescription')}</p>
@@ -467,7 +477,11 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                         submittedAtLabel: format.dateTime(new Date(application.created_at), { dateStyle: 'medium', timeStyle: 'short' })
                       }}
                     />
-                    {application.status === 'active' ? <DependentsManager dependents={dependents} membershipId={application.id} /> : null}
+                    {application.status === 'active' ? (
+                      <div id="relatives">
+                        <DependentsManager dependents={dependents} membershipId={application.id} />
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
@@ -476,7 +490,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         </section>
 
         {joinRequests.length === 0 ? null : (
-          <section className="grid gap-4">
+          <section className="grid gap-4" id="contributions">
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-heading">{t('joinRequestsTitle')}</h2>
               <p className="text-sm leading-6 text-secondary">{t('joinRequestsDescription')}</p>
@@ -502,7 +516,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         )}
 
         {activeMemberContributions.length === 0 ? null : (
-          <section className="grid gap-4">
+          <section className="grid gap-4" id={activeMemberContributions.length === 0 ? 'contributions' : undefined}>
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-heading">{t('activeLeveesTitle')}</h2>
               <p className="text-sm leading-6 text-secondary">{t('activeLeveesDescription')}</p>
@@ -557,7 +571,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         )}
 
         {contributionHistory.length === 0 ? null : (
-          <section className="grid gap-4">
+          <section className="grid gap-4" id={activeMemberContributions.length === 0 && contributionHistory.length === 0 ? 'contributions' : undefined}>
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-heading">{t('contributionHistoryTitle')}</h2>
               <p className="text-sm leading-6 text-secondary">{t('contributionHistoryDescription')}</p>
@@ -783,9 +797,8 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
             <Building2 aria-hidden="true" size={16} />
             {t('registerAssociationAction')}
           </Link>
-          <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
         </div>
       </section>
-    </main>
+    </MemberWorkspaceShell>
   );
 }

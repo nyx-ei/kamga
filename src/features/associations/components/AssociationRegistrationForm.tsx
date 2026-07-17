@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useTranslations } from 'next-intl';
-import { Building2, CheckCircle2, Crosshair, UploadCloud } from 'lucide-react';
+import { Building2, Info, UploadCloud } from 'lucide-react';
 import { useFormState, useFormStatus } from 'react-dom';
 
 import { registerAssociation } from '@/features/associations/actions';
@@ -79,7 +79,8 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
               Common name
             </label>
             <input
-              className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition placeholder:text-muted focus:border-focus"
+              className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card"
+              disabled
               id="association-common-name"
               placeholder="Optional"
               type="text"
@@ -99,7 +100,13 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
             <label className="text-sm font-semibold text-heading" htmlFor="association-street">
               Street address
             </label>
-            <input className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card" id="association-street" placeholder="123 Rue Saint-Viateur O" type="text" />
+            <input
+              className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card"
+              disabled
+              id="association-street"
+              placeholder="Address fields are not stored yet"
+              type="text"
+            />
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-semibold text-heading" htmlFor="association-city">
@@ -122,7 +129,7 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
           </div>
           <label className="grid gap-2 text-sm font-semibold text-heading">
             Province
-            <select className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card" defaultValue="QC">
+            <select className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card" defaultValue="QC" disabled>
               <option>QC</option>
               <option>ON</option>
               <option>NB</option>
@@ -130,14 +137,12 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
           </label>
           <label className="grid gap-2 text-sm font-semibold text-heading">
             Postal code
-            <input className="h-12 rounded-sm border border-input bg-raised px-4 font-mono text-sm text-body shadow-card" placeholder="H2T 1S9" type="text" />
+            <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 font-mono text-sm text-muted shadow-card" disabled placeholder="Postal code storage pending" type="text" />
           </label>
         </div>
-        <div className="flex items-center gap-4 rounded-sm border border-border bg-sunken px-5 py-4 text-sm text-heading">
-          <Crosshair aria-hidden="true" className="text-positive" size={22} />
-          <span>Geocoded to</span>
-          <span className="font-mono font-semibold">45.5231N, 73.6000W</span>
-          <span className="rounded-full bg-positive-bg px-3 py-1 text-xs font-semibold text-positive">Matched</span>
+        <div className="flex items-center gap-4 rounded-sm border border-border bg-sunken px-5 py-4 text-sm text-secondary">
+          <Info aria-hidden="true" size={22} />
+          <span>Geocoding will be enabled when address and coordinate fields are added to the data model.</span>
         </div>
       </section>
 
@@ -147,25 +152,25 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
         <div className="grid gap-5 lg:grid-cols-2">
           <label className="grid gap-2 text-sm font-semibold text-heading">
             Legal form
-            <select className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card" defaultValue="Quebec NFP">
+            <select className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card" defaultValue="Quebec NFP" disabled>
               <option>Quebec NFP</option>
               <option>Federal non-profit</option>
             </select>
           </label>
           <label className="grid gap-2 text-sm font-semibold text-heading">
             Primary language
-            <select className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card" defaultValue="French">
+            <select className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card" defaultValue="French" disabled>
               <option>French</option>
               <option>English</option>
               <option>French & English</option>
             </select>
           </label>
         </div>
-        <div className="flex items-start gap-4 rounded-sm border border-positive/30 bg-positive-bg px-6 py-5 text-positive">
-          <CheckCircle2 aria-hidden="true" className="mt-1 shrink-0" size={24} />
+        <div className="flex items-start gap-4 rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
+          <Info aria-hidden="true" className="mt-1 shrink-0" size={24} />
           <p>
-            <strong className="block">Match confirmed in REQ open data</strong>
-            NEQ 1169920034 - registered non-profit - active. Your listing will show a Verified badge.
+            <strong className="block text-heading">Registry verification pending</strong>
+            Automatic REQ verification is a future integration. For now, platform admins review the uploaded proof manually.
           </p>
         </div>
       </section>
