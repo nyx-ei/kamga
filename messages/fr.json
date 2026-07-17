@@ -98,6 +98,20 @@
         "KMG-RG-409": "Cette adhesion ne peut pas etre modifiee dans son etat actuel.",
         "KMG-SYS-000": "La liste des parts n'a pas pu etre mise a jour. Reessayez ou contactez le support."
       }
+    },
+    "incomingCallsTitle": "Appels de levee entrants",
+    "incomingCallsDescription": "Suivez les appels envoyes a vos associations, les montants dus et les echeances de contribution.",
+    "unknownAssociation": "Association inconnue",
+    "unknownLevee": "Levee inconnue",
+    "callSharesLabel": "Parts appelees",
+    "callAmountLabel": "Montant du",
+    "callPerShareLabel": "Montant par part",
+    "callDeadlineLabel": "Echeance",
+    "notAvailable": "Non disponible",
+    "callStatuses": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "completed": "Complete"
     }
   },
   "admin": {
@@ -147,6 +161,35 @@
         "KMG-LV-001": "Verifiez les informations du defunt, le montant cible et l'echeance puis reessayez.",
         "KMG-LV-002": "Aucune part active n'est disponible pour une levee.",
         "KMG-SYS-000": "La levee n'a pas pu etre creee. Reessayez ou contactez le support."
+      },
+      "callsTitle": "Appels par association",
+      "callsDescription": "Chaque association recoit un appel calcule depuis ses parts figees au moment de la creation de la levee.",
+      "callsEmpty": "Aucun appel association n a ete genere pour cette levee.",
+      "callAssociationLabel": "Association",
+      "callSharesLabel": "Parts",
+      "callAmountLabel": "Montant du",
+      "callStatusLabel": "Statut",
+      "unknownAssociation": "Association inconnue",
+      "callStatuses": {
+        "pending": "En attente",
+        "in_progress": "En cours",
+        "completed": "Complete"
+      }
+    },
+    "calls": {
+      "statusLabel": "Statut de traitement",
+      "saveStatusAction": "Enregistrer le statut",
+      "saving": "Enregistrement...",
+      "statuses": {
+        "pending": "En attente",
+        "in_progress": "En cours",
+        "completed": "Complete"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n avez pas l autorisation de mettre a jour cet appel.",
+        "KMG-LV-001": "Le statut selectionne est invalide.",
+        "KMG-LV-404": "Cet appel de levee est introuvable.",
+        "KMG-SYS-000": "Le statut de l appel n a pas pu etre mis a jour. Reessayez ou contactez le support."
       }
     }
   },

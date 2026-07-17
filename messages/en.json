@@ -98,6 +98,20 @@
         "KMG-RG-409": "This membership cannot be updated in its current state.",
         "KMG-SYS-000": "The share list could not be updated. Try again or contact support."
       }
+    },
+    "incomingCallsTitle": "Incoming levee calls",
+    "incomingCallsDescription": "Track calls sent to your associations, owed amounts, and contribution deadlines.",
+    "unknownAssociation": "Unknown association",
+    "unknownLevee": "Unknown levee",
+    "callSharesLabel": "Called shares",
+    "callAmountLabel": "Amount owed",
+    "callPerShareLabel": "Per share",
+    "callDeadlineLabel": "Deadline",
+    "notAvailable": "Not available",
+    "callStatuses": {
+      "pending": "Pending",
+      "in_progress": "In progress",
+      "completed": "Completed"
     }
   },
   "admin": {
@@ -147,6 +161,35 @@
         "KMG-LV-001": "Check deceased information, target amount, and deadline before trying again.",
         "KMG-LV-002": "No active shares are available for a levee.",
         "KMG-SYS-000": "The levee could not be created. Try again or contact support."
+      },
+      "callsTitle": "Association calls",
+      "callsDescription": "Each association receives a call calculated from its shares locked when the levee is created.",
+      "callsEmpty": "No association call was generated for this levee.",
+      "callAssociationLabel": "Association",
+      "callSharesLabel": "Shares",
+      "callAmountLabel": "Amount owed",
+      "callStatusLabel": "Status",
+      "unknownAssociation": "Unknown association",
+      "callStatuses": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "completed": "Completed"
+      }
+    },
+    "calls": {
+      "statusLabel": "Processing status",
+      "saveStatusAction": "Save status",
+      "saving": "Saving...",
+      "statuses": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "completed": "Completed"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to update this call.",
+        "KMG-LV-001": "The selected status is invalid.",
+        "KMG-LV-404": "This levee call could not be found.",
+        "KMG-SYS-000": "The call status could not be updated. Try again or contact support."
       }
     }
   },

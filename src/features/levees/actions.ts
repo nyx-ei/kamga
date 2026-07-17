@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { createLeveeSchema, type LeveeActionState } from '@/features/levees/levee-types';
-import { requirePlatformAdmin } from '@/lib/auth';
+import { createLeveeSchema, type LeveeActionState, updateAssociationLeveeCallStatusSchema } from '@/features/levees/levee-types';
+import { requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const INITIAL_ERROR_STATE: LeveeActionState = { ok: true };
@@ -39,7 +39,7 @@ function parseCurrencyCents(value: string): number | null {
 }
 
 function leveeErrorCode(message: string): LeveeActionState {
-  if (message === 'KMG-AUTH-403' || message === 'KMG-LV-001' || message === 'KMG-LV-002') {
+  if (message === 'KMG-AUTH-403' || message === 'KMG-LV-001' || message === 'KMG-LV-002' || message === 'KMG-LV-404') {
     return { ok: false, code: message };
   }
 
@@ -97,4 +97,38 @@ export async function createLevee(_previousState: LeveeActionState = INITIAL_ERR
     perShareAmountCents: created.data.per_share_amount_cents,
     poolSize: created.data.pool_size
   };
+}
+
+export async function updateAssociationLeveeCallStatus(
+  _previousState: LeveeActionState = INITIAL_ERROR_STATE,
+  formData: FormData
+): Promise<LeveeActionState> {
+  await requireUser();
+
+  const parsed = updateAssociationLeveeCallStatusSchema.safeParse({
+    callId: valueFromFormData(formData, 'callId'),
+    locale: valueFromFormData(formData, 'locale'),
+    status: valueFromFormData(formData, 'status')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-LV-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc('update_association_levee_call_status', {
+    call_uuid: parsed.data.callId,
+    status_value: parsed.data.status
+  });
+
+  if (error) {
+    return leveeErrorCode(error.message);
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
+  revalidatePath('/admin/levees');
+  revalidatePath(`/${parsed.data.locale}/admin/levees`);
+
+  return { ok: true };
 }
