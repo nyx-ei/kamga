@@ -300,6 +300,7 @@ export async function requestMoreEvidence(_previousState: MembershipActionState 
   const { data, error } = await supabase
     .from('association_members')
     .update({
+      requested_evidence_types: parsed.data.evidenceTypes,
       reviewed_by: null,
       reviewed_at: null,
       status: 'needs_more_evidence'

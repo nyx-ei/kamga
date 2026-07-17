@@ -34,7 +34,52 @@
     "registerAssociationAction": "Register an association",
     "uploadEvidenceAction": "Upload evidence",
     "associationSubmitted": "Your association registration was submitted for platform review.",
-    "memberRegistrationPending": "Your member registration is pending association admin review."
+    "memberRegistrationPending": "Your member registration is pending association admin review.",
+    "applicationsTitle": "Applications",
+    "applicationsDescription": "Follow each association application and respond when more evidence is requested.",
+    "noApplications": "No member application has been submitted from this account yet.",
+    "application": {
+      "submittedAtLabel": "Submitted",
+      "requestedEvidenceTitle": "Documents requested",
+      "uploadAction": "Upload requested evidence",
+      "memberFeaturesPlaceholder": "Your membership is active. Full member features will appear here as the product roadmap unlocks them.",
+      "declineReasonTitle": "Decline explanation",
+      "declineReasonMissing": "No explanation was provided for this decision.",
+      "futureInvites": "You can receive a new invitation if an association wants to restart your registration.",
+      "statusLabels": {
+        "pending": "Under review",
+        "needs_more_evidence": "Evidence needed",
+        "active": "Active",
+        "declined": "Declined",
+        "suspended": "Suspended"
+      },
+      "statuses": {
+        "pending": {
+          "title": "Application under review",
+          "description": "Your file is waiting for an administrator decision. Kamga will notify you when the review is complete."
+        },
+        "needs_more_evidence": {
+          "title": "More evidence needed",
+          "description": "An administrator needs additional documents before the review can continue."
+        },
+        "active": {
+          "title": "Membership active",
+          "description": "Welcome. Your application has been approved and your membership is active."
+        },
+        "declined": {
+          "title": "Application declined",
+          "description": "Your application was declined after review. The explanation is shown below."
+        },
+        "suspended": {
+          "title": "Membership suspended",
+          "description": "This membership is currently suspended."
+        }
+      },
+      "evidenceTypes": {
+        "government_id": "Government ID",
+        "immigration_proof": "Immigration proof"
+      }
+    }
   },
   "admin": {
     "badge": "Platform administration",

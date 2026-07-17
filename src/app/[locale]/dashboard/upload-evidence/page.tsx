@@ -2,16 +2,19 @@ import { getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
-import { UploadEvidenceForm } from '@/features/evidence/components/UploadEvidenceForm';
+import { UploadMoreEvidenceForm } from '@/features/evidence';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
+const requestedEvidenceTypeSchema = z.enum(['government_id', 'immigration_proof']);
+
 const uploadMembershipSchema = z.object({
+  associations: z.object({ name: z.string() }).nullable(),
   id: z.string().uuid(),
-  associations: z.object({ name: z.string() }).nullable()
+  requested_evidence_types: z.array(requestedEvidenceTypeSchema).nullable()
 });
 
 type UploadEvidencePageProps = {
@@ -20,13 +23,15 @@ type UploadEvidencePageProps = {
   };
 };
 
-async function listUploadableMemberships(userId: string): Promise<Array<{ associationName: string; id: string }>> {
+async function listUploadableMemberships(
+  userId: string
+): Promise<Array<{ associationName: string; id: string; requestedEvidenceTypes: Array<'government_id' | 'immigration_proof'> }>> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('association_members')
-    .select('id,associations:association_id(name)')
+    .select('id,requested_evidence_types,associations:association_id(name)')
     .eq('user_id', userId)
-    .in('status', ['pending', 'needs_more_evidence'])
+    .eq('status', 'needs_more_evidence')
     .order('created_at', { ascending: false });
 
   if (error || data === null) {
@@ -40,12 +45,17 @@ async function listUploadableMemberships(userId: string): Promise<Array<{ associ
       return [];
     }
 
-    return [
-      {
-        associationName: parsed.data.associations?.name ?? parsed.data.id,
-        id: parsed.data.id
-      }
-    ];
+    const requestedEvidenceTypes = parsed.data.requested_evidence_types ?? [];
+
+    return requestedEvidenceTypes.length === 0
+      ? []
+      : [
+          {
+            associationName: parsed.data.associations?.name ?? parsed.data.id,
+            id: parsed.data.id,
+            requestedEvidenceTypes
+          }
+        ];
   });
 }
 
@@ -75,7 +85,7 @@ export default async function UploadEvidencePage({ params }: UploadEvidencePageP
         {memberships.length === 0 ? (
           <div className="rounded-md border border-border bg-sunken p-6 text-sm leading-6 text-secondary">{t('emptyState')}</div>
         ) : (
-          <UploadEvidenceForm locale={params.locale} memberships={memberships} />
+          <UploadMoreEvidenceForm locale={params.locale} memberships={memberships} />
         )}
       </section>
     </main>
