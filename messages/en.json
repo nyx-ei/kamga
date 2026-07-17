@@ -182,6 +182,20 @@
         "KMG-PAY-CONFIG": "Stripe is not configured for this environment yet.",
         "KMG-SYS-000": "Financial settings could not be updated. Try again or contact support."
       }
+    },
+    "fiscalSlips": {
+      "title": "Annual tax receipts",
+      "description": "Download or email a PDF receipt that summarizes recorded contribution payments for a fiscal year.",
+      "yearLabel": "Fiscal year",
+      "downloadAction": "Download PDF",
+      "emailAction": "Email receipt",
+      "sending": "Sending...",
+      "emailSent": "The fiscal receipt was emailed to your account address.",
+      "errors": {
+        "KMG-FS-001": "Choose a valid fiscal year.",
+        "KMG-FS-404": "No recorded contribution payment exists for this fiscal year.",
+        "KMG-SYS-000": "The fiscal receipt could not be sent. Try again or contact support."
+      }
     }
   },
   "admin": {
