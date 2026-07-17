@@ -106,7 +106,49 @@
     "description": "Only platform administrators can reach this route. Upcoming tickets will add operational tools here.",
     "associationReviewAction": "Review associations",
     "referralsAction": "Manage referrals",
-    "membersAction": "Review members"
+    "membersAction": "Review members",
+    "leveesAction": "Create levees"
+  },
+  "levees": {
+    "admin": {
+      "badge": "Levee initiation",
+      "title": "Create a levee",
+      "description": "Open a new levee by recording deceased information, target amount, deadline, and a locked share calculation from the current active membership pool.",
+      "backToAdmin": "Admin overview",
+      "poolSizeLabel": "Current pool size",
+      "poolScopeLabel": "Pool scope",
+      "poolScopeValue": "Registrant shares plus relatives across all active memberships.",
+      "calculationLabel": "Calculation",
+      "calculationValue": "Per-share amount = target amount / pool size.",
+      "deceasedFullNameLabel": "Deceased full name",
+      "deceasedCityLabel": "City",
+      "deceasedDateOfDeathLabel": "Date of death",
+      "deadlineLabel": "Contribution deadline",
+      "targetAmountLabel": "Target amount",
+      "targetAmountPlaceholder": "5000.00",
+      "calculationHelp": "The pool and per-share amount are calculated and stored when the levee is created.",
+      "createAction": "Create levee",
+      "creating": "Creating...",
+      "createdMessage": "Levee created. Pool: {poolSize}. Per share: {amount}.",
+      "listTitle": "Recent levees",
+      "listDescription": "Each levee keeps the pool size and per-share amount calculated at creation time.",
+      "emptyState": "No levee has been created yet.",
+      "perShareValue": "{amount} per share",
+      "snapshotPoolLabel": "Snapshot pool",
+      "deadlineListLabel": "Deadline",
+      "createdAtLabel": "Created",
+      "statuses": {
+        "active": "Active",
+        "closed": "Closed",
+        "cancelled": "Cancelled"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to create levees.",
+        "KMG-LV-001": "Check deceased information, target amount, and deadline before trying again.",
+        "KMG-LV-002": "No active shares are available for a levee.",
+        "KMG-SYS-000": "The levee could not be created. Try again or contact support."
+      }
+    }
   },
   "associations": {
     "status": {

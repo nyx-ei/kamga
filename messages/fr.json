@@ -106,7 +106,49 @@
     "description": "Seuls les administrateurs plateforme peuvent accéder à cette route. Les prochains tickets ajouteront les outils opérationnels ici.",
     "associationReviewAction": "Revoir les associations",
     "referralsAction": "Gérer les parrainages",
-    "membersAction": "Revoir les membres"
+    "membersAction": "Revoir les membres",
+    "leveesAction": "Creer les levees"
+  },
+  "levees": {
+    "admin": {
+      "badge": "Initialisation de levee",
+      "title": "Creer une levee",
+      "description": "Ouvrez une nouvelle levee avec les informations du defunt, le montant cible, l'echeance et un calcul de parts fige depuis le pool actif courant.",
+      "backToAdmin": "Vue admin",
+      "poolSizeLabel": "Pool courant",
+      "poolScopeLabel": "Perimetre du pool",
+      "poolScopeValue": "Parts declarants plus proches sur toutes les adhesions actives.",
+      "calculationLabel": "Calcul",
+      "calculationValue": "Montant par part = montant cible / pool.",
+      "deceasedFullNameLabel": "Nom complet du defunt",
+      "deceasedCityLabel": "Ville",
+      "deceasedDateOfDeathLabel": "Date de deces",
+      "deadlineLabel": "Echeance de contribution",
+      "targetAmountLabel": "Montant cible",
+      "targetAmountPlaceholder": "5000.00",
+      "calculationHelp": "Le pool et le montant par part sont calcules et stockes lors de la creation de la levee.",
+      "createAction": "Creer la levee",
+      "creating": "Creation...",
+      "createdMessage": "Levee creee. Pool : {poolSize}. Par part : {amount}.",
+      "listTitle": "Levees recentes",
+      "listDescription": "Chaque levee conserve le pool et le montant par part calcules a la creation.",
+      "emptyState": "Aucune levee n'a encore ete creee.",
+      "perShareValue": "{amount} par part",
+      "snapshotPoolLabel": "Pool fige",
+      "deadlineListLabel": "Echeance",
+      "createdAtLabel": "Creee le",
+      "statuses": {
+        "active": "Active",
+        "closed": "Fermee",
+        "cancelled": "Annulee"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n'avez pas l'autorisation de creer des levees.",
+        "KMG-LV-001": "Verifiez les informations du defunt, le montant cible et l'echeance puis reessayez.",
+        "KMG-LV-002": "Aucune part active n'est disponible pour une levee.",
+        "KMG-SYS-000": "La levee n'a pas pu etre creee. Reessayez ou contactez le support."
+      }
+    }
   },
   "associations": {
     "status": {
