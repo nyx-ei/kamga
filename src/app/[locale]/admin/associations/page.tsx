@@ -2,6 +2,7 @@
 import { Building2, ExternalLink } from 'lucide-react';
 import { z } from 'zod';
 
+import { AdminWorkspaceShell } from '@/components/kamga/MockupShell';
 import { ASSOCIATION_STATUSES, type AssociationStatus } from '@/features/associations/association-types';
 import { AssociationReviewActions } from '@/features/associations/components/AssociationReviewActions';
 import { AssociationStatusBadge } from '@/features/associations/components/AssociationStatusBadge';
@@ -134,8 +135,8 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
   const adminLabel = currentUser.user.email ?? currentUser.user.id;
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
+    <AdminWorkspaceShell activeItem="add" activeTab="add" title="Add association">
+      <section className="flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
@@ -266,7 +267,7 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
           )}
         </div>
       </section>
-    </main>
+    </AdminWorkspaceShell>
   );
 }
 
