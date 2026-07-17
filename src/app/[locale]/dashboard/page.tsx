@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { LogoutButton } from '@/features/auth';
 import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, MarkAssociationRemittedForm, RecordContributionPaymentForm, StripeContributionCheckoutForm } from '@/features/levees';
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
+import { ApproveMemberForm } from '@/features/memberships/components/ApproveMemberForm';
+import { DeclineForm } from '@/features/memberships/components/DeclineForm';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -149,12 +151,36 @@ const memberContributionSchema = z.object({
   status: z.enum(['unpaid', 'partial', 'paid'])
 });
 
+const joinRequestSchema = z.object({
+  associations: z.union([associationSummarySchema, z.array(associationSummarySchema)]).nullable(),
+  created_at: z.string(),
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  users: z
+    .union([
+      z.object({
+        email: z.string().nullable(),
+        first_name: z.string().nullable(),
+        last_name: z.string().nullable()
+      }),
+      z.array(
+        z.object({
+          email: z.string().nullable(),
+          first_name: z.string().nullable(),
+          last_name: z.string().nullable()
+        })
+      )
+    ])
+    .nullable()
+});
+
 type DashboardPageProps = {
   params: {
     locale: 'en' | 'fr';
   };
   searchParams: {
     associationSubmitted?: string;
+    joinRequest?: string;
     payment?: string;
     registration?: string;
   };
@@ -164,6 +190,7 @@ type MemberApplication = z.infer<typeof memberApplicationSchema>;
 type AssociationLeveeCall = z.infer<typeof associationLeveeCallSchema>;
 type ContributionProgress = z.infer<typeof contributionProgressSchema>;
 type MemberContribution = z.infer<typeof memberContributionSchema>;
+type JoinRequest = z.infer<typeof joinRequestSchema>;
 
 async function listMemberApplications(userId: string): Promise<MemberApplication[]> {
   const supabase = createSupabaseServerClient();
@@ -205,6 +232,17 @@ function contributionMemberLabel(contribution: NonNullable<AssociationLeveeCall[
   const user = Array.isArray(membership?.users) ? membership?.users[0] : membership?.users;
   const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
   return fullName.length > 0 ? fullName : (user?.email ?? contribution.id);
+}
+
+function joinRequestApplicantName(request: JoinRequest): string {
+  const user = Array.isArray(request.users) ? request.users[0] : request.users;
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
+  return fullName.length > 0 ? fullName : (user?.email ?? request.id);
+}
+
+function joinRequestAssociationName(request: JoinRequest): string | null {
+  const association = Array.isArray(request.associations) ? request.associations[0] : request.associations;
+  return association?.name ?? null;
 }
 
 async function listAssociationLeveeCalls(): Promise<AssociationLeveeCall[]> {
@@ -268,6 +306,28 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
   });
 }
 
+async function listJoinRequests(currentUserId: string): Promise<JoinRequest[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('association_members')
+    .select('id,user_id,created_at,associations:association_id(name),users:user_id(first_name,last_name,email)')
+    .eq('status', 'pending')
+    .eq('role', 'member')
+    .is('referred_by', null)
+    .neq('user_id', currentUserId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error || data === null) {
+    return [];
+  }
+
+  return data.flatMap((row: unknown) => {
+    const parsed = joinRequestSchema.safeParse(row);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
 export default async function DashboardPage({ params, searchParams }: DashboardPageProps) {
   const currentUser = await requireUser();
   const t = await getTranslations('dashboard');
@@ -276,6 +336,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const associationCalls = await listAssociationLeveeCalls();
   const contributionProgress = await listContributionProgress(associationCalls.map((call) => call.id));
   const memberContributions = await listMemberContributions();
+  const joinRequests = await listJoinRequests(currentUser.user.id);
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -291,6 +352,9 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         ) : null}
         {searchParams.registration === 'pending' ? (
           <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">{t('memberRegistrationPending')}</p>
+        ) : null}
+        {searchParams.joinRequest === '1' ? (
+          <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">{t('joinRequest')}</p>
         ) : null}
         {searchParams.payment === 'success' ? (
           <p className="rounded-sm border border-border bg-positive-bg px-4 py-3 text-sm font-medium text-positive">{t('paymentSuccess')}</p>
@@ -340,6 +404,32 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
             </div>
           )}
         </section>
+
+        {joinRequests.length === 0 ? null : (
+          <section className="grid gap-4">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-heading">{t('joinRequestsTitle')}</h2>
+              <p className="text-sm leading-6 text-secondary">{t('joinRequestsDescription')}</p>
+            </div>
+            <div className="grid gap-4">
+              {joinRequests.map((request) => (
+                <article className="grid gap-4 rounded-md border border-border bg-raised p-5 shadow-card" key={request.id}>
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-muted">{joinRequestAssociationName(request) ?? t('unknownAssociation')}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-heading">{joinRequestApplicantName(request)}</h3>
+                    </div>
+                    <p className="text-sm text-secondary">{format.dateTime(new Date(request.created_at), { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                  </div>
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <ApproveMemberForm locale={params.locale} membershipId={request.id} />
+                    <DeclineForm locale={params.locale} membershipId={request.id} />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         {memberContributions.length === 0 ? null : (
           <section className="grid gap-4">

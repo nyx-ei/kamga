@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import {
   type AssociationActionState,
   associationDecisionSchema,
+  associationJoinRequestSchema,
   associationRegistrationSchema,
   MAX_RPN_PROOF_BYTES,
   RPN_PROOF_MIME_TYPES,
@@ -160,6 +161,40 @@ export async function approveAssociation(_previousState: AssociationActionState,
 
 export async function suspendAssociation(_previousState: AssociationActionState, formData: FormData): Promise<AssociationActionState> {
   return runAssociationDecision(formData, 'suspend_association');
+}
+
+export async function requestToJoinAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const currentUser = await getCurrentUser();
+  const parsed = associationJoinRequestSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  if (currentUser === null) {
+    redirect(`/${parsed.data.locale}/auth/login?next=/${parsed.data.locale}/associations/${parsed.data.associationId}`);
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc('request_to_join_association', {
+    association_uuid: parsed.data.associationId
+  });
+
+  if (error) {
+    if (error.message === 'KMG-RG-404') {
+      return { ok: false, code: 'KMG-RG-404' };
+    }
+
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
+  revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
+  redirect(`/${parsed.data.locale}/dashboard?joinRequest=1`);
 }
 
 

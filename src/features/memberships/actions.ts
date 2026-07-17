@@ -241,7 +241,7 @@ export async function reviewMembership(
 }
 
 export async function approveMember(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
-  await requirePlatformAdmin();
+  await requireUser();
 
   const parsed = membershipReviewSchema.safeParse({
     decision: 'active',
@@ -263,7 +263,7 @@ export async function approveMember(_previousState: MembershipActionState = INIT
 }
 
 export async function declineMember(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
-  await requirePlatformAdmin();
+  await requireUser();
 
   const parsed = declineMemberSchema.safeParse({
     declineReasonHtml: valueFromFormData(formData, 'declineReasonHtml'),
@@ -291,7 +291,7 @@ export async function declineMember(_previousState: MembershipActionState = INIT
 }
 
 export async function requestMoreEvidence(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
-  await requirePlatformAdmin();
+  await requireUser();
 
   const parsed = requestMoreEvidenceSchema.safeParse({
     evidenceTypes: valuesFromFormData(formData, 'evidenceTypes'),

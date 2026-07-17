@@ -1,8 +1,9 @@
-﻿import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { Building2, MapPin } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { getFormatter, getTranslations } from 'next-intl/server';
+import { Building2, Mail, MapPin, Users } from 'lucide-react';
 import { z } from 'zod';
 
+import { RequestToJoinAssociationForm } from '@/features/associations';
 import { ASSOCIATION_STATUSES, type AssociationStatus } from '@/features/associations/association-types';
 import { AssociationStatusBadge } from '@/features/associations/components/AssociationStatusBadge';
 import { Link } from '@/i18n/navigation';
@@ -11,15 +12,18 @@ import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 export const dynamic = 'force-dynamic';
 
 const publicAssociationSchema = z.object({
+  city: z.string(),
+  contact_email: z.string().nullable(),
+  description: z.string().nullable(),
   id: z.string().uuid(),
   name: z.string(),
-  city: z.string(),
   status: z.enum(ASSOCIATION_STATUSES)
 });
 
 type AssociationProfilePageProps = {
   params: {
     associationId: string;
+    locale: 'en' | 'fr';
   };
 };
 
@@ -31,10 +35,10 @@ async function getPublicAssociationProfile(associationId: string) {
   }
 
   const supabase = createSupabaseAdminClient();
-  // CV-SEC-06: public profile is shaped server-side and never selects private contact or proof fields.
+  // CV-SEC-06: public profile is shaped server-side and selects only public-facing association fields.
   const { data, error } = await supabase
     .from('associations')
-    .select('id,name,city,status')
+    .select('id,name,city,status,description,contact_email')
     .eq('id', parsedId.data)
     .eq('status', 'active')
     .maybeSingle();
@@ -47,6 +51,13 @@ async function getPublicAssociationProfile(associationId: string) {
   return parsed.success ? parsed.data : null;
 }
 
+async function activeMemberCount(associationId: string): Promise<number> {
+  const supabase = createSupabaseAdminClient();
+  const { count, error } = await supabase.from('association_members').select('id', { count: 'exact', head: true }).eq('association_id', associationId).eq('status', 'active');
+
+  return error === null ? (count ?? 0) : 0;
+}
+
 export default async function AssociationProfilePage({ params }: AssociationProfilePageProps) {
   const association = await getPublicAssociationProfile(params.associationId);
 
@@ -56,6 +67,8 @@ export default async function AssociationProfilePage({ params }: AssociationProf
 
   const t = await getTranslations('associations.profile');
   const statusT = await getTranslations('associations.status');
+  const format = await getFormatter();
+  const memberCount = await activeMemberCount(association.id);
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -75,7 +88,9 @@ export default async function AssociationProfilePage({ params }: AssociationProf
           </Link>
         </div>
 
-        <dl className="grid gap-4 rounded-md border border-border bg-sunken p-5 md:grid-cols-2">
+        <p className="max-w-3xl text-base leading-7 text-secondary">{association.description ?? t('descriptionFallback')}</p>
+
+        <dl className="grid gap-4 rounded-md border border-border bg-sunken p-5 md:grid-cols-3">
           <div className="space-y-2">
             <dt className="text-sm font-medium text-secondary">{t('cityLabel')}</dt>
             <dd className="inline-flex items-center gap-2 text-heading">
@@ -84,10 +99,22 @@ export default async function AssociationProfilePage({ params }: AssociationProf
             </dd>
           </div>
           <div className="space-y-2">
+            <dt className="text-sm font-medium text-secondary">{t('memberCountLabel')}</dt>
+            <dd className="inline-flex items-center gap-2 text-heading">
+              <Users aria-hidden="true" size={16} />
+              {format.number(memberCount)}
+            </dd>
+          </div>
+          <div className="space-y-2">
             <dt className="text-sm font-medium text-secondary">{t('contactLabel')}</dt>
-            <dd className="text-sm leading-6 text-heading">{t('contactDescription')}</dd>
+            <dd className="inline-flex items-center gap-2 text-heading">
+              <Mail aria-hidden="true" size={16} />
+              {association.contact_email ?? t('contactDescription')}
+            </dd>
           </div>
         </dl>
+
+        <RequestToJoinAssociationForm associationId={association.id} locale={params.locale} />
       </section>
     </main>
   );

@@ -4,7 +4,14 @@
     "title": "Trouvez une association RPN près de vous",
     "description": "Kamga commence par un annuaire public qui aide les personnes à découvrir les associations tout en construisant la base vérifiée des futurs parcours de contribution.",
     "primaryAction": "Chercher dans l’annuaire",
-    "secondaryAction": "Inscrire une association"
+    "secondaryAction": "Inscrire une association",
+    "searchLabel": "Rechercher une association",
+    "searchPlaceholder": "Nom ou ville",
+    "directoryTitle": "Associations RPN actives",
+    "directoryDescription": "Parcourez les associations verifiees et ouvrez une fiche pour demander a rejoindre.",
+    "emptyState": "Aucune association active ne correspond a cette recherche.",
+    "descriptionFallback": "Cette association n a pas encore publie de description detaillee.",
+    "viewAssociationAction": "Voir la fiche"
   },
   "auth": {
     "login": {
@@ -139,7 +146,10 @@
     "remittanceStatusLabel": "Remise au board",
     "remitted": "Remis",
     "notRemitted": "Non remis",
-    "remittedAtLabel": "Remis le"
+    "remittedAtLabel": "Remis le",
+    "joinRequest": "Votre demande d adhesion a ete envoyee a l administrateur de l association.",
+    "joinRequestsTitle": "Demandes directes d adhesion",
+    "joinRequestsDescription": "Traitez les demandes envoyees depuis l annuaire public par les candidats qui souhaitent rejoindre vos associations."
   },
   "admin": {
     "badge": "Administration plateforme",
@@ -334,7 +344,21 @@
       "directoryAction": "Retour à l’annuaire",
       "cityLabel": "Ville",
       "contactLabel": "Contact admin",
-      "contactDescription": "Le contact est médié par Kamga tant que l’association n’a pas explicitement choisi de publier un canal de contact."
+      "contactDescription": "Le contact est médié par Kamga tant que l’association n’a pas explicitement choisi de publier un canal de contact.",
+      "descriptionFallback": "Cette association n a pas encore publie de description detaillee.",
+      "memberCountLabel": "Membres actifs"
+    },
+    "join": {
+      "action": "Demander a rejoindre",
+      "submitting": "Envoi...",
+      "description": "Envoyez une demande directe a l administrateur de cette association. Vous serez notifie apres revue.",
+      "errors": {
+        "KMG-AUTH-401": "Connectez-vous avant de demander a rejoindre une association.",
+        "KMG-RG-001": "La demande est invalide.",
+        "KMG-RG-404": "Cette association active est introuvable.",
+        "KMG-RG-409": "Une demande existe deja pour cette association.",
+        "KMG-SYS-000": "La demande n a pas pu etre envoyee. Reessayez ou contactez le support."
+      }
     }
   },
   "referrals": {
