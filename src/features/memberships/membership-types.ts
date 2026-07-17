@@ -39,6 +39,14 @@ export const declineMemberSchema = z.object({
   membershipId: z.string().uuid()
 });
 
+export const updateDependentSchema = z.object({
+  dependentId: z.string().uuid(),
+  externalId: z.string().trim().max(120).optional(),
+  fullName: z.string().trim().min(2).max(160),
+  membershipId: z.string().uuid(),
+  relationship: z.string().trim().min(2).max(80)
+});
+
 export const requestMoreEvidenceSchema = z.object({
   evidenceTypes: z.array(z.enum(REQUESTABLE_EVIDENCE_TYPES)).min(1),
   locale: z.enum(['en', 'fr']),

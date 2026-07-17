@@ -104,7 +104,8 @@
         "KMG-RG-404": "This membership or relative could not be found.",
         "KMG-RG-409": "This membership cannot be updated in its current state.",
         "KMG-SYS-000": "The share list could not be updated. Try again or contact support."
-      }
+      },
+      "updateAction": "Save relative"
     },
     "incomingCallsTitle": "Incoming levee calls",
     "incomingCallsDescription": "Track calls sent to your associations, owed amounts, and contribution deadlines.",
@@ -149,7 +150,12 @@
     "remittedAtLabel": "Remitted at",
     "joinRequest": "Your membership request was sent to the association administrator.",
     "joinRequestsTitle": "Direct join requests",
-    "joinRequestsDescription": "Review requests submitted from the public directory by applicants who want to join your associations."
+    "joinRequestsDescription": "Review requests submitted from the public directory by applicants who want to join your associations.",
+    "activeLeveesTitle": "Active levees",
+    "activeLeveesDescription": "Track current levees and the payment status of your contribution.",
+    "contributionHistoryTitle": "Contribution history",
+    "contributionHistoryDescription": "Review all past contributions, paid amounts, receipts, and associated dates.",
+    "currentShareStatusLabel": "Status"
   },
   "admin": {
     "badge": "Platform administration",

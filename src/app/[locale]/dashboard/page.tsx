@@ -129,11 +129,13 @@ const memberContributionSchema = z.object({
       levees: z
         .object({
           deadline: z.string(),
-          deceased_full_name: z.string()
+          deceased_full_name: z.string(),
+          status: z.enum(['active', 'closed', 'cancelled'])
         })
         .nullable()
     })
     .nullable(),
+  created_at: z.string(),
   id: z.string().uuid(),
   member_contribution_payments: z
     .array(
@@ -245,6 +247,16 @@ function joinRequestAssociationName(request: JoinRequest): string | null {
   return association?.name ?? null;
 }
 
+function isActiveMemberContribution(contribution: MemberContribution): boolean {
+  const levee = contribution.association_levee_calls?.levees;
+
+  if (levee === null || levee === undefined) {
+    return contribution.status !== 'paid';
+  }
+
+  return levee.status === 'active' && contribution.status !== 'paid';
+}
+
 async function listAssociationLeveeCalls(): Promise<AssociationLeveeCall[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
@@ -292,7 +304,7 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
   const { data, error } = await supabase
     .from('member_contributions')
     .select(
-      'id,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline)),member_contribution_payments(id,amount_received_cents,amount_applied_cents,overpayment_cents,stripe_checkout_session_id,created_at)'
+      'id,created_at,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline,status)),member_contribution_payments(id,amount_received_cents,amount_applied_cents,overpayment_cents,stripe_checkout_session_id,created_at)'
     )
     .order('created_at', { ascending: false });
 
@@ -337,6 +349,8 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const contributionProgress = await listContributionProgress(associationCalls.map((call) => call.id));
   const memberContributions = await listMemberContributions();
   const joinRequests = await listJoinRequests(currentUser.user.id);
+  const activeMemberContributions = memberContributions.filter(isActiveMemberContribution);
+  const contributionHistory = memberContributions.filter((contribution) => !isActiveMemberContribution(contribution));
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -431,31 +445,77 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
           </section>
         )}
 
-        {memberContributions.length === 0 ? null : (
+        {activeMemberContributions.length === 0 ? null : (
           <section className="grid gap-4">
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-heading">{t('memberContributionsTitle')}</h2>
-              <p className="text-sm leading-6 text-secondary">{t('memberContributionsDescription')}</p>
+              <h2 className="text-xl font-semibold text-heading">{t('activeLeveesTitle')}</h2>
+              <p className="text-sm leading-6 text-secondary">{t('activeLeveesDescription')}</p>
             </div>
             <div className="grid gap-4">
-              {memberContributions.map((contribution) => (
-                <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
-                  {(() => {
-                    const remainingCents = Math.max(0, Math.round(contribution.amount_due_cents - contribution.amount_paid_cents));
+              {activeMemberContributions.map((contribution) => {
+                const remainingCents = Math.max(0, Math.round(contribution.amount_due_cents - contribution.amount_paid_cents));
 
-                    return (
-                      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-                        <div>
-                          <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
-                          <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
-                        </div>
-                        <div className="flex flex-col items-start gap-2 md:items-end">
-                          <p className="rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
-                          <StripeContributionCheckoutForm contributionId={contribution.id} disabled={remainingCents <= 0} locale={params.locale} />
-                        </div>
+                return (
+                  <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
+                    <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                      <div>
+                        <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
+                        <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
                       </div>
-                    );
-                  })()}
+                      <div className="flex flex-col items-start gap-2 md:items-end">
+                        <p className="rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
+                        <StripeContributionCheckoutForm contributionId={contribution.id} disabled={remainingCents <= 0} locale={params.locale} />
+                      </div>
+                    </div>
+                    <dl className="grid gap-3 rounded-sm border border-border bg-sunken p-4 text-sm md:grid-cols-5">
+                      <div>
+                        <dt className="font-medium text-secondary">{t('callSharesLabel')}</dt>
+                        <dd className="mt-1 font-mono text-heading">{contribution.share_count}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('currentShareStatusLabel')}</dt>
+                        <dd className="mt-1 text-heading">{t(`contributionStatuses.${contribution.status}`)}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('callAmountLabel')}</dt>
+                        <dd className="mt-1 text-heading">{format.number(contribution.amount_due_cents / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('amountPaidLabel')}</dt>
+                        <dd className="mt-1 text-heading">{format.number(contribution.amount_paid_cents / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-secondary">{t('callDeadlineLabel')}</dt>
+                        <dd className="mt-1 text-heading">
+                          {contribution.association_levee_calls?.levees === null || contribution.association_levee_calls?.levees === undefined
+                            ? t('notAvailable')
+                            : format.dateTime(new Date(contribution.association_levee_calls.levees.deadline), { dateStyle: 'medium' })}
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {contributionHistory.length === 0 ? null : (
+          <section className="grid gap-4">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-heading">{t('contributionHistoryTitle')}</h2>
+              <p className="text-sm leading-6 text-secondary">{t('contributionHistoryDescription')}</p>
+            </div>
+            <div className="grid gap-4">
+              {contributionHistory.map((contribution) => (
+                <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
+                    </div>
+                    <p className="w-fit rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
+                  </div>
                   <dl className="grid gap-3 rounded-sm border border-border bg-sunken p-4 text-sm md:grid-cols-4">
                     <div>
                       <dt className="font-medium text-secondary">{t('callSharesLabel')}</dt>

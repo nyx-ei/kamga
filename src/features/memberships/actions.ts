@@ -12,7 +12,8 @@ import {
   type RequestableEvidenceType,
   requestMoreEvidenceSchema,
   type SINRevealResult,
-  sinRevealSchema
+  sinRevealSchema,
+  updateDependentSchema
 } from '@/features/memberships/membership-types';
 import { getCurrentUser, requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { decryptSIN } from '@/lib/crypto/sin';
@@ -369,6 +370,57 @@ export async function addDependent(_previousState: MembershipActionState = INITI
     membership_id: parsed.data.membershipId,
     relationship: parsed.data.relationship
   });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/admin/members');
+
+  return { ok: true };
+}
+
+export async function updateDependent(_previousState: MembershipActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<MembershipActionState> {
+  const currentUser = await requireUser();
+  const parsed = updateDependentSchema.safeParse({
+    dependentId: valueFromFormData(formData, 'dependentId'),
+    externalId: optionalValueFromFormData(formData, 'externalId'),
+    fullName: valueFromFormData(formData, 'fullName'),
+    membershipId: valueFromFormData(formData, 'membershipId'),
+    relationship: valueFromFormData(formData, 'relationship')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-RG-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: membership, error: membershipError } = await supabase
+    .from('association_members')
+    .select('id')
+    .eq('id', parsed.data.membershipId)
+    .eq('user_id', currentUser.user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (membershipError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (membership === null) {
+    return { ok: false, code: 'KMG-AUTH-403' };
+  }
+
+  const { error } = await supabase
+    .from('member_dependents')
+    .update({
+      external_id: parsed.data.externalId ?? null,
+      full_name: parsed.data.fullName,
+      relationship: parsed.data.relationship
+    })
+    .eq('id', parsed.data.dependentId)
+    .eq('membership_id', parsed.data.membershipId);
 
   if (error) {
     return { ok: false, code: 'KMG-SYS-000' };
