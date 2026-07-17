@@ -104,7 +104,8 @@
         "KMG-RG-404": "Cette adhesion ou ce proche est introuvable.",
         "KMG-RG-409": "Cette adhesion ne peut pas etre modifiee dans son etat actuel.",
         "KMG-SYS-000": "La liste des parts n'a pas pu etre mise a jour. Reessayez ou contactez le support."
-      }
+      },
+      "updateAction": "Enregistrer le proche"
     },
     "incomingCallsTitle": "Appels de levee entrants",
     "incomingCallsDescription": "Suivez les appels envoyes a vos associations, les montants dus et les echeances de contribution.",
@@ -149,7 +150,12 @@
     "remittedAtLabel": "Remis le",
     "joinRequest": "Votre demande d adhesion a ete envoyee a l administrateur de l association.",
     "joinRequestsTitle": "Demandes directes d adhesion",
-    "joinRequestsDescription": "Traitez les demandes envoyees depuis l annuaire public par les candidats qui souhaitent rejoindre vos associations."
+    "joinRequestsDescription": "Traitez les demandes envoyees depuis l annuaire public par les candidats qui souhaitent rejoindre vos associations.",
+    "activeLeveesTitle": "Levees actives",
+    "activeLeveesDescription": "Suivez les levees en cours et le statut de paiement de votre contribution.",
+    "contributionHistoryTitle": "Historique des contributions",
+    "contributionHistoryDescription": "Consultez toutes vos contributions passees, les montants payes, les recus et les dates associees.",
+    "currentShareStatusLabel": "Statut"
   },
   "admin": {
     "badge": "Administration plateforme",
