@@ -112,7 +112,21 @@
       "pending": "En attente",
       "in_progress": "En cours",
       "completed": "Complete"
-    }
+    },
+    "memberContributionsTitle": "Mes contributions",
+    "memberContributionsDescription": "Consultez les appels qui vous concernent, le nombre de parts, le montant du et le statut de paiement.",
+    "amountPaidLabel": "Montant paye",
+    "contributionStatuses": {
+      "unpaid": "Non paye",
+      "partial": "Partiel",
+      "paid": "Paye"
+    },
+    "collectionProgressTitle": "Progression de collecte",
+    "collectionProgressValue": "{collected} collectes sur {target}",
+    "collectionBreakdown": "Payes : {paid} · Partiels : {partial} · Non payes : {unpaid}",
+    "noMemberContributions": "Aucune contribution membre n a encore ete generee pour cet appel.",
+    "memberCollectionTitle": "Collecte membre",
+    "recordedAtLabel": "Enregistre le"
   },
   "admin": {
     "badge": "Administration plateforme",
@@ -190,6 +204,18 @@
         "KMG-LV-001": "Le statut selectionne est invalide.",
         "KMG-LV-404": "Cet appel de levee est introuvable.",
         "KMG-SYS-000": "Le statut de l appel n a pas pu etre mis a jour. Reessayez ou contactez le support."
+      }
+    },
+    "memberCollection": {
+      "amountPaidLabel": "Montant paye",
+      "noteLabel": "Note interne",
+      "recordPaymentAction": "Enregistrer le paiement",
+      "recording": "Enregistrement...",
+      "errors": {
+        "KMG-AUTH-403": "Vous n avez pas l autorisation d enregistrer ce paiement.",
+        "KMG-LV-001": "Verifiez le montant paye. Il doit etre compris entre 0 et le montant du.",
+        "KMG-LV-404": "Cette contribution membre est introuvable.",
+        "KMG-SYS-000": "Le paiement n a pas pu etre enregistre. Reessayez ou contactez le support."
       }
     }
   },

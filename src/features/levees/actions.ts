@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-import { createLeveeSchema, type LeveeActionState, updateAssociationLeveeCallStatusSchema } from '@/features/levees/levee-types';
+import { createLeveeSchema, type LeveeActionState, recordMemberContributionPaymentSchema, updateAssociationLeveeCallStatusSchema } from '@/features/levees/levee-types';
 import { requirePlatformAdmin, requireUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -36,6 +36,16 @@ function parseCurrencyCents(value: string): number | null {
   const centsPadded = cents.padEnd(2, '0');
   const amount = Number(dollars) * 100 + Number(centsPadded);
   return Number.isSafeInteger(amount) && amount > 0 ? amount : null;
+}
+
+function parseNullableCurrencyCents(value: string): number | null {
+  const parsed = parseCurrencyCents(value);
+
+  if (parsed !== null) {
+    return parsed;
+  }
+
+  return value.trim() === '0' || value.trim() === '0.00' || value.trim() === '0,00' ? 0 : null;
 }
 
 function leveeErrorCode(message: string): LeveeActionState {
@@ -119,6 +129,45 @@ export async function updateAssociationLeveeCallStatus(
   const { error } = await supabase.rpc('update_association_levee_call_status', {
     call_uuid: parsed.data.callId,
     status_value: parsed.data.status
+  });
+
+  if (error) {
+    return leveeErrorCode(error.message);
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/${parsed.data.locale}/dashboard`);
+  revalidatePath('/admin/levees');
+  revalidatePath(`/${parsed.data.locale}/admin/levees`);
+
+  return { ok: true };
+}
+
+export async function recordMemberContributionPayment(_previousState: LeveeActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<LeveeActionState> {
+  await requireUser();
+
+  const amountPaidCents = parseNullableCurrencyCents(valueFromFormData(formData, 'amountPaid'));
+
+  if (amountPaidCents === null) {
+    return { ok: false, code: 'KMG-LV-001' };
+  }
+
+  const parsed = recordMemberContributionPaymentSchema.safeParse({
+    amountPaidCents,
+    contributionId: valueFromFormData(formData, 'contributionId'),
+    locale: valueFromFormData(formData, 'locale'),
+    note: optionalValueFromFormData(formData, 'note')
+  });
+
+  if (!parsed.success) {
+    return { ok: false, code: 'KMG-LV-001' };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc('record_member_contribution_payment', {
+    amount_paid_cents_value: parsed.data.amountPaidCents,
+    contribution_uuid: parsed.data.contributionId,
+    note_value: parsed.data.note ?? ''
   });
 
   if (error) {
