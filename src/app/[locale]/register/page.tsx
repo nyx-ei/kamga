@@ -1,5 +1,5 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { Building2, CheckCircle2, LogIn, Mail, ShieldCheck } from 'lucide-react';
+import { Building2, Info, LogIn, Mail, ShieldCheck } from 'lucide-react';
 
 import { AssociationWorkspaceShell } from '@/components/kamga/MockupShell';
 import { AssociationRegistrationForm } from '@/features/associations/components/AssociationRegistrationForm';
@@ -75,11 +75,11 @@ export default async function RegisterPage({ params, searchParams }: RegisterPag
               <Building2 aria-hidden="true" size={28} />
             </span>
             <div>
-              <h2 className="text-2xl font-semibold text-heading">RPN Mile End Collectif</h2>
-              <p className="mt-2 text-secondary">Mile End, Montreal, QC</p>
+              <h2 className="text-2xl font-semibold text-heading">Select an existing association</h2>
+              <p className="mt-2 text-secondary">Claim requests are not connected to the backend yet.</p>
               <div className="mt-4 flex gap-2">
-                <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Unclaimed</span>
-                <span className="rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">Entered by RPN staff</span>
+                <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Unavailable</span>
+                <span className="rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">Design placeholder only</span>
               </div>
             </div>
           </article>
@@ -87,33 +87,33 @@ export default async function RegisterPage({ params, searchParams }: RegisterPag
           <article className="mt-8 rounded-md border border-border bg-card p-8 shadow-card">
             <h2 className="text-2xl font-semibold text-heading">Prove you control this association</h2>
             <p className="mt-3 text-base leading-7 text-secondary">
-              Two checks: a registry-number match plus confirmation at the association&apos;s contact email on file.
+              This screen preserves the mockup layout. The claim backend, association selector and email-code verification still need a dedicated ticket.
             </p>
             <label className="mt-7 grid gap-2 text-sm font-semibold text-heading">
               Registry number (NEQ / federal)
-              <input className="h-12 rounded-sm border border-input bg-card px-4 text-base text-heading shadow-card" defaultValue="1169920034" />
+              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-base text-muted shadow-card" disabled placeholder="Available after claim flow is implemented" />
             </label>
-            <div className="mt-7 flex items-center gap-4 rounded-sm border border-positive/30 bg-positive-bg px-6 py-5 text-positive">
-              <CheckCircle2 aria-hidden="true" size={24} />
-              <span className="font-medium">Registry number matches the record on file.</span>
+            <div className="mt-7 flex items-center gap-4 rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
+              <Info aria-hidden="true" size={24} />
+              <span className="font-medium">Registry matching is disabled until a real verification service is added.</span>
             </div>
             <div className="mt-5 flex items-center justify-between rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
               <span className="inline-flex items-center gap-3">
                 <Mail aria-hidden="true" size={22} />
-                Confirmation code sent to c*****@mileend-rpn.ca
+                Email confirmation will be sent by the future claim workflow.
               </span>
-              <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Awaiting</span>
+              <span className="rounded-full bg-warning-bg px-3 py-1 text-xs font-semibold text-warning">Disabled</span>
             </div>
             <label className="mt-5 grid gap-2 text-sm font-semibold text-heading">
               Confirmation code
-              <input className="h-12 rounded-sm border border-input bg-card px-4 font-mono text-base text-heading shadow-card" placeholder="6-digit code" />
+              <input className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 font-mono text-base text-muted shadow-card" disabled placeholder="6-digit code" />
             </label>
-            <label className="mt-6 inline-flex items-center gap-3 text-sm font-medium text-heading">
-              <input className="size-5 accent-brand" defaultChecked type="checkbox" />
+            <label className="mt-6 inline-flex cursor-not-allowed items-center gap-3 text-sm font-medium text-muted">
+              <input className="size-5" disabled type="checkbox" />
               I am authorized to manage this association&apos;s listing.
             </label>
             <div className="mt-7 flex gap-5">
-              <button className="inline-flex items-center gap-2 rounded-sm bg-brand px-5 py-3 text-sm font-semibold text-heading shadow-card" type="button">
+              <button className="inline-flex cursor-not-allowed items-center gap-2 rounded-sm bg-[#d8def5] px-5 py-3 text-sm font-semibold text-muted shadow-card" disabled type="button">
                 <ShieldCheck aria-hidden="true" size={16} />
                 Claim this listing
               </button>

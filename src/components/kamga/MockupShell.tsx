@@ -1,6 +1,7 @@
-import { BarChart3, FileUp, List, PlusCircle, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { BarChart3, Bell, CreditCard, FileText, FileUp, Home, List, PlusCircle, Search, ShieldCheck, SlidersHorizontal, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
 import { Link } from '@/i18n/navigation';
 
 type PrototypeMode = 'lookup' | 'admin' | 'association';
@@ -24,12 +25,20 @@ type AdminWorkspaceShellProps = {
   children: ReactNode;
   title: string;
   toolbar?: ReactNode;
+  userEmail?: string | null;
 };
 
 type AssociationWorkspaceShellProps = {
   activeTab: 'self-registration' | 'claim';
   children: ReactNode;
   locale: 'en' | 'fr';
+};
+
+type MemberWorkspaceShellProps = {
+  children: ReactNode;
+  title: string;
+  toolbar?: ReactNode;
+  userEmail?: string | null;
 };
 
 function modeClassName(mode: PrototypeMode, activeMode: PrototypeMode): string {
@@ -95,20 +104,13 @@ export function PublicDirectoryHeader({ locale }: PublicDirectoryHeaderProps) {
         <a className="text-sm font-semibold text-secondary hover:text-heading" href="#directory-about">
           About the directory
         </a>
-        <div className="inline-flex rounded-full border border-border bg-card p-0.5">
-          <Link className={`rounded-full px-4 py-2 text-sm font-semibold ${locale === 'en' ? 'bg-blue-900 text-white' : 'text-secondary'}`} href="/" locale="en">
-            EN
-          </Link>
-          <Link className={`rounded-full px-4 py-2 text-sm font-semibold ${locale === 'fr' ? 'bg-blue-900 text-white' : 'text-secondary'}`} href="/" locale="fr">
-            FR
-          </Link>
-        </div>
+        <LocaleSwitcher locale={locale} />
       </div>
     </section>
   );
 }
 
-export function AdminWorkspaceShell({ activeItem, activeTab = 'add', children, title, toolbar }: AdminWorkspaceShellProps) {
+export function AdminWorkspaceShell({ activeItem, activeTab = 'add', children, title, toolbar, userEmail }: AdminWorkspaceShellProps) {
   const itemClassName = (item: AdminWorkspaceShellProps['activeItem']) =>
     `flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-semibold transition ${
       activeItem === item ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
@@ -149,10 +151,10 @@ export function AdminWorkspaceShell({ activeItem, activeTab = 'add', children, t
           </nav>
           <div className="mt-auto border-t border-white/15 pt-5">
             <div className="flex items-center gap-4 px-5">
-              <span className="grid size-12 place-items-center rounded-full bg-brand text-sm font-semibold text-heading">RN</span>
+              <span className="grid size-12 place-items-center rounded-full bg-brand text-sm font-semibold text-heading">AD</span>
               <span>
-                <span className="block text-sm font-semibold">RPN staff</span>
-                <span className="block text-xs text-white/65">admin@rpn.ca</span>
+                <span className="block text-sm font-semibold">Admin</span>
+                {userEmail !== null && userEmail !== undefined ? <span className="block text-xs text-white/65">{userEmail}</span> : null}
               </span>
             </div>
           </div>
@@ -182,5 +184,76 @@ export function AssociationWorkspaceShell({ activeTab, children, locale }: Assoc
       <PublicDirectoryHeader locale={locale} />
       <div className="mx-auto max-w-6xl px-6 py-16">{children}</div>
     </main>
+  );
+}
+
+export function MemberWorkspaceShell({ children, title, toolbar, userEmail }: MemberWorkspaceShellProps) {
+  const itemClassName = 'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white';
+  const activeItemClassName = 'flex items-center gap-3 rounded-sm bg-white/10 px-4 py-3 text-sm font-semibold text-white transition';
+
+  return (
+    <div className="min-h-screen bg-page text-body">
+      <PrototypeTopbar
+        activeMode="association"
+        tabs={[
+          { active: true, href: '/dashboard', label: 'Member dashboard' },
+          { href: '/dashboard/upload-evidence', label: 'Upload evidence' }
+        ]}
+      />
+      <div className="grid min-h-[calc(100vh-128px)] grid-cols-1 lg:grid-cols-[348px_1fr]">
+        <aside className="hidden flex-col bg-blue-900 px-4 py-9 text-white lg:flex">
+          <div className="mb-12 flex items-baseline gap-3 px-5">
+            <span className="text-2xl font-semibold">Kamga</span>
+            <span className="text-sm font-semibold uppercase text-brand">MEMBER</span>
+          </div>
+          <nav className="grid gap-2">
+            <a className={activeItemClassName} href="#overview">
+              <Home aria-hidden="true" size={20} />
+              Overview
+            </a>
+            <a className={itemClassName} href="#applications">
+              <List aria-hidden="true" size={20} />
+              Applications
+            </a>
+            <a className={itemClassName} href="#contributions">
+              <BarChart3 aria-hidden="true" size={20} />
+              Contributions
+            </a>
+            <a className={itemClassName} href="#relatives">
+              <UsersRound aria-hidden="true" size={20} />
+              Relatives
+            </a>
+            <a className={itemClassName} href="#payments">
+              <CreditCard aria-hidden="true" size={20} />
+              Payments
+            </a>
+            <a className={itemClassName} href="#notifications">
+              <Bell aria-hidden="true" size={20} />
+              Notifications
+            </a>
+            <a className={itemClassName} href="#receipts">
+              <FileText aria-hidden="true" size={20} />
+              Tax receipts
+            </a>
+          </nav>
+          <div className="mt-auto border-t border-white/15 pt-5">
+            <div className="flex items-center gap-4 px-5">
+              <span className="grid size-12 place-items-center rounded-full bg-brand text-sm font-semibold text-heading">MB</span>
+              <span>
+                <span className="block text-sm font-semibold">Member</span>
+                {userEmail !== null && userEmail !== undefined ? <span className="block text-xs text-white/65">{userEmail}</span> : null}
+              </span>
+            </div>
+          </div>
+        </aside>
+        <main>
+          <header className="flex min-h-[84px] items-center justify-between border-b border-border bg-card px-6 lg:px-9">
+            <h1 className="text-3xl font-semibold text-heading">{title}</h1>
+            {toolbar}
+          </header>
+          <div className="px-6 py-9 lg:px-9">{children}</div>
+        </main>
+      </div>
+    </div>
   );
 }
