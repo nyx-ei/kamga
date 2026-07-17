@@ -1,11 +1,15 @@
-﻿import { useTranslations } from 'next-intl';
+import { getFormatter, getTranslations } from 'next-intl/server';
 import { ClipboardList, HandCoins, Link2, UsersRound } from 'lucide-react';
 
 import { LogoutButton } from '@/features/auth';
+import { NotificationCenter } from '@/features/notifications';
 import { Link } from '@/i18n/navigation';
+import { listUserNotifications } from '@/lib/notifications/list';
 
-export default function AdminPage() {
-  const t = useTranslations('admin');
+export default async function AdminPage() {
+  const t = await getTranslations('admin');
+  const format = await getFormatter();
+  const notifications = await listUserNotifications();
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -15,6 +19,13 @@ export default function AdminPage() {
           <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
           <p className="text-base leading-7 text-secondary">{t('description')}</p>
         </div>
+        <NotificationCenter
+          notifications={notifications.map((notification) => ({
+            ...notification,
+            createdAtLabel: format.dateTime(new Date(notification.createdAt), { dateStyle: 'medium', timeStyle: 'short' })
+          }))}
+          unreadCount={notifications.filter((notification) => !notification.isRead).length}
+        />
         <div className="flex flex-wrap gap-3">
           <Link
             className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-medium text-on-brand shadow-card transition hover:bg-brand-strong"

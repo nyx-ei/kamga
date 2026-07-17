@@ -14,6 +14,7 @@ import {
 } from '@/features/associations/association-types';
 import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
+import { notifyJoinRequestSubmitted } from '@/lib/notifications/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -190,6 +191,16 @@ export async function requestToJoinAssociation(_previousState: AssociationAction
 
     return { ok: false, code: 'KMG-SYS-000' };
   }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { data: association } = await adminSupabase.from('associations').select('name').eq('id', parsed.data.associationId).maybeSingle();
+  const applicantName = currentUser.user.email ?? currentUser.user.id;
+  await notifyJoinRequestSubmitted({
+    applicantName,
+    associationId: parsed.data.associationId,
+    associationName: typeof association?.name === 'string' ? association.name : 'Kamga',
+    locale: parsed.data.locale
+  });
 
   revalidatePath('/dashboard');
   revalidatePath(`/${parsed.data.locale}/dashboard`);

@@ -15,9 +15,11 @@ import {
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { ApproveMemberForm } from '@/features/memberships/components/ApproveMemberForm';
 import { DeclineForm } from '@/features/memberships/components/DeclineForm';
+import { NotificationCenter, PaymentReminderForm } from '@/features/notifications';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
 import { currentFiscalYear } from '@/lib/fiscal/tax-receipts';
+import { listUserNotifications } from '@/lib/notifications/list';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -389,6 +391,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const memberContributions = await listMemberContributions();
   const joinRequests = await listJoinRequests(currentUser.user.id);
   const financialSettings = await getFinancialSettings(currentUser.user.id);
+  const notifications = await listUserNotifications();
   const fiscalYear = currentFiscalYear();
   const activeMemberContributions = memberContributions.filter(isActiveMemberContribution);
   const contributionHistory = memberContributions.filter((contribution) => !isActiveMemberContribution(contribution));
@@ -424,6 +427,14 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         </dl>
 
         <FinancialSettingsForm hasStripeCustomer={financialSettings.stripe_customer_id !== null} locale={params.locale} paymentPreference={financialSettings.payment_preference} />
+
+        <NotificationCenter
+          notifications={notifications.map((notification) => ({
+            ...notification,
+            createdAtLabel: format.dateTime(new Date(notification.createdAt), { dateStyle: 'medium', timeStyle: 'short' })
+          }))}
+          unreadCount={notifications.filter((notification) => !notification.isRead).length}
+        />
 
         <FiscalSlipPanel currentYear={fiscalYear} locale={params.locale} years={[fiscalYear, fiscalYear - 1, fiscalYear - 2]} />
 
@@ -752,6 +763,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                               </div>
                             </dl>
                             <RecordContributionPaymentForm amountPaidCents={contribution.amount_paid_cents} contributionId={contribution.id} locale={params.locale} />
+                            <PaymentReminderForm contributionId={contribution.id} disabled={contribution.status === 'paid'} locale={params.locale} />
                           </article>
                         ))}
                       </div>

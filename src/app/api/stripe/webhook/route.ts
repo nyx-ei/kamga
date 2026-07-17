@@ -1,5 +1,6 @@
 import type Stripe from 'stripe';
 
+import { notifyCollectionMilestone, notifyPaymentConfirmation } from '@/lib/notifications/server';
 import { createStripeServerClient, requireStripeWebhookSecret } from '@/lib/stripe/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
@@ -64,6 +65,28 @@ export async function POST(request: Request) {
 
   if (error) {
     return new Response('Payment application failed', { status: 500 });
+  }
+
+  await notifyPaymentConfirmation({
+    amountCents: amountTotal,
+    contributionId,
+    locale: 'en',
+    userId
+  });
+
+  const { data: contribution } = await adminSupabase
+    .from('member_contributions')
+    .select('status,association_levee_calls:association_levee_call_id(association_id)')
+    .eq('id', contributionId)
+    .maybeSingle();
+  const call = Array.isArray(contribution?.association_levee_calls) ? contribution?.association_levee_calls[0] : contribution?.association_levee_calls;
+
+  if (contribution?.status === 'paid' && typeof call?.association_id === 'string') {
+    await notifyCollectionMilestone({
+      associationId: call.association_id,
+      locale: 'en',
+      message: 'A member contribution has been fully paid.'
+    });
   }
 
   return Response.json({ received: true });

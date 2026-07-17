@@ -21,6 +21,7 @@ import { emailDefaults, resend } from '@/lib/email/resend';
 import { applicationApprovedEmail, applicationDeclinedEmail, moreEvidenceNeededEmail } from '@/lib/email/templates';
 import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
+import { notifyMembershipDecision } from '@/lib/notifications/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -77,6 +78,7 @@ function sanitizedDeclineReason(html: string): string {
 type ReviewEmailMembership = {
   associationName: string;
   email: string;
+  userId: string;
 };
 
 async function membershipEmailRecipient(membershipId: string): Promise<ReviewEmailMembership | null> {
@@ -84,7 +86,7 @@ async function membershipEmailRecipient(membershipId: string): Promise<ReviewEma
   // CV-DB-04 / CV-SEC-06: service role shapes the minimal email recipient DTO for an admin-triggered notification.
   const { data, error } = await adminSupabase
     .from('association_members')
-    .select('associations:association_id(name),users:user_id(email)')
+    .select('user_id,associations:association_id(name),users:user_id(email)')
     .eq('id', membershipId)
     .maybeSingle();
 
@@ -97,7 +99,7 @@ async function membershipEmailRecipient(membershipId: string): Promise<ReviewEma
   const email = typeof user?.email === 'string' ? user.email : null;
   const associationName = typeof association?.name === 'string' ? association.name : 'Kamga';
 
-  return email === null ? null : { associationName, email };
+  return email === null ? null : { associationName, email, userId: data.user_id };
 }
 
 async function sendApprovalEmail(membershipId: string, locale: 'en' | 'fr') {
@@ -258,6 +260,11 @@ export async function approveMember(_previousState: MembershipActionState = INIT
 
   if (result.ok) {
     await sendApprovalEmail(parsed.data.membershipId, parsed.data.locale);
+    const recipient = await membershipEmailRecipient(parsed.data.membershipId);
+
+    if (recipient !== null) {
+      await notifyMembershipDecision({ associationName: recipient.associationName, decision: 'active', locale: parsed.data.locale, userId: recipient.userId });
+    }
   }
 
   return result;
@@ -286,6 +293,11 @@ export async function declineMember(_previousState: MembershipActionState = INIT
 
   if (result.ok) {
     await sendDeclineEmail(parsed.data.membershipId, parsed.data.locale, explanation);
+    const recipient = await membershipEmailRecipient(parsed.data.membershipId);
+
+    if (recipient !== null) {
+      await notifyMembershipDecision({ associationName: recipient.associationName, decision: 'declined', locale: parsed.data.locale, userId: recipient.userId });
+    }
   }
 
   return result;

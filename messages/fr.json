@@ -207,6 +207,21 @@
     "membersAction": "Revoir les membres",
     "leveesAction": "Creer les levees"
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "{count, plural, =0 {Aucune notification non lue} one {# notification non lue} other {# notifications non lues}}",
+    "emptyState": "Aucune notification pour le moment.",
+    "openAction": "Ouvrir",
+    "markReadAction": "Marquer comme lue",
+    "markAllReadAction": "Tout marquer comme lu",
+    "sendReminderAction": "Envoyer un rappel",
+    "sendingReminder": "Envoi...",
+    "errors": {
+      "KMG-AUTH-403": "Vous n avez pas l autorisation d envoyer cette notification.",
+      "KMG-NT-001": "Cette demande de notification est invalide.",
+      "KMG-SYS-000": "La notification n a pas pu etre envoyee. Reessayez ou contactez le support."
+    }
+  },
   "levees": {
     "admin": {
       "badge": "Initialisation de levee",
