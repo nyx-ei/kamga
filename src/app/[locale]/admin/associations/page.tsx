@@ -135,7 +135,7 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
   const adminLabel = currentUser.user.email ?? currentUser.user.id;
 
   return (
-    <AdminWorkspaceShell activeItem="add" activeTab="add" title="Add association" userEmail={currentUser.user.email}>
+    <AdminWorkspaceShell activeItem="add" locale={params.locale} title="Add association" userEmail={currentUser.user.email}>
       <section className="flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">

@@ -399,6 +399,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
 
   return (
     <MemberWorkspaceShell
+      locale={params.locale}
       title={t('title')}
       toolbar={<LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />}
       userEmail={currentUser.user.email}
