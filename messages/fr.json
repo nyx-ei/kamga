@@ -182,6 +182,20 @@
         "KMG-PAY-CONFIG": "Stripe n est pas encore configure pour cet environnement.",
         "KMG-SYS-000": "Les parametres financiers n ont pas pu etre mis a jour. Reessayez ou contactez le support."
       }
+    },
+    "fiscalSlips": {
+      "title": "Recus fiscaux annuels",
+      "description": "Telechargez ou envoyez par email un recu PDF qui resume les paiements de contribution enregistres pour une annee fiscale.",
+      "yearLabel": "Annee fiscale",
+      "downloadAction": "Telecharger le PDF",
+      "emailAction": "Envoyer le recu",
+      "sending": "Envoi...",
+      "emailSent": "Le recu fiscal a ete envoye a l adresse de votre compte.",
+      "errors": {
+        "KMG-FS-001": "Choisissez une annee fiscale valide.",
+        "KMG-FS-404": "Aucun paiement de contribution enregistre pour cette annee fiscale.",
+        "KMG-SYS-000": "Le recu fiscal n a pas pu etre envoye. Reessayez ou contactez le support."
+      }
     }
   },
   "admin": {

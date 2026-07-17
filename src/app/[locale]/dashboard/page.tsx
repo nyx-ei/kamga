@@ -3,6 +3,7 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
+import { FiscalSlipPanel } from '@/features/fiscal';
 import {
   AssociationLeveeCallStatusForm,
   ContributionProgressRealtime,
@@ -16,6 +17,7 @@ import { ApproveMemberForm } from '@/features/memberships/components/ApproveMemb
 import { DeclineForm } from '@/features/memberships/components/DeclineForm';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
+import { currentFiscalYear } from '@/lib/fiscal/tax-receipts';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -387,6 +389,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   const memberContributions = await listMemberContributions();
   const joinRequests = await listJoinRequests(currentUser.user.id);
   const financialSettings = await getFinancialSettings(currentUser.user.id);
+  const fiscalYear = currentFiscalYear();
   const activeMemberContributions = memberContributions.filter(isActiveMemberContribution);
   const contributionHistory = memberContributions.filter((contribution) => !isActiveMemberContribution(contribution));
 
@@ -421,6 +424,8 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
         </dl>
 
         <FinancialSettingsForm hasStripeCustomer={financialSettings.stripe_customer_id !== null} locale={params.locale} paymentPreference={financialSettings.payment_preference} />
+
+        <FiscalSlipPanel currentYear={fiscalYear} locale={params.locale} years={[fiscalYear, fiscalYear - 1, fiscalYear - 2]} />
 
         <section className="grid gap-4">
           <div className="space-y-2">
