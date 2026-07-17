@@ -1,5 +1,5 @@
 ﻿import { useTranslations } from 'next-intl';
-import { ClipboardList, Link2, UsersRound } from 'lucide-react';
+import { ClipboardList, HandCoins, Link2, UsersRound } from 'lucide-react';
 
 import { LogoutButton } from '@/features/auth';
 import { Link } from '@/i18n/navigation';
@@ -36,6 +36,13 @@ export default function AdminPage() {
           >
             <UsersRound aria-hidden="true" size={16} />
             {t('membersAction')}
+          </Link>
+          <Link
+            className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
+            href="/admin/levees"
+          >
+            <HandCoins aria-hidden="true" size={16} />
+            {t('leveesAction')}
           </Link>
           <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
         </div>
