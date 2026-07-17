@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
 export const ASSOCIATION_LEVEE_CALL_STATUSES = ['pending', 'in_progress', 'completed'] as const;
+export const MEMBER_CONTRIBUTION_STATUSES = ['unpaid', 'partial', 'paid'] as const;
 
 export type AssociationLeveeCallStatus = (typeof ASSOCIATION_LEVEE_CALL_STATUSES)[number];
+export type MemberContributionStatus = (typeof MEMBER_CONTRIBUTION_STATUSES)[number];
 export type LeveeActionCode = 'KMG-AUTH-403' | 'KMG-LV-001' | 'KMG-LV-002' | 'KMG-LV-404' | 'KMG-SYS-000';
 
 export type LeveeActionState =
@@ -30,4 +32,11 @@ export const updateAssociationLeveeCallStatusSchema = z.object({
   callId: z.string().uuid(),
   locale: z.enum(['en', 'fr']),
   status: z.enum(ASSOCIATION_LEVEE_CALL_STATUSES)
+});
+
+export const recordMemberContributionPaymentSchema = z.object({
+  amountPaidCents: z.number().int().min(0),
+  contributionId: z.string().uuid(),
+  locale: z.enum(['en', 'fr']),
+  note: z.string().trim().max(500).optional()
 });

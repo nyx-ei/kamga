@@ -112,7 +112,21 @@
       "pending": "Pending",
       "in_progress": "In progress",
       "completed": "Completed"
-    }
+    },
+    "memberContributionsTitle": "My contributions",
+    "memberContributionsDescription": "Review calls assigned to you, share count, amount owed, and payment status.",
+    "amountPaidLabel": "Amount paid",
+    "contributionStatuses": {
+      "unpaid": "Unpaid",
+      "partial": "Partial",
+      "paid": "Paid"
+    },
+    "collectionProgressTitle": "Collection progress",
+    "collectionProgressValue": "{collected} collected of {target}",
+    "collectionBreakdown": "Paid: {paid} · Partial: {partial} · Unpaid: {unpaid}",
+    "noMemberContributions": "No member contribution has been generated for this call yet.",
+    "memberCollectionTitle": "Member collection",
+    "recordedAtLabel": "Recorded at"
   },
   "admin": {
     "badge": "Platform administration",
@@ -190,6 +204,18 @@
         "KMG-LV-001": "The selected status is invalid.",
         "KMG-LV-404": "This levee call could not be found.",
         "KMG-SYS-000": "The call status could not be updated. Try again or contact support."
+      }
+    },
+    "memberCollection": {
+      "amountPaidLabel": "Amount paid",
+      "noteLabel": "Internal note",
+      "recordPaymentAction": "Record payment",
+      "recording": "Recording...",
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to record this payment.",
+        "KMG-LV-001": "Check the paid amount. It must be between 0 and the amount owed.",
+        "KMG-LV-404": "This member contribution could not be found.",
+        "KMG-SYS-000": "The payment could not be recorded. Try again or contact support."
       }
     }
   },

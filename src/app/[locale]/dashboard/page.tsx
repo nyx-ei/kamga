@@ -3,7 +3,7 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
-import { AssociationLeveeCallStatusForm } from '@/features/levees';
+import { AssociationLeveeCallStatusForm, ContributionProgressRealtime, RecordContributionPaymentForm } from '@/features/levees';
 import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -48,8 +48,91 @@ const associationLeveeCallSchema = z.object({
       per_share_amount_cents: z.number()
     })
     .nullable(),
+  member_contributions: z
+    .array(
+      z.object({
+        amount_due_cents: z.number(),
+        amount_paid_cents: z.number(),
+        association_members: z
+          .union([
+            z.object({
+              users: z
+                .union([
+                  z.object({
+                    email: z.string().nullable(),
+                    first_name: z.string().nullable(),
+                    last_name: z.string().nullable()
+                  }),
+                  z.array(
+                    z.object({
+                      email: z.string().nullable(),
+                      first_name: z.string().nullable(),
+                      last_name: z.string().nullable()
+                    })
+                  )
+                ])
+                .nullable()
+            }),
+            z.array(
+              z.object({
+                users: z
+                  .union([
+                    z.object({
+                      email: z.string().nullable(),
+                      first_name: z.string().nullable(),
+                      last_name: z.string().nullable()
+                    }),
+                    z.array(
+                      z.object({
+                        email: z.string().nullable(),
+                        first_name: z.string().nullable(),
+                        last_name: z.string().nullable()
+                      })
+                    )
+                  ])
+                  .nullable()
+              })
+            )
+          ])
+          .nullable(),
+        id: z.string().uuid(),
+        recorded_at: z.string().nullable(),
+        share_count: z.number().int(),
+        status: z.enum(['unpaid', 'partial', 'paid'])
+      })
+    )
+    .nullable(),
   share_count: z.number().int(),
   status: z.enum(['pending', 'in_progress', 'completed'])
+});
+
+const contributionProgressSchema = z.object({
+  association_levee_call_id: z.string().uuid(),
+  collected_amount_cents: z.number(),
+  member_count: z.number().int(),
+  paid_member_count: z.number().int(),
+  partial_member_count: z.number().int(),
+  target_amount_cents: z.number(),
+  unpaid_member_count: z.number().int()
+});
+
+const memberContributionSchema = z.object({
+  amount_due_cents: z.number(),
+  amount_paid_cents: z.number(),
+  association_levee_calls: z
+    .object({
+      associations: z.union([z.object({ name: z.string() }), z.array(z.object({ name: z.string() }))]).nullable(),
+      levees: z
+        .object({
+          deadline: z.string(),
+          deceased_full_name: z.string()
+        })
+        .nullable()
+    })
+    .nullable(),
+  id: z.string().uuid(),
+  share_count: z.number().int(),
+  status: z.enum(['unpaid', 'partial', 'paid'])
 });
 
 type DashboardPageProps = {
@@ -64,6 +147,8 @@ type DashboardPageProps = {
 
 type MemberApplication = z.infer<typeof memberApplicationSchema>;
 type AssociationLeveeCall = z.infer<typeof associationLeveeCallSchema>;
+type ContributionProgress = z.infer<typeof contributionProgressSchema>;
+type MemberContribution = z.infer<typeof memberContributionSchema>;
 
 async function listMemberApplications(userId: string): Promise<MemberApplication[]> {
   const supabase = createSupabaseServerClient();
@@ -92,11 +177,28 @@ function callAssociationName(call: AssociationLeveeCall): string | null {
   const association = Array.isArray(call.associations) ? call.associations[0] : call.associations;
   return association?.name ?? null;
 }
+
+function memberContributionAssociationName(contribution: MemberContribution): string | null {
+  const association = Array.isArray(contribution.association_levee_calls?.associations)
+    ? contribution.association_levee_calls?.associations[0]
+    : contribution.association_levee_calls?.associations;
+  return association?.name ?? null;
+}
+
+function contributionMemberLabel(contribution: NonNullable<AssociationLeveeCall['member_contributions']>[number]): string {
+  const membership = Array.isArray(contribution.association_members) ? contribution.association_members[0] : contribution.association_members;
+  const user = Array.isArray(membership?.users) ? membership?.users[0] : membership?.users;
+  const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
+  return fullName.length > 0 ? fullName : (user?.email ?? contribution.id);
+}
+
 async function listAssociationLeveeCalls(): Promise<AssociationLeveeCall[]> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('association_levee_calls')
-    .select('id,share_count,amount_due_cents,status,associations:association_id(name),levees:levee_id(deceased_full_name,deadline,per_share_amount_cents)')
+    .select(
+      'id,share_count,amount_due_cents,status,associations:association_id(name),levees:levee_id(deceased_full_name,deadline,per_share_amount_cents),member_contributions(id,share_count,amount_due_cents,amount_paid_cents,status,recorded_at,association_members:membership_id(users:user_id(first_name,last_name,email)))'
+    )
     .order('created_at', { ascending: false });
 
   if (error || data === null) {
@@ -109,12 +211,54 @@ async function listAssociationLeveeCalls(): Promise<AssociationLeveeCall[]> {
   });
 }
 
+async function listContributionProgress(callIds: string[]): Promise<Map<string, ContributionProgress>> {
+  if (callIds.length === 0) {
+    return new Map();
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('association_levee_collection_progress')
+    .select('association_levee_call_id,target_amount_cents,collected_amount_cents,member_count,paid_member_count,partial_member_count,unpaid_member_count')
+    .in('association_levee_call_id', callIds);
+
+  if (error || data === null) {
+    return new Map();
+  }
+
+  return new Map(
+    data.flatMap((row: unknown) => {
+      const parsed = contributionProgressSchema.safeParse(row);
+      return parsed.success ? [[parsed.data.association_levee_call_id, parsed.data] as const] : [];
+    })
+  );
+}
+
+async function listMemberContributions(): Promise<MemberContribution[]> {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('member_contributions')
+    .select('id,share_count,amount_due_cents,amount_paid_cents,status,association_levee_calls:association_levee_call_id(associations:association_id(name),levees:levee_id(deceased_full_name,deadline))')
+    .order('created_at', { ascending: false });
+
+  if (error || data === null) {
+    return [];
+  }
+
+  return data.flatMap((row: unknown) => {
+    const parsed = memberContributionSchema.safeParse(row);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
 export default async function DashboardPage({ params, searchParams }: DashboardPageProps) {
   const currentUser = await requireUser();
   const t = await getTranslations('dashboard');
   const format = await getFormatter();
   const applications = await listMemberApplications(currentUser.user.id);
   const associationCalls = await listAssociationLeveeCalls();
+  const contributionProgress = await listContributionProgress(associationCalls.map((call) => call.id));
+  const memberContributions = await listMemberContributions();
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -174,8 +318,53 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
           )}
         </section>
 
+        {memberContributions.length === 0 ? null : (
+          <section className="grid gap-4">
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-heading">{t('memberContributionsTitle')}</h2>
+              <p className="text-sm leading-6 text-secondary">{t('memberContributionsDescription')}</p>
+            </div>
+            <div className="grid gap-4">
+              {memberContributions.map((contribution) => (
+                <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
+                  <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                    <div>
+                      <p className="text-xs font-semibold uppercase text-muted">{memberContributionAssociationName(contribution) ?? t('unknownAssociation')}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-heading">{contribution.association_levee_calls?.levees?.deceased_full_name ?? t('unknownLevee')}</h3>
+                    </div>
+                    <p className="rounded-sm bg-warning-bg px-3 py-2 text-sm font-medium text-warning">{t(`contributionStatuses.${contribution.status}`)}</p>
+                  </div>
+                  <dl className="grid gap-3 rounded-sm border border-border bg-sunken p-4 text-sm md:grid-cols-4">
+                    <div>
+                      <dt className="font-medium text-secondary">{t('callSharesLabel')}</dt>
+                      <dd className="mt-1 font-mono text-heading">{contribution.share_count}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-secondary">{t('callAmountLabel')}</dt>
+                      <dd className="mt-1 text-heading">{format.number(contribution.amount_due_cents / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-secondary">{t('amountPaidLabel')}</dt>
+                      <dd className="mt-1 text-heading">{format.number(contribution.amount_paid_cents / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-secondary">{t('callDeadlineLabel')}</dt>
+                      <dd className="mt-1 text-heading">
+                        {contribution.association_levee_calls?.levees === null || contribution.association_levee_calls?.levees === undefined
+                          ? t('notAvailable')
+                          : format.dateTime(new Date(contribution.association_levee_calls.levees.deadline), { dateStyle: 'medium' })}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         {associationCalls.length === 0 ? null : (
           <section className="grid gap-4">
+            <ContributionProgressRealtime callIds={associationCalls.map((call) => call.id)} />
             <div className="space-y-2">
               <h2 className="text-xl font-semibold text-heading">{t('incomingCallsTitle')}</h2>
               <p className="text-sm leading-6 text-secondary">{t('incomingCallsDescription')}</p>
@@ -183,6 +372,39 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
             <div className="grid gap-4">
               {associationCalls.map((call) => (
                 <article className="grid gap-4 rounded-md border border-border bg-raised p-5 shadow-card" key={call.id}>
+                  {(() => {
+                    const progress = contributionProgress.get(call.id);
+                    const collected = progress?.collected_amount_cents ?? 0;
+                    const target = progress?.target_amount_cents ?? call.amount_due_cents;
+                    const progressPercent = target <= 0 ? 0 : Math.min(100, Math.round((collected / target) * 100));
+
+                    return (
+                      <section className="grid gap-3 rounded-sm border border-border bg-sunken p-4">
+                        <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
+                          <div>
+                            <h4 className="text-sm font-semibold text-heading">{t('collectionProgressTitle')}</h4>
+                            <p className="text-sm text-secondary">
+                              {t('collectionProgressValue', {
+                                collected: format.number(collected / 100, { currency: 'CAD', style: 'currency' }),
+                                target: format.number(target / 100, { currency: 'CAD', style: 'currency' })
+                              })}
+                            </p>
+                          </div>
+                          <p className="font-mono text-sm text-heading">{progressPercent}%</p>
+                        </div>
+                        <div className="h-2 overflow-hidden rounded-sm bg-card">
+                          <div className="h-full bg-brand" style={{ width: `${progressPercent}%` }} />
+                        </div>
+                        <p className="text-xs text-muted">
+                          {t('collectionBreakdown', {
+                            paid: progress?.paid_member_count ?? 0,
+                            partial: progress?.partial_member_count ?? 0,
+                            unpaid: progress?.unpaid_member_count ?? 0
+                          })}
+                        </p>
+                      </section>
+                    );
+                  })()}
                   <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                     <div>
                       <p className="text-xs font-semibold uppercase text-muted">{callAssociationName(call) ?? t('unknownAssociation')}</p>
@@ -213,6 +435,46 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
                     </div>
                   </dl>
                   <AssociationLeveeCallStatusForm callId={call.id} currentStatus={call.status} locale={params.locale} />
+                  {call.member_contributions === null || call.member_contributions.length === 0 ? (
+                    <div className="rounded-sm border border-border bg-sunken p-4 text-sm text-secondary">{t('noMemberContributions')}</div>
+                  ) : (
+                    <section className="grid gap-3">
+                      <h4 className="text-base font-semibold text-heading">{t('memberCollectionTitle')}</h4>
+                      <div className="grid gap-3">
+                        {call.member_contributions.map((contribution) => (
+                          <article className="grid gap-4 rounded-sm border border-border bg-card p-4" key={contribution.id}>
+                            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+                              <div>
+                                <h5 className="font-semibold text-heading">{contributionMemberLabel(contribution)}</h5>
+                                <p className="text-sm text-secondary">{t(`contributionStatuses.${contribution.status}`)}</p>
+                              </div>
+                              <p className="text-sm font-medium text-heading">
+                                {format.number(contribution.amount_paid_cents / 100, { currency: 'CAD', style: 'currency' })} /{' '}
+                                {format.number(contribution.amount_due_cents / 100, { currency: 'CAD', style: 'currency' })}
+                              </p>
+                            </div>
+                            <dl className="grid gap-3 rounded-sm border border-border bg-sunken p-3 text-sm md:grid-cols-3">
+                              <div>
+                                <dt className="font-medium text-secondary">{t('callSharesLabel')}</dt>
+                                <dd className="mt-1 font-mono text-heading">{contribution.share_count}</dd>
+                              </div>
+                              <div>
+                                <dt className="font-medium text-secondary">{t('amountPaidLabel')}</dt>
+                                <dd className="mt-1 text-heading">{format.number(contribution.amount_paid_cents / 100, { currency: 'CAD', style: 'currency' })}</dd>
+                              </div>
+                              <div>
+                                <dt className="font-medium text-secondary">{t('recordedAtLabel')}</dt>
+                                <dd className="mt-1 text-heading">
+                                  {contribution.recorded_at === null ? t('notAvailable') : format.dateTime(new Date(contribution.recorded_at), { dateStyle: 'medium', timeStyle: 'short' })}
+                                </dd>
+                              </div>
+                            </dl>
+                            <RecordContributionPaymentForm amountPaidCents={contribution.amount_paid_cents} contributionId={contribution.id} locale={params.locale} />
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+                  )}
                 </article>
               ))}
             </div>
