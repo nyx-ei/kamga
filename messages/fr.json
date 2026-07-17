@@ -79,6 +79,25 @@
         "government_id": "Pièce d’identité gouvernementale",
         "immigration_proof": "Preuve du statut d’immigration"
       }
+    },
+    "shares": {
+      "title": "Proches et parts",
+      "description": "Ajoutez les proches ou dependants associes a cette adhesion. Le nombre de parts correspond au declarant plus chaque proche liste.",
+      "shareCountLabel": "Nombre de parts",
+      "emptyState": "Aucun proche ou dependant n'est encore associe a cette adhesion.",
+      "fullNameLabel": "Nom complet",
+      "relationshipLabel": "Lien",
+      "externalIdLabel": "ID si applicable",
+      "addAction": "Ajouter un proche",
+      "adding": "Ajout...",
+      "removeAction": "Retirer le proche",
+      "errors": {
+        "KMG-AUTH-403": "Vous pouvez gerer les proches uniquement pour une adhesion active qui vous appartient.",
+        "KMG-RG-001": "Verifiez les informations du proche puis reessayez.",
+        "KMG-RG-404": "Cette adhesion ou ce proche est introuvable.",
+        "KMG-RG-409": "Cette adhesion ne peut pas etre modifiee dans son etat actuel.",
+        "KMG-SYS-000": "La liste des parts n'a pas pu etre mise a jour. Reessayez ou contactez le support."
+      }
     }
   },
   "admin": {
@@ -246,6 +265,10 @@
       "phoneLabel": "Telephone",
       "arrivalDateLabel": "Arrivee au Canada",
       "submittedAtLabel": "Soumise le",
+      "shareCountLabel": "Nombre de parts membre",
+      "associationShareTotalLabel": "Total de parts association",
+      "dependentsTitle": "Proches et dependants",
+      "dependentsEmpty": "Aucun proche ou dependant n'est associe a cette adhesion.",
       "referrerTitle": "Parrain",
       "referrerNameLabel": "Nom",
       "referrerEmailLabel": "Courriel",

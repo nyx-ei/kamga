@@ -3,7 +3,7 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { LogoutButton } from '@/features/auth';
-import { ApplicationStatusCard } from '@/features/memberships';
+import { ApplicationStatusCard, DependentsManager } from '@/features/memberships';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -22,6 +22,16 @@ const memberApplicationSchema = z.object({
   created_at: z.string(),
   decline_reason_html: z.string().nullable(),
   id: z.string().uuid(),
+  member_dependents: z
+    .array(
+      z.object({
+        external_id: z.string().nullable(),
+        full_name: z.string(),
+        id: z.string().uuid(),
+        relationship: z.string()
+      })
+    )
+    .nullable(),
   requested_evidence_types: z.array(evidenceTypeSchema).nullable(),
   status: memberApplicationStatusSchema
 });
@@ -39,7 +49,7 @@ async function listMemberApplications(userId: string): Promise<MemberApplication
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('association_members')
-    .select('id,created_at,status,decline_reason_html,requested_evidence_types,associations:association_id(name)')
+    .select('id,created_at,status,decline_reason_html,requested_evidence_types,associations:association_id(name),member_dependents(id,full_name,relationship,external_id)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -94,18 +104,30 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <div className="rounded-md border border-border bg-sunken p-6 text-sm leading-6 text-secondary">{t('noApplications')}</div>
           ) : (
             <div className="grid gap-4">
-              {applications.map((application) => (
-                <ApplicationStatusCard
-                  application={{
-                    associationName: associationName(application),
-                    declineReasonHtml: application.decline_reason_html,
-                    requestedEvidenceTypes: application.requested_evidence_types ?? [],
-                    status: application.status,
-                    submittedAtLabel: format.dateTime(new Date(application.created_at), { dateStyle: 'medium', timeStyle: 'short' })
-                  }}
-                  key={application.id}
-                />
-              ))}
+              {applications.map((application) => {
+                const dependents =
+                  application.member_dependents?.map((dependent) => ({
+                    externalId: dependent.external_id,
+                    fullName: dependent.full_name,
+                    id: dependent.id,
+                    relationship: dependent.relationship
+                  })) ?? [];
+
+                return (
+                  <div className="grid gap-4" key={application.id}>
+                    <ApplicationStatusCard
+                      application={{
+                        associationName: associationName(application),
+                        declineReasonHtml: application.decline_reason_html,
+                        requestedEvidenceTypes: application.requested_evidence_types ?? [],
+                        status: application.status,
+                        submittedAtLabel: format.dateTime(new Date(application.created_at), { dateStyle: 'medium', timeStyle: 'short' })
+                      }}
+                    />
+                    {application.status === 'active' ? <DependentsManager dependents={dependents} membershipId={application.id} /> : null}
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
