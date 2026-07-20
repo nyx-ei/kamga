@@ -109,7 +109,7 @@ async function sendApprovalEmail(membershipId: string, locale: 'en' | 'fr') {
     return;
   }
 
-  const dashboardUrl = new URL(`/${locale}/dashboard`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const dashboardUrl = new URL(`/${locale}/dashboard/applications`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
   const template = applicationApprovedEmail({ associationName: recipient.associationName, dashboardUrl, locale });
 
   await resend.emails.send({ from: emailDefaults.from, html: template.html, to: recipient.email, subject: template.subject, text: template.text });

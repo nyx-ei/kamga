@@ -1,7 +1,10 @@
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
+import { MemberWorkspaceShell } from '@/components/kamga/MockupShell';
+import { LogoutButton } from '@/features/auth';
 import { UploadMoreEvidenceForm } from '@/features/evidence';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -61,21 +64,31 @@ async function listUploadableMemberships(
 
 export default async function UploadEvidencePage({ params }: UploadEvidencePageProps) {
   const currentUser = await requireUser();
+
+  if (currentUser.role === 'platform_admin') {
+    redirect(`/${params.locale}/admin`);
+  }
+
   const t = await getTranslations('evidence.upload');
   const memberships = await listUploadableMemberships(currentUser.user.id);
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto flex max-w-4xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
+    <MemberWorkspaceShell
+      activeItem="applications"
+      locale={params.locale}
+      title={t('title')}
+      toolbar={<LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />}
+      userEmail={currentUser.user.email}
+    >
+      <section className="flex max-w-4xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
             <p className="max-w-3xl text-base leading-7 text-secondary">{t('description')}</p>
           </div>
           <Link
             className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
-            href="/dashboard"
+            href="/dashboard/applications"
           >
             <ArrowLeft aria-hidden="true" size={16} />
             {t('backToDashboard')}
@@ -88,6 +101,6 @@ export default async function UploadEvidencePage({ params }: UploadEvidencePageP
           <UploadMoreEvidenceForm locale={params.locale} memberships={memberships} />
         )}
       </section>
-    </main>
+    </MemberWorkspaceShell>
   );
 }

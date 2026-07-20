@@ -23,6 +23,7 @@ type AssociationWorkspaceShellProps = {
 };
 
 type MemberWorkspaceShellProps = {
+  activeItem: 'applications' | 'contributions' | 'notifications' | 'payments' | 'receipts' | 'relatives';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -43,7 +44,6 @@ const shellCopy = {
     memberApplications: 'Applications',
     memberContributions: 'Contributions',
     memberNotifications: 'Notifications',
-    memberOverview: 'Overview',
     memberPayments: 'Payments',
     memberReceipts: 'Tax receipts',
     memberRelatives: 'Relatives',
@@ -61,7 +61,6 @@ const shellCopy = {
     memberApplications: 'Demandes',
     memberContributions: 'Contributions',
     memberNotifications: 'Notifications',
-    memberOverview: 'Vue d ensemble',
     memberPayments: 'Paiements',
     memberReceipts: 'Recus fiscaux',
     memberRelatives: 'Proches',
@@ -155,10 +154,12 @@ export function AssociationWorkspaceShell({ children, locale }: AssociationWorks
   );
 }
 
-export function MemberWorkspaceShell({ children, locale, title, toolbar, userEmail }: MemberWorkspaceShellProps) {
+export function MemberWorkspaceShell({ activeItem, children, locale, title, toolbar, userEmail }: MemberWorkspaceShellProps) {
   const copy = shellCopy[locale];
-  const itemClassName = 'flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white';
-  const activeItemClassName = 'flex items-center gap-3 rounded-sm bg-white/10 px-4 py-3 text-sm font-semibold text-white transition';
+  const itemClassName = (item: MemberWorkspaceShellProps['activeItem']) =>
+    `flex items-center gap-3 rounded-sm px-4 py-3 text-sm font-semibold transition ${
+      activeItem === item ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
+    }`;
 
   return (
     <div className="min-h-screen bg-page text-body">
@@ -169,34 +170,30 @@ export function MemberWorkspaceShell({ children, locale, title, toolbar, userEma
             <span className="text-sm font-semibold uppercase text-brand">MEMBER</span>
           </div>
           <nav className="grid gap-2">
-            <a className={activeItemClassName} href="#overview">
-              <Home aria-hidden="true" size={20} />
-              {copy.memberOverview}
-            </a>
-            <a className={itemClassName} href="#applications">
+            <Link className={itemClassName('applications')} href="/dashboard/applications">
               <List aria-hidden="true" size={20} />
               {copy.memberApplications}
-            </a>
-            <a className={itemClassName} href="#contributions">
+            </Link>
+            <Link className={itemClassName('contributions')} href="/dashboard/contributions">
               <BarChart3 aria-hidden="true" size={20} />
               {copy.memberContributions}
-            </a>
-            <a className={itemClassName} href="#relatives">
+            </Link>
+            <Link className={itemClassName('relatives')} href="/dashboard/relatives">
               <UsersRound aria-hidden="true" size={20} />
               {copy.memberRelatives}
-            </a>
-            <a className={itemClassName} href="#payments">
+            </Link>
+            <Link className={itemClassName('payments')} href="/dashboard/payments">
               <CreditCard aria-hidden="true" size={20} />
               {copy.memberPayments}
-            </a>
-            <a className={itemClassName} href="#notifications">
+            </Link>
+            <Link className={itemClassName('notifications')} href="/dashboard/notifications">
               <Bell aria-hidden="true" size={20} />
               {copy.memberNotifications}
-            </a>
-            <a className={itemClassName} href="#receipts">
+            </Link>
+            <Link className={itemClassName('receipts')} href="/dashboard/receipts">
               <FileText aria-hidden="true" size={20} />
               {copy.memberReceipts}
-            </a>
+            </Link>
           </nav>
           <div className="mt-auto border-t border-white/15 pt-5">
             <div className="flex items-center gap-4 px-5">
