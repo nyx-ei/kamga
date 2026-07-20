@@ -166,6 +166,15 @@ const memberContributionSchema = z.object({
   status: z.enum(['unpaid', 'partial', 'paid'])
 });
 
+const memberContributionFeeTransparencySchema = z.object({
+  contribution_id: z.string().uuid(),
+  estimated_fee_cents: z.number(),
+  fee_bps: z.number().int(),
+  fee_fixed_cents: z.number(),
+  fee_model: z.enum(['per_member', 'per_levee']),
+  is_enabled: z.boolean()
+});
+
 const joinRequestSchema = z.object({
   associations: z.union([associationSummarySchema, z.array(associationSummarySchema)]).nullable(),
   created_at: z.string(),
@@ -210,6 +219,7 @@ type MemberApplication = z.infer<typeof memberApplicationSchema>;
 type AssociationLeveeCall = z.infer<typeof associationLeveeCallSchema>;
 type ContributionProgress = z.infer<typeof contributionProgressSchema>;
 type MemberContribution = z.infer<typeof memberContributionSchema>;
+type MemberContributionFeeTransparency = z.infer<typeof memberContributionFeeTransparencySchema>;
 type JoinRequest = z.infer<typeof joinRequestSchema>;
 type FinancialSettings = z.infer<typeof financialSettingsSchema>;
 
@@ -337,6 +347,28 @@ async function listMemberContributions(): Promise<MemberContribution[]> {
   });
 }
 
+async function listMemberContributionFeeTransparency(contributionIds: string[]): Promise<Map<string, MemberContributionFeeTransparency>> {
+  if (contributionIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await createSupabaseServerClient()
+    .from('member_contribution_fee_transparency')
+    .select('contribution_id,is_enabled,fee_model,fee_bps,fee_fixed_cents,estimated_fee_cents')
+    .in('contribution_id', contributionIds);
+
+  if (error || data === null) {
+    return new Map();
+  }
+
+  return new Map(
+    data.flatMap((row: unknown) => {
+      const parsed = memberContributionFeeTransparencySchema.safeParse(row);
+      return parsed.success ? [[parsed.data.contribution_id, parsed.data] as const] : [];
+    })
+  );
+}
+
 async function getFinancialSettings(userId: string): Promise<FinancialSettings> {
   const supabase = createSupabaseServerClient();
   const { data, error } = await supabase.from('user_financial_settings').select('payment_preference,stripe_customer_id').eq('user_id', userId).maybeSingle();
@@ -402,6 +434,7 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
   const associationCalls = await listAssociationLeveeCalls();
   const contributionProgress = await listContributionProgress(associationCalls.map((call) => call.id));
   const memberContributions = await listMemberContributions();
+  const feeTransparencyByContribution = await listMemberContributionFeeTransparency(memberContributions.map((contribution) => contribution.id));
   const joinRequests = await listJoinRequests(currentUser.user.id);
   const financialSettings = await getFinancialSettings(currentUser.user.id);
   const notifications = await listUserNotifications();
@@ -564,6 +597,7 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
             <div className="grid gap-4">
               {activeMemberContributions.map((contribution) => {
                 const remainingCents = Math.max(0, Math.round(contribution.amount_due_cents - contribution.amount_paid_cents));
+                const feeTransparency = feeTransparencyByContribution.get(contribution.id);
 
                 return (
                   <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
@@ -603,6 +637,16 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
                         </dd>
                       </div>
                     </dl>
+                    {feeTransparency === undefined || !feeTransparency.is_enabled ? null : (
+                      <div className="rounded-sm border border-border bg-sunken p-4 text-sm leading-6 text-secondary">
+                        <p className="font-semibold text-heading">{t('adminFeeTransparencyTitle')}</p>
+                        <p className="mt-1">
+                          {t('adminFeeTransparencyDescription', {
+                            amount: format.number(feeTransparency.estimated_fee_cents / 100, { currency: 'CAD', style: 'currency' })
+                          })}
+                        </p>
+                      </div>
+                    )}
                   </article>
                 );
               })}
@@ -617,7 +661,10 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
               <p className="text-sm leading-6 text-secondary">{t('contributionHistoryDescription')}</p>
             </div>
             <div className="grid gap-4">
-              {contributionHistory.map((contribution) => (
+              {contributionHistory.map((contribution) => {
+                const feeTransparency = feeTransparencyByContribution.get(contribution.id);
+
+                return (
                 <article className="grid gap-3 rounded-md border border-border bg-raised p-5 shadow-card" key={contribution.id}>
                   <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                     <div>
@@ -648,6 +695,16 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
                       </dd>
                     </div>
                   </dl>
+                  {feeTransparency === undefined || !feeTransparency.is_enabled ? null : (
+                    <div className="rounded-sm border border-border bg-sunken p-4 text-sm leading-6 text-secondary">
+                      <p className="font-semibold text-heading">{t('adminFeeTransparencyTitle')}</p>
+                      <p className="mt-1">
+                        {t('adminFeeTransparencyDescription', {
+                          amount: format.number(feeTransparency.estimated_fee_cents / 100, { currency: 'CAD', style: 'currency' })
+                        })}
+                      </p>
+                    </div>
+                  )}
                   {contribution.member_contribution_payments === null || contribution.member_contribution_payments.length === 0 ? null : (
                     <section className="grid gap-2 rounded-sm border border-border bg-sunken p-4">
                       <h4 className="text-sm font-semibold text-heading">{t('receiptsTitle')}</h4>
@@ -687,7 +744,8 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
                     </section>
                   )}
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         ) : null}
