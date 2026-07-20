@@ -1,4 +1,4 @@
-import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, Rocket, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
@@ -10,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'associations' | 'csv' | 'levees' | 'members' | 'notifications' | 'referrals';
+  activeItem: 'associations' | 'csv' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -41,6 +41,7 @@ const shellCopy = {
     adminLevees: 'Levees',
     adminMembers: 'Members',
     adminNotifications: 'Notifications',
+    adminPilot: 'Pilot program',
     adminReferrals: 'Referrals',
     findAssociation: 'Find an association',
     member: 'Member',
@@ -60,6 +61,7 @@ const shellCopy = {
     adminLevees: 'Levées',
     adminMembers: 'Membres',
     adminNotifications: 'Notifications',
+    adminPilot: 'Programme pilote',
     adminReferrals: 'Parrainages',
     findAssociation: 'Trouver une association',
     member: 'Membre',
@@ -126,6 +128,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
             <Link className={itemClassName('referrals')} href="/admin/referrals">
               <Link2 aria-hidden="true" size={20} />
               {copy.adminReferrals}
+            </Link>
+            <Link className={itemClassName('pilot')} href="/admin/pilot">
+              <Rocket aria-hidden="true" size={20} />
+              {copy.adminPilot}
             </Link>
             <Link className={itemClassName('levees')} href="/admin/levees">
               <HandCoins aria-hidden="true" size={20} />

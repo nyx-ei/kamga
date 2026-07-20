@@ -208,6 +208,76 @@
     "membersAction": "Revoir les membres",
     "leveesAction": "Créer les levées"
   },
+  "pilot": {
+    "admin": {
+      "addAssociationAction": "Ajouter une association pilote",
+      "associationLabel": "Association",
+      "badge": "Opérations pilote",
+      "dataMigrationLabel": "Migration des données",
+      "description": "Embarquez 3 à 5 associations pilotes, suivez la configuration guidée, accompagnez la migration des données et collectez les retours pour la boucle d'itération.",
+      "emptyState": "Aucune association pilote n'a encore été embarquée.",
+      "feedbackCategoryLabel": "Catégorie",
+      "feedbackDescription": "Consignez les retours des sessions de configuration, des contrôles de données migrées, des tests membres et des revues opérationnelles.",
+      "feedbackEmpty": "Aucun retour n'a encore été collecté pour cette association pilote.",
+      "feedbackLabel": "Retour",
+      "feedbackReviewedLabel": "Retours revus",
+      "feedbackTitle": "Boucle de feedback",
+      "guidedSetupLabel": "Configuration guidée",
+      "iterationNotesLabel": "Notes d'itération",
+      "markReviewedAction": "Marquer comme revu",
+      "migrationStatuses": {
+        "blocked": "Bloquée",
+        "completed": "Terminée",
+        "in_progress": "En cours",
+        "not_started": "Non démarrée"
+      },
+      "noAssociationsAvailable": "Aucune association disponible",
+      "notAvailable": "Non disponible",
+      "notesLabel": "Notes de configuration",
+      "notesPlaceholder": "Notes opérationnelles, périmètre de migration, risques, prochain contact...",
+      "operatingModelDescription": "Utilisez ce module comme cockpit opérationnel du pilote. N'y ajoutez que de vraies associations, mettez à jour la progression après chaque session de configuration guidée, documentez les blocages de migration et transformez les retours en notes d'itération.",
+      "operatingModelTitle": "Configuration guidée et boucle d'itération",
+      "pilotCountLabel": "Associations pilotes",
+      "pilotLimitReached": "Limite pilote atteinte",
+      "pilotStatusLabel": "Statut pilote",
+      "progressTitle": "Préparation pilote",
+      "ratingEmpty": "Aucune note",
+      "ratingLabel": "Note",
+      "ratingValue": "{rating}/5",
+      "reviewedLabel": "Revu",
+      "saveProgressAction": "Enregistrer la progression",
+      "saving": "Enregistrement...",
+      "setupDoneLabel": "Configurations terminées",
+      "statuses": {
+        "active_pilot": "Pilote actif",
+        "completed": "Terminé",
+        "iteration": "Itération",
+        "onboarding": "Embarquement",
+        "paused": "En pause"
+      },
+      "title": "Programme pilote",
+      "unknownAssociation": "Association inconnue",
+      "workflowStatuses": {
+        "completed": "Terminée",
+        "in_progress": "En cours",
+        "not_started": "Non démarrée"
+      },
+      "feedbackCategories": {
+        "data_migration": "Migration des données",
+        "general": "Général",
+        "member_flow": "Parcours membre",
+        "onboarding": "Embarquement",
+        "payments": "Paiements"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n'avez pas l'autorisation de gérer le programme pilote.",
+        "KMG-PL-001": "Vérifiez les valeurs du programme pilote puis réessayez.",
+        "KMG-PL-404": "Cet enregistrement pilote est introuvable.",
+        "KMG-PL-409": "Cette association est déjà dans le pilote ou le pilote contient déjà cinq associations.",
+        "KMG-SYS-000": "Le programme pilote n'a pas pu être mis à jour. Réessayez ou contactez le support."
+      }
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "description": "{count, plural, =0 {Aucune notification non lue} one {# notification non lue} other {# notifications non lues}}",

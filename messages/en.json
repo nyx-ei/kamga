@@ -208,6 +208,76 @@
     "membersAction": "Review members",
     "leveesAction": "Create levees"
   },
+  "pilot": {
+    "admin": {
+      "addAssociationAction": "Add pilot association",
+      "associationLabel": "Association",
+      "badge": "Pilot operations",
+      "dataMigrationLabel": "Data migration",
+      "description": "Onboard 3 to 5 pilot associations, track guided setup, support data migration, and capture feedback for the iteration loop.",
+      "emptyState": "No pilot association has been onboarded yet.",
+      "feedbackCategoryLabel": "Category",
+      "feedbackDescription": "Record feedback from setup sessions, migrated data checks, member tests, and operational reviews.",
+      "feedbackEmpty": "No feedback has been captured for this pilot association yet.",
+      "feedbackLabel": "Feedback",
+      "feedbackReviewedLabel": "Feedback reviewed",
+      "feedbackTitle": "Feedback loop",
+      "guidedSetupLabel": "Guided setup",
+      "iterationNotesLabel": "Iteration notes",
+      "markReviewedAction": "Mark reviewed",
+      "migrationStatuses": {
+        "blocked": "Blocked",
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "not_started": "Not started"
+      },
+      "noAssociationsAvailable": "No association available",
+      "notAvailable": "Not available",
+      "notesLabel": "Setup notes",
+      "notesPlaceholder": "Operational notes, migration scope, risks, next contact...",
+      "operatingModelDescription": "Use this module as the operational cockpit for the pilot. Keep only real associations here, update progress after each guided setup session, record migration blockers, and convert feedback into iteration notes.",
+      "operatingModelTitle": "Guided setup and iteration loop",
+      "pilotCountLabel": "Pilot associations",
+      "pilotLimitReached": "Pilot limit reached",
+      "pilotStatusLabel": "Pilot status",
+      "progressTitle": "Pilot readiness",
+      "ratingEmpty": "No rating",
+      "ratingLabel": "Rating",
+      "ratingValue": "{rating}/5",
+      "reviewedLabel": "Reviewed",
+      "saveProgressAction": "Save progress",
+      "saving": "Saving...",
+      "setupDoneLabel": "Setups completed",
+      "statuses": {
+        "active_pilot": "Active pilot",
+        "completed": "Completed",
+        "iteration": "Iteration",
+        "onboarding": "Onboarding",
+        "paused": "Paused"
+      },
+      "title": "Pilot program",
+      "unknownAssociation": "Unknown association",
+      "workflowStatuses": {
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "not_started": "Not started"
+      },
+      "feedbackCategories": {
+        "data_migration": "Data migration",
+        "general": "General",
+        "member_flow": "Member flow",
+        "onboarding": "Onboarding",
+        "payments": "Payments"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You do not have permission to manage the pilot program.",
+        "KMG-PL-001": "Check the pilot program values and try again.",
+        "KMG-PL-404": "This pilot record could not be found.",
+        "KMG-PL-409": "This association is already in the pilot or the pilot already has five associations.",
+        "KMG-SYS-000": "The pilot program could not be updated. Try again or contact support."
+      }
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "description": "{count, plural, =0 {No unread notification} one {# unread notification} other {# unread notifications}}",
