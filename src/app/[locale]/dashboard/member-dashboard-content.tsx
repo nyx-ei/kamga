@@ -4,7 +4,6 @@ import { Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 import { MemberWorkspaceShell } from '@/components/kamga/MockupShell';
-import { LogoutButton } from '@/features/auth';
 import { FiscalSlipPanel } from '@/features/fiscal';
 import {
   AssociationLeveeCallStatusForm,
@@ -427,7 +426,6 @@ export async function MemberDashboardContent({ params, searchParams, section }: 
       activeItem={section}
       locale={params.locale}
       title={pageTitle}
-      toolbar={<LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />}
       userEmail={currentUser.user.email}
     >
       <section className="flex flex-col gap-6">

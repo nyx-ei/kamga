@@ -1,7 +1,8 @@
-import { BarChart3, Bell, CreditCard, FileText, FileUp, Home, List, PlusCircle, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
+import { LogoutButton } from '@/features/auth';
 import { Link } from '@/i18n/navigation';
 
 type PublicDirectoryHeaderProps = {
@@ -9,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'directory' | 'add' | 'csv' | 'metrics';
+  activeItem: 'associations' | 'csv' | 'levees' | 'members' | 'notifications' | 'referrals';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -35,10 +36,12 @@ const shellCopy = {
   en: {
     aboutDirectory: 'About the directory',
     admin: 'Admin',
-    adminAdd: 'Add association',
+    adminAssociations: 'Associations',
     adminCsv: 'CSV import',
-    adminDirectory: 'Directory',
-    adminMetrics: 'Metrics',
+    adminLevees: 'Levees',
+    adminMembers: 'Members',
+    adminNotifications: 'Notifications',
+    adminReferrals: 'Referrals',
     findAssociation: 'Find an association',
     member: 'Member',
     memberApplications: 'Applications',
@@ -50,19 +53,21 @@ const shellCopy = {
     rpnDirectory: 'RPN directory'
   },
   fr: {
-    aboutDirectory: 'A propos de l annuaire',
+    aboutDirectory: "À propos de l'annuaire",
     admin: 'Admin',
-    adminAdd: 'Ajouter une association',
+    adminAssociations: 'Associations',
     adminCsv: 'Import CSV',
-    adminDirectory: 'Annuaire',
-    adminMetrics: 'Indicateurs',
+    adminLevees: 'Levées',
+    adminMembers: 'Membres',
+    adminNotifications: 'Notifications',
+    adminReferrals: 'Parrainages',
     findAssociation: 'Trouver une association',
     member: 'Membre',
     memberApplications: 'Demandes',
     memberContributions: 'Contributions',
     memberNotifications: 'Notifications',
     memberPayments: 'Paiements',
-    memberReceipts: 'Recus fiscaux',
+    memberReceipts: 'Reçus fiscaux',
     memberRelatives: 'Proches',
     rpnDirectory: 'Annuaire RPN'
   }
@@ -106,21 +111,29 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
             <span className="text-sm font-semibold uppercase text-brand">ADMIN</span>
           </div>
           <nav className="grid gap-2">
-            <Link className={itemClassName('directory')} href="/admin">
+            <Link className={itemClassName('associations')} href="/admin/associations">
               <List aria-hidden="true" size={20} />
-              {copy.adminDirectory}
+              {copy.adminAssociations}
             </Link>
-            <Link className={itemClassName('add')} href="/admin/associations">
-              <PlusCircle aria-hidden="true" size={20} />
-              {copy.adminAdd}
-            </Link>
-            <Link className={itemClassName('csv')} href="/admin">
+            <Link className={itemClassName('csv')} href="/admin/csv">
               <FileUp aria-hidden="true" size={20} />
               {copy.adminCsv}
             </Link>
-            <Link className={itemClassName('metrics')} href="/admin/levees">
-              <BarChart3 aria-hidden="true" size={20} />
-              {copy.adminMetrics}
+            <Link className={itemClassName('members')} href="/admin/members">
+              <UsersRound aria-hidden="true" size={20} />
+              {copy.adminMembers}
+            </Link>
+            <Link className={itemClassName('referrals')} href="/admin/referrals">
+              <Link2 aria-hidden="true" size={20} />
+              {copy.adminReferrals}
+            </Link>
+            <Link className={itemClassName('levees')} href="/admin/levees">
+              <HandCoins aria-hidden="true" size={20} />
+              {copy.adminLevees}
+            </Link>
+            <Link className={itemClassName('notifications')} href="/admin/notifications">
+              <Bell aria-hidden="true" size={20} />
+              {copy.adminNotifications}
             </Link>
           </nav>
           <div className="mt-auto border-t border-white/15 pt-5">
@@ -136,7 +149,11 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
         <main>
           <header className="flex min-h-[84px] items-center justify-between border-b border-border bg-card px-6 lg:px-9">
             <h1 className="text-3xl font-semibold text-heading">{title}</h1>
-            {toolbar}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {toolbar}
+              <LocaleSwitcher locale={locale} />
+              <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
+            </div>
           </header>
           <div className="px-6 py-9 lg:px-9">{children}</div>
         </main>
@@ -208,7 +225,11 @@ export function MemberWorkspaceShell({ activeItem, children, locale, title, tool
         <main>
           <header className="flex min-h-[84px] items-center justify-between border-b border-border bg-card px-6 lg:px-9">
             <h1 className="text-3xl font-semibold text-heading">{title}</h1>
-            {toolbar}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {toolbar}
+              <LocaleSwitcher locale={locale} />
+              <LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />
+            </div>
           </header>
           <div className="px-6 py-9 lg:px-9">{children}</div>
         </main>

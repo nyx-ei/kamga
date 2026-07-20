@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
+import { AdminWorkspaceShell } from '@/components/kamga/MockupShell';
 import { EvidenceViewer } from '@/features/evidence';
 import { ApproveMemberForm } from '@/features/memberships/components/ApproveMemberForm';
 import { DeclineForm } from '@/features/memberships/components/DeclineForm';
@@ -139,14 +140,14 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
   const referrerName = [referrer?.first_name, referrer?.last_name].filter(Boolean).join(' ');
   const adminLabel = currentUser.user.email ?? currentUser.user.id;
   const canReview = member.status === 'pending' || member.status === 'needs_more_evidence';
+  const title = fullName.length > 0 ? fullName : t('unknownMember');
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
+    <AdminWorkspaceShell activeItem="members" locale={params.locale} title={title} userEmail={currentUser.user.email}>
+      <section className="flex max-w-6xl flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{fullName.length > 0 ? fullName : t('unknownMember')}</h1>
             <p className="max-w-3xl text-base leading-7 text-secondary">{t('description')}</p>
           </div>
           <Link
@@ -272,6 +273,6 @@ export default async function AdminMemberDetailPage({ params }: AdminMemberDetai
           </section>
         ) : null}
       </section>
-    </main>
+    </AdminWorkspaceShell>
   );
 }
