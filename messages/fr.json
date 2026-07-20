@@ -158,6 +158,8 @@
     "contributionHistoryTitle": "Historique des contributions",
     "contributionHistoryDescription": "Consultez toutes vos contributions passees, les montants payes, les recus et les dates associees.",
     "currentShareStatusLabel": "Statut",
+    "adminFeeTransparencyTitle": "Transparence des frais d'administration",
+    "adminFeeTransparencyDescription": "Cette contribution inclut un frais d'administration estimé à {amount}, configuré par la plateforme pour les opérations de l'association.",
     "financialSettings": {
       "title": "Parametres financiers",
       "description": "Gerez les preferences de paiement et les moyens de paiement sauvegardes pour les prochains appels de contribution.",
@@ -207,6 +209,64 @@
     "referralsAction": "Gérer les parrainages",
     "membersAction": "Revoir les membres",
     "leveesAction": "Créer les levées"
+  },
+  "adminFees": {
+    "admin": {
+      "title": "Frais admin",
+      "badge": "Suivi des frais",
+      "description": "Configurez des frais d'administration transparents par association, suivez les soldes accumulés pour les administrateurs d'association actifs, puis payez-les manuellement ou via Stripe Connect lorsqu'un compte connecté est disponible.",
+      "totalAccruedLabel": "Total accumulé",
+      "totalPaidLabel": "Total payé",
+      "emptyAssociations": "Aucune association n'est encore disponible pour la configuration des frais.",
+      "feeModelLabel": "Modèle de frais",
+      "feeBpsLabel": "Points de base",
+      "feeFixedLabel": "Frais fixe",
+      "payoutMethodLabel": "Mode de paiement",
+      "stripeConnectAccountLabel": "ID du compte Stripe Connect",
+      "enabledLabel": "Accumuler les frais admin pour les nouveaux paiements de contribution membre.",
+      "saveSettingsAction": "Enregistrer les frais",
+      "saving": "Enregistrement...",
+      "balancesTitle": "Soldes des admins d'association",
+      "balancesDescription": "Les soldes sont accumulés depuis les vrais paiements de contribution membre et regroupés par administrateur d'association actif.",
+      "emptyAdmins": "Aucun administrateur d'association actif n'est encore rattaché à cette association.",
+      "accruedLabel": "Accumule",
+      "feeCountLabel": "Frais ouverts",
+      "paidLabel": "Payé",
+      "latestFeeLabel": "Dernier frais",
+      "notAvailable": "Non disponible",
+      "manualPayoutAction": "Marquer le paiement manuel comme payé",
+      "stripePayoutAction": "Payer via Stripe Connect",
+      "paying": "Paiement...",
+      "payoutCreated": "Paiement enregistré.",
+      "recentPayoutsTitle": "Paiements récents",
+      "recentPayoutsDescription": "Consultez les paiements terminés et les tentatives échouées sur toutes les associations.",
+      "emptyPayouts": "Aucun paiement de frais admin n'a encore été enregistré.",
+      "amountLabel": "Montant",
+      "statusLabel": "Statut",
+      "createdAtLabel": "Créé le",
+      "stripeTransferLabel": "Transfert Stripe",
+      "feeModels": {
+        "per_member": "Par paiement membre",
+        "per_levee": "Par levée"
+      },
+      "payoutMethods": {
+        "manual": "Manuel",
+        "stripe_connect": "Stripe Connect"
+      },
+      "payoutStatuses": {
+        "failed": "Échoué",
+        "paid": "Payé",
+        "pending": "En attente",
+        "processing": "En traitement"
+      },
+      "errors": {
+        "KMG-AUTH-403": "Vous n'avez pas l'autorisation de gérer les frais admin.",
+        "KMG-FEE-001": "Vérifiez les paramètres de frais puis réessayez.",
+        "KMG-FEE-404": "Aucun frais accumulé n'est disponible pour paiement.",
+        "KMG-FEE-STRIPE-CONFIG": "Stripe Connect n'est pas configuré pour cette association ou cet environnement.",
+        "KMG-SYS-000": "Les frais admin n'ont pas pu être mis à jour. Réessayez ou contactez le support."
+      }
+    }
   },
   "pilot": {
     "admin": {

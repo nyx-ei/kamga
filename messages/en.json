@@ -158,6 +158,8 @@
     "contributionHistoryTitle": "Contribution history",
     "contributionHistoryDescription": "Review all past contributions, paid amounts, receipts, and associated dates.",
     "currentShareStatusLabel": "Status",
+    "adminFeeTransparencyTitle": "Administration fee transparency",
+    "adminFeeTransparencyDescription": "This contribution includes an estimated {amount} administration fee configured by the platform for association operations.",
     "financialSettings": {
       "title": "Financial settings",
       "description": "Manage payment preferences and saved payment methods for future contribution calls.",
@@ -207,6 +209,64 @@
     "referralsAction": "Manage referrals",
     "membersAction": "Review members",
     "leveesAction": "Create levees"
+  },
+  "adminFees": {
+    "admin": {
+      "title": "Admin fees",
+      "badge": "Fee tracking",
+      "description": "Configure transparent administration fees per association, track accrued balances for active association admins, and pay them manually or through Stripe Connect when a connected account is available.",
+      "totalAccruedLabel": "Total accrued",
+      "totalPaidLabel": "Total paid",
+      "emptyAssociations": "No association is available for fee configuration yet.",
+      "feeModelLabel": "Fee model",
+      "feeBpsLabel": "Basis points",
+      "feeFixedLabel": "Fixed fee",
+      "payoutMethodLabel": "Payout method",
+      "stripeConnectAccountLabel": "Stripe Connect account ID",
+      "enabledLabel": "Accrue admin fees for new member contribution payments.",
+      "saveSettingsAction": "Save fee settings",
+      "saving": "Saving...",
+      "balancesTitle": "Association admin balances",
+      "balancesDescription": "Balances are accrued from real member contribution payments and grouped by active association admin.",
+      "emptyAdmins": "No active association admin is attached to this association yet.",
+      "accruedLabel": "Accrued",
+      "feeCountLabel": "Open fees",
+      "paidLabel": "Paid",
+      "latestFeeLabel": "Latest fee",
+      "notAvailable": "Not available",
+      "manualPayoutAction": "Mark manual payout paid",
+      "stripePayoutAction": "Pay with Stripe Connect",
+      "paying": "Paying...",
+      "payoutCreated": "Payout recorded.",
+      "recentPayoutsTitle": "Recent payouts",
+      "recentPayoutsDescription": "Review completed and failed payout attempts across associations.",
+      "emptyPayouts": "No admin fee payout has been recorded yet.",
+      "amountLabel": "Amount",
+      "statusLabel": "Status",
+      "createdAtLabel": "Created",
+      "stripeTransferLabel": "Stripe transfer",
+      "feeModels": {
+        "per_member": "Per member payment",
+        "per_levee": "Per levee"
+      },
+      "payoutMethods": {
+        "manual": "Manual",
+        "stripe_connect": "Stripe Connect"
+      },
+      "payoutStatuses": {
+        "failed": "Failed",
+        "paid": "Paid",
+        "pending": "Pending",
+        "processing": "Processing"
+      },
+      "errors": {
+        "KMG-AUTH-403": "You are not allowed to manage admin fees.",
+        "KMG-FEE-001": "Check the fee settings and try again.",
+        "KMG-FEE-404": "No accrued fee is available for payout.",
+        "KMG-FEE-STRIPE-CONFIG": "Stripe Connect is not configured for this association or environment.",
+        "KMG-SYS-000": "Admin fees could not be updated. Try again or contact support."
+      }
+    }
   },
   "pilot": {
     "admin": {
