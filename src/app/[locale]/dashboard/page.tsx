@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { getFormatter, getTranslations } from 'next-intl/server';
 import { Building2 } from 'lucide-react';
 import { z } from 'zod';
@@ -384,6 +385,11 @@ async function listJoinRequests(currentUserId: string): Promise<JoinRequest[]> {
 
 export default async function DashboardPage({ params, searchParams }: DashboardPageProps) {
   const currentUser = await requireUser();
+
+  if (currentUser.role === 'platform_admin') {
+    redirect(`/${params.locale}/admin`);
+  }
+
   const t = await getTranslations('dashboard');
   const format = await getFormatter();
   const applications = await listMemberApplications(currentUser.user.id);
