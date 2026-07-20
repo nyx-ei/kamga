@@ -1,11 +1,11 @@
 ﻿import { getFormatter, getTranslations } from 'next-intl/server';
-import { ClipboardList, Link2 } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import { z } from 'zod';
 
+import { AdminWorkspaceShell } from '@/components/kamga/MockupShell';
 import { ReferralCopyButton } from '@/features/referrals/components/ReferralCopyButton';
 import { ReferralGeneratorForm } from '@/features/referrals/components/ReferralGeneratorForm';
 import { ReferralSettingsForm } from '@/features/referrals/components/ReferralSettingsForm';
-import { Link } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 import { requirePlatformAdmin } from '@/lib/auth';
 import { buildReferralUrl } from '@/lib/referrals/tokens';
@@ -104,7 +104,7 @@ async function listReferralTokens(): Promise<ReferralToken[]> {
 }
 
 export default async function AdminReferralsPage({ params }: AdminReferralsPageProps) {
-  await requirePlatformAdmin();
+  const currentUser = await requirePlatformAdmin();
 
   const t = await getTranslations('referrals.admin');
   const format = await getFormatter();
@@ -112,21 +112,13 @@ export default async function AdminReferralsPage({ params }: AdminReferralsPageP
   const referralTokens = await listReferralTokens();
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto grid max-w-6xl gap-6 rounded-md border border-border bg-card p-8 shadow-card">
+    <AdminWorkspaceShell activeItem="referrals" locale={params.locale} title={t('title')} userEmail={currentUser.user.email}>
+      <section className="grid max-w-6xl gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
             <p className="max-w-3xl text-base leading-7 text-secondary">{t('description')}</p>
           </div>
-          <Link
-            className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
-            href="/admin"
-          >
-            <ClipboardList aria-hidden="true" size={16} />
-            {t('backToAdmin')}
-          </Link>
         </div>
 
         {associations.length === 0 ? (
@@ -197,6 +189,6 @@ export default async function AdminReferralsPage({ params }: AdminReferralsPageP
           </div>
         )}
       </section>
-    </main>
+    </AdminWorkspaceShell>
   );
 }

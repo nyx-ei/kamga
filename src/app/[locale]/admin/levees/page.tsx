@@ -1,9 +1,8 @@
 import { getFormatter, getTranslations } from 'next-intl/server';
-import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
+import { AdminWorkspaceShell } from '@/components/kamga/MockupShell';
 import { CloseLeveeForm, LeveeCreateForm } from '@/features/levees';
-import { Link } from '@/i18n/navigation';
 import { requirePlatformAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -112,7 +111,7 @@ async function listLeveeProgress(leveeIds: string[]): Promise<Map<string, LeveeP
 }
 
 export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) {
-  await requirePlatformAdmin();
+  const currentUser = await requirePlatformAdmin();
 
   const t = await getTranslations('levees.admin');
   const format = await getFormatter();
@@ -121,21 +120,13 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
   const progressByLevee = await listLeveeProgress(levees.map((levee) => levee.id));
 
   return (
-    <main className="min-h-screen bg-page px-6 py-10 text-body">
-      <section className="mx-auto flex max-w-6xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
+    <AdminWorkspaceShell activeItem="levees" locale={params.locale} title={t('title')} userEmail={currentUser.user.email}>
+      <section className="flex max-w-6xl flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{t('title')}</h1>
             <p className="max-w-3xl text-base leading-7 text-secondary">{t('description')}</p>
           </div>
-          <Link
-            className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
-            href="/admin"
-          >
-            <ArrowLeft aria-hidden="true" size={16} />
-            {t('backToAdmin')}
-          </Link>
         </div>
 
         <dl className="grid gap-4 rounded-md border border-border bg-sunken p-5 md:grid-cols-3">
@@ -278,6 +269,6 @@ export default async function AdminLeveesPage({ params }: AdminLeveesPageProps) 
           )}
         </section>
       </section>
-    </main>
+    </AdminWorkspaceShell>
   );
 }

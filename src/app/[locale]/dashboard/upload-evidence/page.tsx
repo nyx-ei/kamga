@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
 import { MemberWorkspaceShell } from '@/components/kamga/MockupShell';
-import { LogoutButton } from '@/features/auth';
 import { UploadMoreEvidenceForm } from '@/features/evidence';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -77,7 +76,6 @@ export default async function UploadEvidencePage({ params }: UploadEvidencePageP
       activeItem="applications"
       locale={params.locale}
       title={t('title')}
-      toolbar={<LogoutButton className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong" />}
       userEmail={currentUser.user.email}
     >
       <section className="flex max-w-4xl flex-col gap-6 rounded-md border border-border bg-card p-8 shadow-card">
