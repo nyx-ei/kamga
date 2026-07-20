@@ -1,4 +1,4 @@
-import { type NextRequest,NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { type Locale,routing } from '@/i18n/routing';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -25,6 +25,12 @@ export async function GET(request: NextRequest, { params }: { params: { locale: 
 
   if (error !== null) {
     return NextResponse.redirect(new URL(`/${params.locale}/auth/login`, request.url));
+  }
+
+  const { data: role } = await supabase.rpc('get_current_user_role');
+
+  if (role === 'platform_admin' && nextPath === `/${params.locale}/dashboard`) {
+    return NextResponse.redirect(new URL(`/${params.locale}/admin`, request.url));
   }
 
   return NextResponse.redirect(new URL(nextPath, request.url));
