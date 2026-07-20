@@ -44,7 +44,7 @@ async function uploadRegistrationEvidence(
 }
 
 async function sendPendingReviewEmail(registration: StoredMemberRegistration, associationName: string) {
-  const dashboardUrl = new URL(`/${registration.locale}/dashboard`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const dashboardUrl = new URL(`/${registration.locale}/dashboard/applications`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
   const template = applicationReceivedEmail({
     associationName,
     dashboardUrl,

@@ -50,7 +50,7 @@ export function CompleteRegistrationClient({ locale }: CompleteRegistrationClien
 
       if (result.ok) {
         sessionStorage.removeItem(MEMBER_REGISTRATION_STORAGE_KEY);
-        router.replace({ pathname: '/dashboard', query: { registration: 'pending' } });
+        router.replace({ pathname: '/dashboard/applications', query: { registration: 'pending' } });
         return;
       }
 

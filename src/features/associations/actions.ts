@@ -124,7 +124,7 @@ export async function registerAssociation(
 
   revalidatePath('/admin/associations');
   revalidatePath('/dashboard');
-  redirect(`/${parsedFields.data.locale}/dashboard?associationSubmitted=1`);
+  redirect(`/${parsedFields.data.locale}/dashboard/applications?associationSubmitted=1`);
 }
 
 async function runAssociationDecision(
@@ -205,7 +205,7 @@ export async function requestToJoinAssociation(_previousState: AssociationAction
   revalidatePath('/dashboard');
   revalidatePath(`/${parsed.data.locale}/dashboard`);
   revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
-  redirect(`/${parsed.data.locale}/dashboard?joinRequest=1`);
+  redirect(`/${parsed.data.locale}/dashboard/applications?joinRequest=1`);
 }
 
 

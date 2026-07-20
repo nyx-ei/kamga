@@ -389,7 +389,7 @@ export async function startStripeContributionCheckout(_previousState: LeveeActio
     const localePrefix = `/${parsed.data.locale}`;
     const customerId = await getOrCreateStripeCustomerId(currentUser.user.id, currentUser.user.email ?? undefined);
     const session = await stripe.checkout.sessions.create({
-      cancel_url: `${baseUrl}${localePrefix}/dashboard?payment=cancelled`,
+      cancel_url: `${baseUrl}${localePrefix}/dashboard/payments?payment=cancelled`,
       customer: customerId,
       line_items: [
         {
@@ -412,7 +412,7 @@ export async function startStripeContributionCheckout(_previousState: LeveeActio
       payment_intent_data: {
         setup_future_usage: 'off_session'
       },
-      success_url: `${baseUrl}${localePrefix}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`
+      success_url: `${baseUrl}${localePrefix}/dashboard/payments?payment=success&session_id={CHECKOUT_SESSION_ID}`
     });
 
     if (session.url === null) {
@@ -446,7 +446,7 @@ export async function startStripeCustomerPortal(_previousState: LeveeActionState
     const customerId = await getOrCreateStripeCustomerId(currentUser.user.id, currentUser.user.email ?? undefined);
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${baseUrl}${localePrefix}/dashboard`
+      return_url: `${baseUrl}${localePrefix}/dashboard/payments`
     });
 
     portalUrl = portal.url;

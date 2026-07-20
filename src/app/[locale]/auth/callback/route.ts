@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function safeNextPath(nextPath: string | null, locale: Locale): string {
   if (nextPath === null || !nextPath.startsWith(`/${locale}/`)) {
-    return `/${locale}/dashboard`;
+    return `/${locale}/dashboard/applications`;
   }
 
   return nextPath;
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: { locale: 
 
   const { data: role } = await supabase.rpc('get_current_user_role');
 
-  if (role === 'platform_admin' && nextPath === `/${params.locale}/dashboard`) {
+  if (role === 'platform_admin' && (nextPath === `/${params.locale}/dashboard` || nextPath === `/${params.locale}/dashboard/applications`)) {
     return NextResponse.redirect(new URL(`/${params.locale}/admin`, request.url));
   }
 
