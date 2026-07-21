@@ -1,4 +1,4 @@
-import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, ReceiptText, Rocket, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
@@ -10,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'associations' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals';
+  activeItem: 'associations' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals' | 'reports';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -44,6 +44,7 @@ const shellCopy = {
     adminNotifications: 'Notifications',
     adminPilot: 'Pilot program',
     adminReferrals: 'Referrals',
+    adminReports: 'Reports',
     findAssociation: 'Find an association',
     member: 'Member',
     memberApplications: 'Applications',
@@ -65,6 +66,7 @@ const shellCopy = {
     adminNotifications: 'Notifications',
     adminPilot: 'Programme pilote',
     adminReferrals: 'Parrainages',
+    adminReports: 'Rapports',
     findAssociation: 'Trouver une association',
     member: 'Membre',
     memberApplications: 'Demandes',
@@ -142,6 +144,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
             <Link className={itemClassName('fees')} href="/admin/fees">
               <ReceiptText aria-hidden="true" size={20} />
               {copy.adminFees}
+            </Link>
+            <Link className={itemClassName('reports')} href="/admin/reports">
+              <ShieldCheck aria-hidden="true" size={20} />
+              {copy.adminReports}
             </Link>
             <Link className={itemClassName('notifications')} href="/admin/notifications">
               <Bell aria-hidden="true" size={20} />
