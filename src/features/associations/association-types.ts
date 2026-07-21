@@ -9,6 +9,7 @@ export const ASSOCIATION_REGISTRY_TYPES = ['neq', 'federal'] as const;
 export const ASSOCIATION_SOURCES = ['admin_entered', 'csv_import', 'self_registered'] as const;
 export const ASSOCIATION_GEOCODE_STATUSES = ['pending', 'geocoded', 'failed', 'needs_review'] as const;
 export const ASSOCIATION_CONNECT_REQUEST_STATUSES = ['queued', 'routed', 'brokered', 'closed'] as const;
+export const ASSOCIATION_RECRUIT_LEAD_STATUSES = ['new', 'contacted', 'closed'] as const;
 
 export type AssociationStatus = (typeof ASSOCIATION_STATUSES)[number];
 export type AssociationPrimaryLanguage = (typeof ASSOCIATION_PRIMARY_LANGUAGES)[number];
@@ -17,6 +18,7 @@ export type AssociationClaimStatus = (typeof ASSOCIATION_CLAIM_STATUSES)[number]
 export type AssociationSource = (typeof ASSOCIATION_SOURCES)[number];
 export type AssociationGeocodeStatus = (typeof ASSOCIATION_GEOCODE_STATUSES)[number];
 export type AssociationConnectRequestStatus = (typeof ASSOCIATION_CONNECT_REQUEST_STATUSES)[number];
+export type AssociationRecruitLeadStatus = (typeof ASSOCIATION_RECRUIT_LEAD_STATUSES)[number];
 
 export type AssociationActionCode =
   | 'KMG-AUTH-401'
@@ -47,6 +49,7 @@ export type AssociationActionState =
       code: AssociationActionCode;
       fieldErrors?: Partial<
         Record<
+          | 'associationName'
           | 'authorized'
           | 'city'
           | 'commonName'
@@ -63,6 +66,7 @@ export type AssociationActionState =
           | 'requesterName'
           | 'requesterPhone'
           | 'rpnAffiliationProof'
+          | 'searchQuery'
           | 'streetAddress',
           AssociationActionCode
         >
@@ -134,6 +138,25 @@ export const associationConnectRequestDecisionSchema = z.object({
   locale: z.enum(['en', 'fr'])
 });
 
+export const associationRecruitLeadDecisionSchema = z.object({
+  locale: z.enum(['en', 'fr']),
+  recruitLeadId: z.string().uuid()
+});
+
+export const associationRecruitLeadSchema = z
+  .object({
+    associationName: z.string().trim().max(180).optional().or(z.literal('')),
+    city: z.string().trim().max(120).optional().or(z.literal('')),
+    locale: z.enum(['en', 'fr']),
+    message: z.string().trim().max(1200).optional().or(z.literal('')),
+    requesterEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+    requesterName: z.string().trim().max(140).optional().or(z.literal('')),
+    searchQuery: z.string().trim().max(120).optional().or(z.literal(''))
+  })
+  .refine((value) => value.searchQuery !== '' || value.associationName !== '', {
+    message: 'KMG-RC-001',
+    path: ['searchQuery']
+  });
 export const associationConnectRequestSchema = z
   .object({
     associationId: z.string().uuid(),
