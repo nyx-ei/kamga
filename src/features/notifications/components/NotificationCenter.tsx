@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Bell, Check } from 'lucide-react';
 import { useFormState, useFormStatus } from 'react-dom';
@@ -66,6 +67,69 @@ function MarkAllReadForm() {
   );
 }
 
+function PushNotificationOptIn() {
+  const t = useTranslations('notifications');
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
+
+  useEffect(() => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setPermission('unsupported');
+      return;
+    }
+
+    setPermission(Notification.permission);
+  }, []);
+
+  async function requestPermission() {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      setPermission('unsupported');
+      return;
+    }
+
+    const nextPermission = await Notification.requestPermission();
+    setPermission(nextPermission);
+
+    if (nextPermission === 'granted') {
+      const registration = await navigator.serviceWorker.ready;
+      registration.active?.postMessage({
+        body: t('pushTestBody'),
+        tag: 'kamga-push-enabled',
+        title: t('pushTestTitle'),
+        type: 'SHOW_NOTIFICATION',
+        url: window.location.pathname
+      });
+    }
+  }
+
+  if (permission === 'unsupported') {
+    return (
+      <p className="rounded-sm border border-border bg-sunken px-3 py-2 text-sm text-secondary">
+        {t('pushUnsupported')}
+      </p>
+    );
+  }
+
+  if (permission === 'granted') {
+    return (
+      <p className="rounded-sm border border-border bg-positive-bg px-3 py-2 text-sm font-medium text-positive">
+        {t('pushEnabled')}
+      </p>
+    );
+  }
+
+  return (
+    <button
+      className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-medium text-heading shadow-card transition hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={permission === 'denied'}
+      onClick={requestPermission}
+      type="button"
+    >
+      <Bell aria-hidden="true" size={16} />
+      {permission === 'denied' ? t('pushDenied') : t('pushEnableAction')}
+    </button>
+  );
+}
+
 export function NotificationCenter({ notifications, unreadCount }: NotificationCenterProps) {
   const t = useTranslations('notifications');
 
@@ -79,7 +143,10 @@ export function NotificationCenter({ notifications, unreadCount }: NotificationC
           </h2>
           <p className="text-sm leading-6 text-secondary">{t('description', { count: unreadCount })}</p>
         </div>
-        {unreadCount === 0 ? null : <MarkAllReadForm />}
+        <div className="flex flex-wrap items-center gap-3">
+          <PushNotificationOptIn />
+          {unreadCount === 0 ? null : <MarkAllReadForm />}
+        </div>
       </div>
 
       {notifications.length === 0 ? (
