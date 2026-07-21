@@ -165,8 +165,52 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
           </div>
         </aside>
         <main>
+          <section className="border-b border-white/10 bg-blue-900 px-4 py-4 text-white lg:hidden">
+            <div className="flex items-baseline gap-3">
+              <span className="text-xl font-semibold">Kamga</span>
+              <span className="text-xs font-semibold uppercase text-brand">ADMIN</span>
+            </div>
+            <nav className="mt-4 flex gap-2 overflow-x-auto pb-1">
+              <Link className={`${itemClassName('associations')} min-w-fit`} href="/admin/associations">
+                <List aria-hidden="true" size={18} />
+                {copy.adminAssociations}
+              </Link>
+              <Link className={`${itemClassName('csv')} min-w-fit`} href="/admin/csv">
+                <FileUp aria-hidden="true" size={18} />
+                {copy.adminCsv}
+              </Link>
+              <Link className={`${itemClassName('members')} min-w-fit`} href="/admin/members">
+                <UsersRound aria-hidden="true" size={18} />
+                {copy.adminMembers}
+              </Link>
+              <Link className={`${itemClassName('referrals')} min-w-fit`} href="/admin/referrals">
+                <Link2 aria-hidden="true" size={18} />
+                {copy.adminReferrals}
+              </Link>
+              <Link className={`${itemClassName('pilot')} min-w-fit`} href="/admin/pilot">
+                <Rocket aria-hidden="true" size={18} />
+                {copy.adminPilot}
+              </Link>
+              <Link className={`${itemClassName('levees')} min-w-fit`} href="/admin/levees">
+                <HandCoins aria-hidden="true" size={18} />
+                {copy.adminLevees}
+              </Link>
+              <Link className={`${itemClassName('fees')} min-w-fit`} href="/admin/fees">
+                <ReceiptText aria-hidden="true" size={18} />
+                {copy.adminFees}
+              </Link>
+              <Link className={`${itemClassName('reports')} min-w-fit`} href="/admin/reports">
+                <ShieldCheck aria-hidden="true" size={18} />
+                {copy.adminReports}
+              </Link>
+              <Link className={`${itemClassName('notifications')} min-w-fit`} href="/admin/notifications">
+                <Bell aria-hidden="true" size={18} />
+                {copy.adminNotifications}
+              </Link>
+            </nav>
+          </section>
           <header className="flex min-h-[84px] items-center justify-between border-b border-border bg-card px-6 lg:px-9">
-            <h1 className="text-3xl font-semibold text-heading">{title}</h1>
+            <h1 className="text-2xl font-semibold text-heading md:text-3xl">{title}</h1>
             <div className="flex flex-wrap items-center justify-end gap-3">
               {toolbar}
               <LocaleSwitcher locale={locale} />
@@ -241,8 +285,40 @@ export function MemberWorkspaceShell({ activeItem, children, locale, title, tool
           </div>
         </aside>
         <main>
+          <section className="border-b border-white/10 bg-blue-900 px-4 py-4 text-white lg:hidden">
+            <div className="flex items-baseline gap-3">
+              <span className="text-xl font-semibold">Kamga</span>
+              <span className="text-xs font-semibold uppercase text-brand">MEMBER</span>
+            </div>
+            <nav className="mt-4 flex gap-2 overflow-x-auto pb-1">
+              <Link className={`${itemClassName('applications')} min-w-fit`} href="/dashboard/applications">
+                <List aria-hidden="true" size={18} />
+                {copy.memberApplications}
+              </Link>
+              <Link className={`${itemClassName('contributions')} min-w-fit`} href="/dashboard/contributions">
+                <BarChart3 aria-hidden="true" size={18} />
+                {copy.memberContributions}
+              </Link>
+              <Link className={`${itemClassName('relatives')} min-w-fit`} href="/dashboard/relatives">
+                <UsersRound aria-hidden="true" size={18} />
+                {copy.memberRelatives}
+              </Link>
+              <Link className={`${itemClassName('payments')} min-w-fit`} href="/dashboard/payments">
+                <CreditCard aria-hidden="true" size={18} />
+                {copy.memberPayments}
+              </Link>
+              <Link className={`${itemClassName('notifications')} min-w-fit`} href="/dashboard/notifications">
+                <Bell aria-hidden="true" size={18} />
+                {copy.memberNotifications}
+              </Link>
+              <Link className={`${itemClassName('receipts')} min-w-fit`} href="/dashboard/receipts">
+                <FileText aria-hidden="true" size={18} />
+                {copy.memberReceipts}
+              </Link>
+            </nav>
+          </section>
           <header className="flex min-h-[84px] items-center justify-between border-b border-border bg-card px-6 lg:px-9">
-            <h1 className="text-3xl font-semibold text-heading">{title}</h1>
+            <h1 className="text-2xl font-semibold text-heading md:text-3xl">{title}</h1>
             <div className="flex flex-wrap items-center justify-end gap-3">
               {toolbar}
               <LocaleSwitcher locale={locale} />

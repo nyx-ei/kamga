@@ -409,7 +409,13 @@
       "KMG-AUTH-403": "You do not have permission to send this notification.",
       "KMG-NT-001": "This notification request is invalid.",
       "KMG-SYS-000": "The notification could not be sent. Try again or contact support."
-    }
+    },
+    "pushDenied": "Push blocked in browser settings",
+    "pushEnableAction": "Enable push notifications",
+    "pushEnabled": "Push notifications are enabled on this device.",
+    "pushTestBody": "Kamga can now notify this device.",
+    "pushTestTitle": "Notifications enabled",
+    "pushUnsupported": "Push notifications are not available in this browser."
   },
   "levees": {
     "admin": {
@@ -832,7 +838,14 @@
   "pwa": {
     "name": "Kamga",
     "shortName": "Kamga",
-    "description": "Public RPN association lookup and contribution management foundation."
+    "description": "Public RPN association lookup and contribution management foundation.",
+    "offline": {
+      "badge": "Offline mode",
+      "title": "You are offline",
+      "description": "Kamga could not reach the network. If you already opened your contribution page on this device, the cached version remains available for review until you reconnect.",
+      "contributionsAction": "Open contributions",
+      "directoryAction": "Open directory"
+    }
   },
   "memberRegistration": {
     "form": {
