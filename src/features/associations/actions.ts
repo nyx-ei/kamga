@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { createHash } from 'crypto';
 
 import {
+  adminAssociationRecordUpdateSchema,
   ASSOCIATION_PRIMARY_LANGUAGES,
   ASSOCIATION_REGISTRY_TYPES,
   type AssociationActionCode,
@@ -22,6 +23,9 @@ import {
 } from '@/features/associations/association-types';
 import { sendContactOptInConfirmation } from '@/lib/associations/contact-opt-in';
 import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
+import { emailDefaults, resend } from '@/lib/email/resend';
+import { notificationEmail } from '@/lib/email/templates';
+import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
 import { notifyJoinRequestSubmitted } from '@/lib/notifications/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -82,6 +86,172 @@ function requesterIpHash(): string | null {
   return ip === undefined || ip.length === 0 ? null : hashSensitiveRateLimitValue(ip);
 }
 
+type AssociationVerificationNotificationParams = {
+  associationId: string;
+  associationName: string;
+  contactEmail: string | null;
+  locale: 'en' | 'fr';
+  nextStatus: 'needs_review' | 'unverified' | 'verified';
+  previousStatus: 'needs_review' | 'unverified' | 'verified';
+  optInStatus: 'confirmed' | 'pending' | 'withdrawn';
+};
+
+async function sendAssociationVerificationNotification(params: AssociationVerificationNotificationParams): Promise<void> {
+  if (params.previousStatus === params.nextStatus || params.contactEmail === null || params.optInStatus !== 'confirmed') {
+    return;
+  }
+
+  const title = params.locale === 'fr' ? 'Statut de vérification de votre fiche' : 'Your listing verification status';
+  const body = params.locale === 'fr'
+    ? params.nextStatus === 'verified'
+      ? `La fiche ${params.associationName} affiche maintenant le badge vérifié dans l'annuaire Kamga.`
+      : `La vérification de la fiche ${params.associationName} doit être revue. Le badge public est retiré jusqu'à résolution.`
+    : params.nextStatus === 'verified'
+      ? `The ${params.associationName} listing now displays the verified badge in the Kamga directory.`
+      : `The ${params.associationName} listing verification needs review. The public badge is removed until it is resolved.`;
+  const profileUrl = new URL(`/${params.locale}/dashboard/associations`, publicEnv.NEXT_PUBLIC_APP_URL).toString();
+  const template = notificationEmail({ body, ctaUrl: profileUrl, locale: params.locale, title });
+
+  await resend.emails.send({
+    from: emailDefaults.from,
+    html: template.html,
+    subject: template.subject,
+    text: template.text,
+    to: params.contactEmail
+  });
+}
+
+export async function updateAdminAssociationRecord(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = adminAssociationRecordUpdateSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    city: valueFromFormData(formData, 'city'),
+    claimStatus: valueFromFormData(formData, 'claimStatus'),
+    commonName: valueFromFormData(formData, 'commonName'),
+    contactEmail: valueFromFormData(formData, 'contactEmail'),
+    description: valueFromFormData(formData, 'description'),
+    geocodeStatus: valueFromFormData(formData, 'geocodeStatus'),
+    locale: valueFromFormData(formData, 'locale'),
+    officialName: valueFromFormData(formData, 'officialName'),
+    postalCode: valueFromFormData(formData, 'postalCode'),
+    primaryLanguage: valueFromFormData(formData, 'primaryLanguage'),
+    province: valueFromFormData(formData, 'province') || 'QC',
+    publicContactEmail: valueFromFormData(formData, 'publicContactEmail') === 'on',
+    publicPrecision: valueFromFormData(formData, 'publicPrecision'),
+    registryNumber: valueFromFormData(formData, 'registryNumber'),
+    registryType: valueFromFormData(formData, 'registryType'),
+    source: valueFromFormData(formData, 'source'),
+    status: valueFromFormData(formData, 'status'),
+    streetAddress: valueFromFormData(formData, 'streetAddress'),
+    verificationStatus: valueFromFormData(formData, 'verificationStatus')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-RG-001',
+      fieldErrors: {
+        city: flattened.city === undefined ? undefined : 'KMG-RG-001',
+        commonName: flattened.commonName === undefined ? undefined : 'KMG-RG-001',
+        contactEmail: flattened.contactEmail === undefined ? undefined : 'KMG-RG-001',
+        officialName: flattened.officialName === undefined ? undefined : 'KMG-RG-001',
+        postalCode: flattened.postalCode === undefined ? undefined : 'KMG-RG-001',
+        primaryLanguage: flattened.primaryLanguage === undefined ? undefined : 'KMG-RG-001',
+        registryNumber: flattened.registryNumber === undefined ? undefined : 'KMG-RG-001',
+        streetAddress: flattened.streetAddress === undefined ? undefined : 'KMG-RG-001'
+      }
+    };
+  }
+
+  const contactEmail = optionalValue(parsed.data.contactEmail ?? '');
+
+  if (parsed.data.publicContactEmail && contactEmail === null) {
+    return { ok: false, code: 'KMG-RG-001', fieldErrors: { contactEmail: 'KMG-RG-001' } };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { data: existingAssociation, error: readError } = await adminSupabase
+    .from('associations')
+    .select('id,contact_email,contact_notification_opt_in_status,name,verification_status')
+    .eq('id', parsed.data.associationId)
+    .maybeSingle();
+
+  if (readError || existingAssociation === null) {
+    return { ok: false, code: 'KMG-RG-404' };
+  }
+
+  const displayName = optionalValue(parsed.data.commonName ?? '') ?? parsed.data.officialName;
+  const previousEmail = typeof existingAssociation.contact_email === 'string' ? existingAssociation.contact_email.trim().toLowerCase() : null;
+  const nextEmail = contactEmail?.trim().toLowerCase() ?? null;
+  const emailChanged = previousEmail !== nextEmail;
+  const now = new Date().toISOString();
+
+  const { error: updateError } = await adminSupabase
+    .from('associations')
+    .update({
+      city: parsed.data.city,
+      claim_status: parsed.data.claimStatus,
+      common_name: displayName,
+      contact_email: contactEmail,
+      contact_notification_confirmation_next_send_at: emailChanged ? null : undefined,
+      contact_notification_confirmation_send_count: emailChanged ? 0 : undefined,
+      contact_notification_confirmation_sent_at: emailChanged ? null : undefined,
+      contact_notification_opt_in_status: emailChanged ? (contactEmail === null ? 'withdrawn' : 'pending') : undefined,
+      contact_notification_opted_in_at: emailChanged ? null : undefined,
+      contact_notification_withdrawn_at: contactEmail === null ? now : undefined,
+      description: optionalValue(parsed.data.description ?? ''),
+      geocode_status: parsed.data.geocodeStatus,
+      name: displayName,
+      official_name: parsed.data.officialName,
+      postal_code: parsed.data.postalCode,
+      primary_language: parsed.data.primaryLanguage,
+      province: parsed.data.province.toUpperCase(),
+      public_contact_email: parsed.data.publicContactEmail,
+      public_precision: parsed.data.publicPrecision,
+      registry_number: optionalValue(parsed.data.registryNumber ?? ''),
+      registry_type: optionalValue(parsed.data.registryType ?? ''),
+      source: parsed.data.source,
+      status: parsed.data.status,
+      street_address: optionalValue(parsed.data.streetAddress ?? ''),
+      verification_status: parsed.data.verificationStatus
+    })
+    .eq('id', parsed.data.associationId);
+
+  if (updateError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (emailChanged && contactEmail !== null) {
+    await sendContactOptInConfirmation({
+      associationId: parsed.data.associationId,
+      associationName: displayName,
+      email: contactEmail,
+      locale: parsed.data.locale
+    }).catch(() => undefined);
+  }
+
+  if (!emailChanged) {
+    await sendAssociationVerificationNotification({
+      associationId: parsed.data.associationId,
+      associationName: displayName,
+      contactEmail,
+      locale: parsed.data.locale,
+      nextStatus: parsed.data.verificationStatus,
+      optInStatus: existingAssociation.contact_notification_opt_in_status,
+      previousStatus: existingAssociation.verification_status
+    }).catch(() => undefined);
+  }
+
+  revalidatePath('/admin/associations');
+  revalidatePath(`/${parsed.data.locale}/admin/associations`);
+  revalidatePath(`/${parsed.data.locale}/dashboard/associations`);
+  revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
+  revalidatePath(`/${parsed.data.locale}`);
+  return { ok: true, submitted: true };
+}
 
 export async function updateOwnedAssociationRecord(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   const currentUser = await getCurrentUser();
