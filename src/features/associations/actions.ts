@@ -17,6 +17,8 @@ import {
   associationDecisionSchema,
   associationJoinRequestSchema,
   associationRecordUpdateSchema,
+  associationRecruitLeadDecisionSchema,
+  associationRecruitLeadSchema,
   associationRegistrationSchema,
   MAX_RPN_PROOF_BYTES,
   RPN_PROOF_MIME_TYPES,
@@ -977,6 +979,95 @@ export async function markConnectRequestBrokered(formData: FormData): Promise<vo
 export async function closeConnectRequest(formData: FormData): Promise<void> {
   await updateConnectRequestStatus(formData, 'closed');
 }
+export async function submitAssociationRecruitLead(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const parsed = associationRecruitLeadSchema.safeParse({
+    associationName: valueFromFormData(formData, 'associationName'),
+    city: valueFromFormData(formData, 'city'),
+    locale: valueFromFormData(formData, 'locale'),
+    message: valueFromFormData(formData, 'message'),
+    requesterEmail: valueFromFormData(formData, 'requesterEmail'),
+    requesterName: valueFromFormData(formData, 'requesterName'),
+    searchQuery: valueFromFormData(formData, 'searchQuery')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-RC-001',
+      fieldErrors: {
+        associationName: flattened.associationName === undefined ? undefined : 'KMG-RC-001',
+        message: flattened.message === undefined ? undefined : 'KMG-RC-001',
+        requesterEmail: flattened.requesterEmail === undefined ? undefined : 'KMG-RC-001',
+        requesterName: flattened.requesterName === undefined ? undefined : 'KMG-RC-001',
+        searchQuery: flattened.searchQuery === undefined ? undefined : 'KMG-RC-001'
+      }
+    };
+  }
+
+  const replyChannel = optionalValue(parsed.data.requesterEmail ?? '');
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.rpc('submit_association_recruit_lead', {
+    association_name_value: optionalValue(parsed.data.associationName ?? ''),
+    city_value: optionalValue(parsed.data.city ?? ''),
+    locale_value: parsed.data.locale,
+    message_value: optionalValue(parsed.data.message ?? ''),
+    reply_channel_hash_value: replyChannel === null ? null : hashSensitiveRateLimitValue(replyChannel),
+    requester_email_value: replyChannel,
+    requester_ip_hash_value: requesterIpHash(),
+    requester_name_value: optionalValue(parsed.data.requesterName ?? ''),
+    search_query_value: optionalValue(parsed.data.searchQuery ?? '') ?? ''
+  });
+
+  if (error) {
+    if (error.message === 'KMG-RC-429') {
+      return { ok: false, code: 'KMG-RC-429' };
+    }
+
+    return { ok: false, code: error.message === 'KMG-RC-001' ? 'KMG-RC-001' : 'KMG-SYS-000' };
+  }
+
+  revalidatePath(`/${parsed.data.locale}`);
+  revalidatePath('/admin/recruit-leads');
+  revalidatePath(`/${parsed.data.locale}/admin/recruit-leads`);
+  return { ok: true, submitted: true };
+}
+
+async function updateRecruitLeadStatus(formData: FormData, status: 'contacted' | 'closed'): Promise<void> {
+  await requirePlatformAdmin();
+
+  const parsed = associationRecruitLeadDecisionSchema.safeParse({
+    locale: valueFromFormData(formData, 'locale'),
+    recruitLeadId: valueFromFormData(formData, 'recruitLeadId')
+  });
+
+  if (!parsed.success) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const supabase = createSupabaseServerClient();
+  const update = status === 'contacted' ? { contacted_at: now, status } : { closed_at: now, status };
+
+  await supabase
+    .from('association_recruit_leads')
+    .update(update)
+    .eq('id', parsed.data.recruitLeadId)
+    .neq('status', 'closed');
+
+  revalidatePath('/admin/recruit-leads');
+  revalidatePath(`/${parsed.data.locale}/admin/recruit-leads`);
+}
+
+export async function markRecruitLeadContacted(formData: FormData): Promise<void> {
+  await updateRecruitLeadStatus(formData, 'contacted');
+}
+
+export async function closeRecruitLead(formData: FormData): Promise<void> {
+  await updateRecruitLeadStatus(formData, 'closed');
+}
+
 export async function requestToJoinAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   const currentUser = await getCurrentUser();
   const parsed = associationJoinRequestSchema.safeParse({

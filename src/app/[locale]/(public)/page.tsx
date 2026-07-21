@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { PublicDirectoryHeader } from '@/components/kamga/MockupShell';
 import { ASSOCIATION_CLAIM_STATUSES, ASSOCIATION_PRIMARY_LANGUAGES, ASSOCIATION_VERIFICATION_STATUSES } from '@/features/associations/association-types';
+import { AssociationRecruitLeadForm } from '@/features/associations/components/AssociationRecruitLeadForm';
 import { Link } from '@/i18n/navigation';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
@@ -95,7 +96,41 @@ const directoryCopy = {
     notify: 'Notify me when one is listed',
     nearest: 'Nearest listed associations',
     nearestDescription: 'Shown because nothing matched inside the current search radius.',
-    noMockData: 'No fallback association data is fabricated from the mockups.'
+    noMockData: 'No fallback association data is fabricated from the mockups.',
+    recruit: {
+      associationNameLabel: 'Association name if you know it',
+      associationNamePlaceholder: 'Example: RPN association in your area',
+      cityLabel: 'City',
+      emailLabel: 'Email address',
+      messageLabel: 'Context for the Kamga team',
+      messagePlaceholder: 'Share the neighbourhood, contact context, or why this association should be invited.',
+      nameLabel: 'Your name',
+      privacyNotice: 'This creates an internal Kamga lead for directory growth. Your details are not published.',
+      submit: 'Send lead',
+      submitting: 'Sending...',
+      success: 'Lead recorded. The Kamga team can follow up from the admin workspace.',
+      title: 'Help Kamga recruit this association',
+      description: 'Send the missing association or area to the Kamga team so it can be invited and verified.',
+      errors: {
+        'KMG-AUTH-401': 'Sign in before submitting this request.',
+        'KMG-AUTH-403': 'You are not allowed to submit this request.',
+        'KMG-RC-001': 'Add a search term or association name, and use a valid email if provided.',
+        'KMG-RC-404': 'This request target is not available.',
+        'KMG-RC-429': 'Too many requests were submitted recently. Try again later.',
+        'KMG-CL-001': 'The claim request is invalid.',
+        'KMG-CL-403': 'You are not allowed to claim this listing.',
+        'KMG-CL-404': 'This listing could not be found.',
+        'KMG-CL-409': 'This listing cannot be claimed right now.',
+        'KMG-CL-422': 'The registry number does not match this listing.',
+        'KMG-RG-001': 'Check the submitted values and try again.',
+        'KMG-RG-002': 'Upload the requested proof.',
+        'KMG-RG-003': 'The uploaded file is too large.',
+        'KMG-RG-004': 'Use a supported file type.',
+        'KMG-RG-404': 'This association could not be found.',
+        'KMG-RG-409': 'This association already exists.',
+        'KMG-SYS-000': 'The lead could not be recorded. Try again or contact support.'
+      }
+    }
   },
   fr: {
     searchLabel: 'Code postal, adresse ou ville',
@@ -137,7 +172,41 @@ const directoryCopy = {
     notify: 'Me notifier lorsqu’une association est ajoutée',
     nearest: 'Associations référencées les plus proches',
     nearestDescription: 'Affichées parce qu’aucun résultat ne correspond au rayon actuel.',
-    noMockData: 'Aucune donnée de secours n’est fabriquée depuis les maquettes.'
+    noMockData: 'Aucune donnée de secours n’est fabriquée depuis les maquettes.',
+    recruit: {
+      associationNameLabel: 'Nom de l’association si vous le connaissez',
+      associationNamePlaceholder: 'Exemple : association RPN de votre secteur',
+      cityLabel: 'Ville',
+      emailLabel: 'Adresse courriel',
+      messageLabel: 'Contexte pour l’équipe Kamga',
+      messagePlaceholder: 'Indiquez le quartier, le contexte de contact ou pourquoi cette association devrait être invitée.',
+      nameLabel: 'Votre nom',
+      privacyNotice: 'Cela crée une piste interne pour développer l’annuaire Kamga. Vos coordonnées ne sont pas publiées.',
+      submit: 'Envoyer la piste',
+      submitting: 'Envoi en cours...',
+      success: 'Piste enregistrée. L’équipe Kamga peut la traiter depuis l’espace admin.',
+      title: 'Aidez Kamga à recruter cette association',
+      description: 'Envoyez l’association ou la zone manquante à l’équipe Kamga afin qu’elle puisse être invitée et vérifiée.',
+      errors: {
+        'KMG-AUTH-401': 'Connectez-vous avant d’envoyer cette demande.',
+        'KMG-AUTH-403': 'Vous n’êtes pas autorisé à envoyer cette demande.',
+        'KMG-RC-001': 'Ajoutez un terme de recherche ou un nom d’association, et utilisez un courriel valide s’il est renseigné.',
+        'KMG-RC-404': 'La cible de cette demande n’est pas disponible.',
+        'KMG-RC-429': 'Trop de demandes ont été envoyées récemment. Réessayez plus tard.',
+        'KMG-CL-001': 'La demande de revendication est invalide.',
+        'KMG-CL-403': 'Vous n’êtes pas autorisé à revendiquer cette fiche.',
+        'KMG-CL-404': 'Cette fiche est introuvable.',
+        'KMG-CL-409': 'Cette fiche ne peut pas être revendiquée pour le moment.',
+        'KMG-CL-422': 'Le numéro de registre ne correspond pas à cette fiche.',
+        'KMG-RG-001': 'Vérifiez les valeurs envoyées puis réessayez.',
+        'KMG-RG-002': 'Téléversez la preuve demandée.',
+        'KMG-RG-003': 'Le fichier téléversé est trop volumineux.',
+        'KMG-RG-004': 'Utilisez un type de fichier supporté.',
+        'KMG-RG-404': 'Cette association est introuvable.',
+        'KMG-RG-409': 'Cette association existe déjà.',
+        'KMG-SYS-000': 'La piste n’a pas pu être enregistrée. Réessayez ou contactez le support.'
+      }
+    }
   }
 } as const;
 
@@ -527,8 +596,9 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
               </span>
               <h2 className="mt-8 text-3xl font-semibold text-heading">{query.length > 0 ? copy.noResults(query) : t('emptyState')}</h2>
               <p className="mt-5 max-w-3xl text-base leading-7 text-secondary">{copy.emptyDescription}</p>
+              <AssociationRecruitLeadForm city={origin?.label ?? null} copy={copy.recruit} locale={params.locale} searchQuery={query} />
               <div className="mt-7 flex flex-wrap gap-4">
-                <Link className="inline-flex items-center gap-2 rounded-sm bg-brand px-5 py-3 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong" href="/register">
+                <Link className="inline-flex items-center gap-2 rounded-sm border border-border bg-card px-5 py-3 text-sm font-semibold text-heading shadow-card transition hover:border-border-strong" href="/register">
                   <Building2 aria-hidden="true" size={16} />
                   {copy.askRegister}
                 </Link>

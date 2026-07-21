@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Building2, CreditCard, FileText, FileUp, HandCoins, Link2, List, Mail, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, Building2, CreditCard, FileText, FileUp, HandCoins, Link2, List, Mail, Megaphone, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
@@ -10,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'associations' | 'connectRequests' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals' | 'reports';
+  activeItem: 'associations' | 'connectRequests' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'recruitLeads' | 'referrals' | 'reports';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -44,6 +44,7 @@ const shellCopy = {
     adminMembers: 'Members',
     adminNotifications: 'Notifications',
     adminPilot: 'Pilot program',
+    adminRecruitLeads: 'Recruit leads',
     adminReferrals: 'Referrals',
     adminReports: 'Reports',
     findAssociation: 'Find an association',
@@ -68,6 +69,7 @@ const shellCopy = {
     adminMembers: 'Membres',
     adminNotifications: 'Notifications',
     adminPilot: 'Programme pilote',
+    adminRecruitLeads: 'Pistes annuaire',
     adminReferrals: 'Parrainages',
     adminReports: 'Rapports',
     findAssociation: 'Trouver une association',
@@ -137,6 +139,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <Mail aria-hidden="true" size={20} />
               {copy.adminConnectRequests}
             </Link>
+            <Link className={itemClassName('recruitLeads')} href="/admin/recruit-leads">
+              <Megaphone aria-hidden="true" size={20} />
+              {copy.adminRecruitLeads}
+            </Link>
             <Link className={itemClassName('referrals')} href="/admin/referrals">
               <Link2 aria-hidden="true" size={20} />
               {copy.adminReferrals}
@@ -194,6 +200,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <Link className={`${itemClassName('connectRequests')} min-w-fit`} href="/admin/connect-requests">
                 <Mail aria-hidden="true" size={18} />
                 {copy.adminConnectRequests}
+              </Link>
+              <Link className={`${itemClassName('recruitLeads')} min-w-fit`} href="/admin/recruit-leads">
+                <Megaphone aria-hidden="true" size={18} />
+                {copy.adminRecruitLeads}
               </Link>
               <Link className={`${itemClassName('referrals')} min-w-fit`} href="/admin/referrals">
                 <Link2 aria-hidden="true" size={18} />
