@@ -1,4 +1,4 @@
-﻿import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Building2, Languages, MapPin, ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
@@ -18,6 +18,7 @@ const publicAssociationSchema = z.object({
   id: z.string().uuid(),
   primary_language: z.enum(ASSOCIATION_PRIMARY_LANGUAGES),
   province: z.string(),
+  public_contact_email: z.string().nullable(),
   public_street_address: z.string().nullable(),
   verification_status: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
@@ -40,7 +41,7 @@ async function getPublicAssociationProfile(associationId: string) {
   // CV-SEC-06 / BR-PE-02: public profile is shaped from the privacy-safe public directory view.
   const { data, error } = await supabase
     .from('public_association_directory')
-    .select('id,display_name,city,province,description,primary_language,verification_status,claim_status,public_street_address')
+    .select('id,display_name,city,province,description,primary_language,verification_status,claim_status,public_contact_email,public_street_address')
     .eq('id', parsedId.data)
     .maybeSingle();
 
@@ -103,7 +104,7 @@ export default async function AssociationProfilePage({ params }: AssociationProf
           </div>
           <div className="space-y-2">
             <dt className="text-sm font-medium text-secondary">{t('contactLabel')}</dt>
-            <dd className="text-heading">{t('contactDescription')}</dd>
+            <dd className="text-heading">{association.public_contact_email ?? t('contactDescription')}</dd>
           </div>
         </dl>
 

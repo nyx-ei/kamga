@@ -14,6 +14,7 @@ import {
   associationConnectRequestSchema,
   associationDecisionSchema,
   associationJoinRequestSchema,
+  associationRecordUpdateSchema,
   associationRegistrationSchema,
   MAX_RPN_PROOF_BYTES,
   RPN_PROOF_MIME_TYPES,
@@ -79,6 +80,113 @@ function requesterIpHash(): string | null {
   const ip = forwardedFor !== undefined && forwardedFor.length > 0 ? forwardedFor : realIp;
 
   return ip === undefined || ip.length === 0 ? null : hashSensitiveRateLimitValue(ip);
+}
+
+
+export async function updateOwnedAssociationRecord(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const currentUser = await getCurrentUser();
+
+  if (currentUser === null) {
+    return { ok: false, code: 'KMG-AUTH-401' };
+  }
+
+  const parsed = associationRecordUpdateSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    city: valueFromFormData(formData, 'city'),
+    commonName: valueFromFormData(formData, 'commonName'),
+    contactEmail: valueFromFormData(formData, 'contactEmail'),
+    description: valueFromFormData(formData, 'description'),
+    locale: valueFromFormData(formData, 'locale'),
+    officialName: valueFromFormData(formData, 'officialName'),
+    postalCode: valueFromFormData(formData, 'postalCode'),
+    primaryLanguage: valueFromFormData(formData, 'primaryLanguage'),
+    province: valueFromFormData(formData, 'province') || 'QC',
+    publicContactEmail: valueFromFormData(formData, 'publicContactEmail') === 'on',
+    publicPrecision: valueFromFormData(formData, 'publicPrecision'),
+    streetAddress: valueFromFormData(formData, 'streetAddress')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-RG-001',
+      fieldErrors: {
+        city: flattened.city === undefined ? undefined : 'KMG-RG-001',
+        commonName: flattened.commonName === undefined ? undefined : 'KMG-RG-001',
+        contactEmail: flattened.contactEmail === undefined ? undefined : 'KMG-RG-001',
+        name: flattened.officialName === undefined ? undefined : 'KMG-RG-001',
+        postalCode: flattened.postalCode === undefined ? undefined : 'KMG-RG-001',
+        primaryLanguage: flattened.primaryLanguage === undefined ? undefined : 'KMG-RG-001',
+        streetAddress: flattened.streetAddress === undefined ? undefined : 'KMG-RG-001'
+      }
+    };
+  }
+
+  const contactEmail = optionalValue(parsed.data.contactEmail ?? '');
+
+  if (parsed.data.publicContactEmail && contactEmail === null) {
+    return { ok: false, code: 'KMG-RG-001', fieldErrors: { contactEmail: 'KMG-RG-001' } };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: existingAssociation, error: readError } = await supabase
+    .from('associations')
+    .select('id,contact_email,name')
+    .eq('id', parsed.data.associationId)
+    .maybeSingle();
+
+  if (readError || existingAssociation === null) {
+    return { ok: false, code: 'KMG-AUTH-403' };
+  }
+
+  const displayName = optionalValue(parsed.data.commonName ?? '') ?? parsed.data.officialName;
+  const previousEmail = typeof existingAssociation.contact_email === 'string' ? existingAssociation.contact_email.trim().toLowerCase() : null;
+  const nextEmail = contactEmail?.trim().toLowerCase() ?? null;
+  const emailChanged = previousEmail !== nextEmail;
+
+  const { error: updateError } = await supabase
+    .from('associations')
+    .update({
+      city: parsed.data.city,
+      common_name: displayName,
+      contact_email: contactEmail,
+      contact_notification_confirmation_next_send_at: emailChanged ? null : undefined,
+      contact_notification_confirmation_send_count: emailChanged ? 0 : undefined,
+      contact_notification_confirmation_sent_at: emailChanged ? null : undefined,
+      contact_notification_opt_in_status: emailChanged ? (contactEmail === null ? 'withdrawn' : 'pending') : undefined,
+      contact_notification_opted_in_at: emailChanged ? null : undefined,
+      contact_notification_withdrawn_at: contactEmail === null ? new Date().toISOString() : undefined,
+      description: optionalValue(parsed.data.description ?? ''),
+      name: displayName,
+      official_name: parsed.data.officialName,
+      postal_code: parsed.data.postalCode,
+      primary_language: parsed.data.primaryLanguage,
+      province: parsed.data.province.toUpperCase(),
+      public_contact_email: parsed.data.publicContactEmail,
+      public_precision: parsed.data.publicPrecision,
+      street_address: optionalValue(parsed.data.streetAddress ?? '')
+    })
+    .eq('id', parsed.data.associationId);
+
+  if (updateError) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (emailChanged && contactEmail !== null) {
+    await sendContactOptInConfirmation({
+      associationId: parsed.data.associationId,
+      associationName: displayName,
+      email: contactEmail,
+      locale: parsed.data.locale
+    }).catch(() => undefined);
+  }
+
+  revalidatePath(`/${parsed.data.locale}/dashboard/associations`);
+  revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
+  revalidatePath(`/${parsed.data.locale}`);
+  return { ok: true, submitted: true };
 }
 
 export async function claimAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {

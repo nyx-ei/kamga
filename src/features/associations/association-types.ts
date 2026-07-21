@@ -79,6 +79,22 @@ export const associationRegistrationSchema = z.object({
   streetAddress: z.string().trim().max(220).optional().or(z.literal(''))
 });
 
+
+export const associationRecordUpdateSchema = z.object({
+  associationId: z.string().uuid(),
+  city: z.string().trim().min(2).max(120),
+  commonName: optionalTrimmedString,
+  contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
+  description: z.string().trim().max(1200).optional().or(z.literal('')),
+  locale: z.enum(['en', 'fr']),
+  officialName: z.string().trim().min(2).max(180),
+  postalCode: z.string().trim().min(3).max(12),
+  primaryLanguage: z.enum(ASSOCIATION_PRIMARY_LANGUAGES),
+  province: z.string().trim().length(2).default('QC'),
+  publicContactEmail: z.boolean(),
+  publicPrecision: z.enum(ASSOCIATION_PUBLIC_PRECISIONS),
+  streetAddress: z.string().trim().max(220).optional().or(z.literal(''))
+});
 export const associationClaimSchema = z.object({
   associationId: z.string().uuid(),
   authorized: z.literal('on'),
