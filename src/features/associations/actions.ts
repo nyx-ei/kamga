@@ -11,6 +11,7 @@ import {
   ASSOCIATION_REGISTRY_TYPES,
   type AssociationActionCode,
   type AssociationActionState,
+  associationClaimRequestDecisionSchema,
   associationClaimSchema,
   associationConnectRequestDecisionSchema,
   associationConnectRequestSchema,
@@ -500,6 +501,35 @@ export async function updateOwnedAssociationRecord(_previousState: AssociationAc
   return { ok: true, submitted: true };
 }
 
+export async function resolveAssociationClaimRequest(formData: FormData): Promise<void> {
+  await requirePlatformAdmin();
+
+  const parsed = associationClaimRequestDecisionSchema.safeParse({
+    claimRequestId: valueFromFormData(formData, 'claimRequestId'),
+    decision: valueFromFormData(formData, 'decision'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('resolve_association_claim_request', {
+    claim_request_uuid: parsed.data.claimRequestId,
+    decision_value: parsed.data.decision
+  });
+
+  if (error || data !== 'ok') {
+    return;
+  }
+
+  revalidatePath('/admin/claim-requests');
+  revalidatePath('/admin/associations');
+  revalidatePath(`/${parsed.data.locale}/admin/claim-requests`);
+  revalidatePath(`/${parsed.data.locale}/admin/associations`);
+  revalidatePath(`/${parsed.data.locale}`);
+}
 export async function claimAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   const currentUser = await getCurrentUser();
 
