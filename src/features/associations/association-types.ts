@@ -6,11 +6,15 @@ export const ASSOCIATION_PUBLIC_PRECISIONS = ['neighbourhood', 'exact'] as const
 export const ASSOCIATION_VERIFICATION_STATUSES = ['unverified', 'verified', 'needs_review'] as const;
 export const ASSOCIATION_CLAIM_STATUSES = ['unclaimed', 'claimed', 'claim_pending', 'claim_locked'] as const;
 export const ASSOCIATION_REGISTRY_TYPES = ['neq', 'federal'] as const;
+export const ASSOCIATION_SOURCES = ['admin_entered', 'csv_import', 'self_registered'] as const;
+export const ASSOCIATION_GEOCODE_STATUSES = ['pending', 'geocoded', 'failed', 'needs_review'] as const;
 
 export type AssociationStatus = (typeof ASSOCIATION_STATUSES)[number];
 export type AssociationPrimaryLanguage = (typeof ASSOCIATION_PRIMARY_LANGUAGES)[number];
 export type AssociationVerificationStatus = (typeof ASSOCIATION_VERIFICATION_STATUSES)[number];
 export type AssociationClaimStatus = (typeof ASSOCIATION_CLAIM_STATUSES)[number];
+export type AssociationSource = (typeof ASSOCIATION_SOURCES)[number];
+export type AssociationGeocodeStatus = (typeof ASSOCIATION_GEOCODE_STATUSES)[number];
 
 export type AssociationActionCode =
   | 'KMG-AUTH-401'
@@ -94,6 +98,16 @@ export const associationRecordUpdateSchema = z.object({
   publicContactEmail: z.boolean(),
   publicPrecision: z.enum(ASSOCIATION_PUBLIC_PRECISIONS),
   streetAddress: z.string().trim().max(220).optional().or(z.literal(''))
+});
+
+export const adminAssociationRecordUpdateSchema = associationRecordUpdateSchema.extend({
+  claimStatus: z.enum(ASSOCIATION_CLAIM_STATUSES),
+  geocodeStatus: z.enum(ASSOCIATION_GEOCODE_STATUSES),
+  registryNumber: z.string().trim().max(64).optional().or(z.literal('')),
+  registryType: z.enum(ASSOCIATION_REGISTRY_TYPES).optional().or(z.literal('')),
+  source: z.enum(ASSOCIATION_SOURCES),
+  status: z.enum(ASSOCIATION_STATUSES),
+  verificationStatus: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
 export const associationClaimSchema = z.object({
   associationId: z.string().uuid(),
