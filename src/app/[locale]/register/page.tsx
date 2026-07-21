@@ -50,30 +50,30 @@ const claimCopy = {
     errors: {
       'KMG-AUTH-401': 'Sign in before claiming this listing.',
       'KMG-CL-001': 'Check the registry number, contact email, and authorization checkbox.',
-      'KMG-CL-403': 'The registry number or contact email does not match the private record. The listing has been queued for admin review.',
+      'KMG-CL-403': 'The registry number or contact email needs admin review. The listing has been queued and locked to one active claim.',
       'KMG-CL-404': 'This active association could not be found.',
       'KMG-CL-409': 'This association has already been claimed or locked.',
-      'KMG-CL-422': 'This listing does not have enough private registry/contact data for automatic claim. It has been queued for admin review.',
+      'KMG-CL-422': 'This listing needs manual admin review before ownership can be confirmed. The claim is now queued.',
       'KMG-SYS-000': 'The listing could not be claimed. Try again or contact support.'
     }
   },
   fr: {
     action: 'Revendiquer cette fiche',
-    authorized: 'Je suis autorise a gerer la fiche de cette association.',
+    authorized: 'Je suis autorisé à gérer la fiche de cette association.',
     badge: 'Revendication',
-    claimedDescription: 'Cette association est deja revendiquee. Ouvrez la fiche publique ou contactez un administrateur plateforme si cela semble incorrect.',
-    claimedTitle: 'Fiche deja revendiquee',
-    contactEmailLabel: 'Courriel de contact associe a la fiche',
+    claimedDescription: 'Cette association est déjà revendiquée. Ouvrez la fiche publique ou contactez un administrateur plateforme si cela semble incorrect.',
+    claimedTitle: 'Fiche déjà revendiquée',
+    contactEmailLabel: 'Courriel de contact associé à la fiche',
     contactEmailPlaceholder: 'admin@example.org',
     footnote: 'Apres validation, vous pourrez modifier la fiche et gerer les informations publiques. La provenance reste invisible aux membres.',
     invalidDescription: 'Cette association n est pas disponible pour revendication. Elle peut etre inactive, introuvable ou deja en revue.',
     invalidTitle: 'Revendication indisponible',
     notMine: 'Ce n est pas mon association',
-    proveDescription: 'Saisissez le numero de registre et le courriel prive deja rattaches a cette fiche. Kamga les valide sans afficher de donnees privees publiquement.',
+    proveDescription: 'Saisissez le numéro de registre et le courriel privé déjà rattachés à cette fiche. Kamga les valide sans afficher de données privées publiquement.',
     proveTitle: 'Prouvez que vous controlez cette association',
-    registryLabel: 'Numero de registre (NEQ / federal)',
+    registryLabel: 'Numéro de registre (NEQ / fédéral)',
     registryPlaceholder: '1169920034',
-    selectDescription: 'Vous revendiquez la fiche publique existante ci-dessous. Une revendication reussie cree un role admin association actif pour votre compte.',
+    selectDescription: 'Vous revendiquez la fiche publique existante ci-dessous. Une revendication réussie crée un rôle admin association actif pour votre compte.',
     selectTitle: 'Association existante',
     signInAction: 'Se connecter pour revendiquer',
     signInDescription: 'Creez ou ouvrez votre compte Kamga avant de revendiquer cette fiche association.',
@@ -83,10 +83,10 @@ const claimCopy = {
     errors: {
       'KMG-AUTH-401': 'Connectez-vous avant de revendiquer cette fiche.',
       'KMG-CL-001': 'Verifiez le numero de registre, le courriel de contact et la case d autorisation.',
-      'KMG-CL-403': 'Le numero de registre ou le courriel ne correspond pas a la fiche privee. La fiche a ete placee en revue admin.',
+      'KMG-CL-403': 'Le numéro de registre ou le courriel doit être revu par un admin. La fiche est placée en file et limitée à une revendication active.',
       'KMG-CL-404': 'Cette association active est introuvable.',
       'KMG-CL-409': 'Cette association est deja revendiquee ou verrouillee.',
-      'KMG-CL-422': 'Cette fiche ne contient pas assez de donnees privees de registre/contact pour une revendication automatique. Elle a ete placee en revue admin.',
+      'KMG-CL-422': 'Cette fiche nécessite une revue admin manuelle avant confirmation de propriété. La revendication est maintenant en file.',
       'KMG-SYS-000': 'La fiche n a pas pu etre revendiquee. Reessayez ou contactez le support.'
     }
   }

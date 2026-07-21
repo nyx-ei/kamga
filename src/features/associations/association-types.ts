@@ -115,6 +115,11 @@ export const adminAssociationRecordUpdateSchema = associationRecordUpdateSchema.
   status: z.enum(ASSOCIATION_STATUSES),
   verificationStatus: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
+export const associationClaimRequestDecisionSchema = z.object({
+  claimRequestId: z.string().uuid(),
+  decision: z.enum(['approved', 'rejected', 'locked']),
+  locale: z.enum(['en', 'fr'])
+});
 export const associationClaimSchema = z.object({
   associationId: z.string().uuid(),
   authorized: z.literal('on'),
