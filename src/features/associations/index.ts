@@ -1,4 +1,5 @@
-export { approveAssociation, registerAssociation, requestToJoinAssociation, suspendAssociation } from '@/features/associations/actions';
+﻿export { approveAssociation, registerAssociation, requestToJoinAssociation, submitAssociationConnectRequest, suspendAssociation } from '@/features/associations/actions';
 export { associationStatusTone } from '@/features/associations/association-status';
-export type { AssociationActionState, AssociationStatus } from '@/features/associations/association-types';
+export type { AssociationActionState, AssociationClaimStatus, AssociationPrimaryLanguage, AssociationStatus, AssociationVerificationStatus } from '@/features/associations/association-types';
+export { RequestToConnectAssociationForm } from '@/features/associations/components/RequestToConnectAssociationForm';
 export { RequestToJoinAssociationForm } from '@/features/associations/components/RequestToJoinAssociationForm';

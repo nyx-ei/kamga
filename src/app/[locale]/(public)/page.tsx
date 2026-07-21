@@ -1,18 +1,23 @@
 import { getTranslations } from 'next-intl/server';
-import { Bell, Building2, Crosshair, MapPin, Search } from 'lucide-react';
+import { Bell, Building2, Crosshair, Flag, MapPin, Search, ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
 
 import { PublicDirectoryHeader } from '@/components/kamga/MockupShell';
+import { ASSOCIATION_CLAIM_STATUSES, ASSOCIATION_PRIMARY_LANGUAGES, ASSOCIATION_VERIFICATION_STATUSES } from '@/features/associations/association-types';
 import { Link } from '@/i18n/navigation';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 const associationCardSchema = z.object({
+  claim_status: z.enum(ASSOCIATION_CLAIM_STATUSES),
   city: z.string(),
   description: z.string().nullable(),
+  display_name: z.string(),
   id: z.string().uuid(),
-  name: z.string()
+  primary_language: z.enum(ASSOCIATION_PRIMARY_LANGUAGES),
+  province: z.string(),
+  verification_status: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
 
 type HomePageProps = {
@@ -47,6 +52,10 @@ const directoryCopy = {
     detailed: 'Detailed',
     noDatabaseResults: 'No active association record is available from the database for this search.',
     requestToConnect: 'Request to connect',
+    claimAction: 'Is this your association? Claim it',
+    nameMatch: 'Name match',
+    verified: 'Verified',
+    languages: { en: 'English', fr: 'French', fr_en: 'French & English' },
     distance: 'Distance',
     unavailable: 'unavailable',
     mapUnavailable: 'Map view unavailable',
@@ -67,31 +76,35 @@ const directoryCopy = {
     filter: 'Filtrer',
     distanceFilter: 'Filtre de distance',
     languageFilter: 'Filtre de langue',
-    verifiedOnly: 'Verifiees uniquement',
+    verifiedOnly: 'Vérifiées uniquement',
     associationSingular: 'association',
     associationPlural: 'associations',
-    matching: (query: string) => ` correspondant a "${query}"`,
+    matching: (query: string) => ` correspondant à "${query}"`,
     compareOptions: 'Comparer les options',
     mapLayout: 'Disposition de la carte',
-    sideBySide: 'Cote a cote',
+    sideBySide: 'Côte à côte',
     listFirst: "Liste d'abord + bascule",
-    resultCard: 'Carte de resultat',
+    resultCard: 'Carte de résultat',
     compact: 'Compact',
-    detailed: 'Detaille',
+    detailed: 'Détaillé',
     noDatabaseResults: 'Aucune association active en base ne correspond a cette recherche.',
-    requestToConnect: 'Demander a se connecter',
+    requestToConnect: 'Demander à être mis en relation',
+    claimAction: 'C’est votre association ? Revendiquez-la',
+    nameMatch: 'Nom correspondant',
+    verified: 'Vérifiée',
+    languages: { en: 'Anglais', fr: 'Français', fr_en: 'Français et anglais' },
     distance: 'Distance',
     unavailable: 'indisponible',
     mapUnavailable: 'Carte indisponible',
-    mapUnavailableDescription: "Les coordonnees des associations ne sont pas encore stockees, donc la carte conserve le layout valide sans afficher de marqueurs fictifs.",
-    noResults: (query: string) => `Aucune association trouvee pour "${query}"`,
+    mapUnavailableDescription: "Les coordonnées des associations ne sont pas encore stockées. La carte conserve donc le layout validé sans afficher de marqueurs fictifs.",
+    noResults: (query: string) => `Aucune association trouvée pour "${query}"`,
     emptyDescription:
-      "L'annuaire continue de grandir. Si vous connaissez une association RPN dans cette zone, aidez-nous a l'ajouter - elle sera invitee a confirmer sa propre fiche.",
-    askRegister: "L'inviter a s'inscrire",
-    notify: "Me notifier lorsqu'une association est ajoutee",
-    nearest: 'Associations referencees les plus proches',
-    nearestUnavailable: "Les suggestions d'associations proches demandent des coordonnees geocodees. Ce panneau reste vide jusqu'a l'ajout de ces champs.",
-    noMockData: "Aucune donnee de secours n'est fabriquee depuis les maquettes."
+      "L'annuaire continue de grandir. Si vous connaissez une association RPN dans cette zone, aidez-nous à l'ajouter - elle sera invitée à confirmer sa propre fiche.",
+    askRegister: "L'inviter à s'inscrire",
+    notify: "Me notifier lorsqu'une association est ajoutée",
+    nearest: 'Associations référencées les plus proches',
+    nearestUnavailable: "Les suggestions d'associations proches demandent des coordonnées géocodées. Ce panneau reste vide jusqu'à l'ajout de ces champs.",
+    noMockData: "Aucune donnée de secours n'est fabriquée depuis les maquettes."
   }
 } as const;
 
@@ -101,11 +114,15 @@ function searchQuery(value: string | undefined): string {
 
 async function listAssociations(query: string): Promise<AssociationCard[]> {
   const supabase = createSupabaseAdminClient();
-  let request = supabase.from('associations').select('id,name,city,description').eq('status', 'active').order('name', { ascending: true }).limit(30);
+  let request = supabase
+    .from('public_association_directory')
+    .select('id,display_name,city,province,description,primary_language,verification_status,claim_status')
+    .order('display_name', { ascending: true })
+    .limit(30);
 
   if (query.length > 0) {
     const pattern = `%${query.replaceAll('%', '').replaceAll('_', '')}%`;
-    request = request.or(`name.ilike.${pattern},city.ilike.${pattern}`);
+    request = request.or(`display_name.ilike.${pattern},city.ilike.${pattern}`);
   }
 
   const { data, error } = await request;
@@ -218,20 +235,40 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
                           <span className="grid size-10 place-items-center rounded-full bg-[#4d67c7] text-sm font-semibold text-white shadow-card">{index + 1}</span>
                           <div className="space-y-3">
                             <div>
-                              <h2 className="text-xl font-semibold text-heading">{association.name}</h2>
+                              <h2 className="text-xl font-semibold text-heading">{association.display_name}</h2>
                               <p className="mt-1 inline-flex items-center gap-2 text-sm text-secondary">
                                 <MapPin aria-hidden="true" size={16} />
-                                {association.city}
+                                {association.city}, {association.province}
                               </p>
                             </div>
+                            <div className="flex flex-wrap gap-2">
+                              {association.verification_status === 'verified' ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-positive-bg px-3 py-1 text-xs font-semibold text-positive">
+                                  <ShieldCheck aria-hidden="true" size={13} />
+                                  {copy.verified}
+                                </span>
+                              ) : null}
+                              <span className="inline-flex items-center gap-1 rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">
+                                <Flag aria-hidden="true" size={13} />
+                                {copy.languages[association.primary_language]}
+                              </span>
+                            </div>
                             <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-secondary">{association.description ?? t('descriptionFallback')}</p>
-                            <Link
-                              className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong"
-                              href={`/associations/${association.id}`}
-                            >
-                              <Building2 aria-hidden="true" size={16} />
-                              {copy.requestToConnect}
-                            </Link>
+                            <div className="flex flex-wrap gap-3">
+                              <Link
+                                className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong"
+                                href={`/associations/${association.id}`}
+                              >
+                                <Building2 aria-hidden="true" size={16} />
+                                {copy.requestToConnect}
+                              </Link>
+                              {association.claim_status === 'unclaimed' ? (
+                                <Link className="inline-flex w-fit items-center gap-2 rounded-sm px-4 py-2 text-sm font-semibold text-brand" href={{ pathname: '/register', query: { claim: association.id } }}>
+                                  <ShieldCheck aria-hidden="true" size={16} />
+                                  {copy.claimAction}
+                                </Link>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                         <p className="text-right text-sm font-semibold text-muted">
