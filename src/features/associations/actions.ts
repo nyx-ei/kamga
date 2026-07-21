@@ -1,4 +1,4 @@
-﻿'use server';
+'use server';
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
@@ -8,7 +8,9 @@ import { createHash } from 'crypto';
 import {
   ASSOCIATION_PRIMARY_LANGUAGES,
   ASSOCIATION_REGISTRY_TYPES,
+  type AssociationActionCode,
   type AssociationActionState,
+  associationClaimSchema,
   associationConnectRequestSchema,
   associationDecisionSchema,
   associationJoinRequestSchema,
@@ -76,6 +78,57 @@ function requesterIpHash(): string | null {
   const ip = forwardedFor !== undefined && forwardedFor.length > 0 ? forwardedFor : realIp;
 
   return ip === undefined || ip.length === 0 ? null : hashSensitiveRateLimitValue(ip);
+}
+
+export async function claimAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const currentUser = await getCurrentUser();
+
+  if (currentUser === null) {
+    return { ok: false, code: 'KMG-AUTH-401' };
+  }
+
+  const parsed = associationClaimSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    authorized: valueFromFormData(formData, 'authorized'),
+    contactEmail: valueFromFormData(formData, 'contactEmail'),
+    locale: valueFromFormData(formData, 'locale'),
+    registryNumber: valueFromFormData(formData, 'registryNumber')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-CL-001',
+      fieldErrors: {
+        authorized: flattened.authorized === undefined ? undefined : 'KMG-CL-001',
+        contactEmail: flattened.contactEmail === undefined ? undefined : 'KMG-CL-001',
+        registryNumber: flattened.registryNumber === undefined ? undefined : 'KMG-CL-001'
+      }
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('claim_association', {
+    association_uuid: parsed.data.associationId,
+    contact_email_value: parsed.data.contactEmail,
+    registry_number_value: parsed.data.registryNumber
+  });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  const knownCodes: AssociationActionCode[] = ['KMG-AUTH-401', 'KMG-CL-001', 'KMG-CL-403', 'KMG-CL-404', 'KMG-CL-409', 'KMG-CL-422'];
+
+  if (data !== 'ok') {
+    return { ok: false, code: knownCodes.includes(data as AssociationActionCode) ? (data as AssociationActionCode) : 'KMG-SYS-000' };
+  }
+
+  revalidatePath('/' + parsed.data.locale + '/associations/' + parsed.data.associationId);
+  revalidatePath('/' + parsed.data.locale + '/dashboard/applications');
+  redirect('/' + parsed.data.locale + '/dashboard/applications?associationClaimed=1');
 }
 
 export async function registerAssociation(

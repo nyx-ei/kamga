@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 export const ASSOCIATION_STATUSES = ['pending_review', 'active', 'declined', 'suspended'] as const;
 export const ASSOCIATION_PRIMARY_LANGUAGES = ['fr', 'en', 'fr_en'] as const;
@@ -18,6 +18,11 @@ export type AssociationActionCode =
   | 'KMG-RC-001'
   | 'KMG-RC-404'
   | 'KMG-RC-429'
+  | 'KMG-CL-001'
+  | 'KMG-CL-403'
+  | 'KMG-CL-404'
+  | 'KMG-CL-409'
+  | 'KMG-CL-422'
   | 'KMG-RG-001'
   | 'KMG-RG-002'
   | 'KMG-RG-003'
@@ -36,6 +41,7 @@ export type AssociationActionState =
       code: AssociationActionCode;
       fieldErrors?: Partial<
         Record<
+          | 'authorized'
           | 'city'
           | 'commonName'
           | 'contactEmail'
@@ -71,6 +77,14 @@ export const associationRegistrationSchema = z.object({
   registryNumber: z.string().trim().max(64).optional().or(z.literal('')),
   registryType: z.enum(ASSOCIATION_REGISTRY_TYPES).optional().or(z.literal('')),
   streetAddress: z.string().trim().max(220).optional().or(z.literal(''))
+});
+
+export const associationClaimSchema = z.object({
+  associationId: z.string().uuid(),
+  authorized: z.literal('on'),
+  contactEmail: z.string().trim().email().max(254),
+  locale: z.enum(['en', 'fr']),
+  registryNumber: z.string().trim().min(2).max(64)
 });
 
 export const associationDecisionSchema = z.object({
