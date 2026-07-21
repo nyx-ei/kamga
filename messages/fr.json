@@ -268,6 +268,64 @@
       }
     }
   },
+  "reports": {
+    "admin": {
+      "title": "Rapports",
+      "badge": "Reporting et audit",
+      "description": "Suivez les taux de collecte des levées, l'historique des contributions membres, les synthèses fiscales, le roster membre, les parts, les revenus de frais admin et le journal d'audit opérationnel.",
+      "collectedLabel": "Collecté",
+      "collectionRateLabel": "Taux de collecte",
+      "feeEarningsLabel": "Revenus de frais",
+      "leveeReportsTitle": "Rapports de levées",
+      "leveeReportsDescription": "Taux de collecte, chronologie des paiements, objectifs, échéances et avancement des associations pour les levées récentes.",
+      "emptyLevees": "Aucun rapport de levée n'est encore disponible.",
+      "targetLabel": "Objectif",
+      "deadlineLabel": "Échéance",
+      "timelineLabel": "Premier paiement",
+      "associationsLabel": "Associations remises",
+      "notAvailable": "Non disponible",
+      "associationBreakdownTitle": "Détail par association",
+      "emptyBreakdown": "Aucun détail par association n'est encore disponible.",
+      "sharesLabel": "Parts",
+      "membersLabel": "Membres payés",
+      "memberReportsTitle": "Rapports membres",
+      "memberReportsDescription": "Historique des contributions par membre, association, levée, montant, nombre de paiements et statut.",
+      "emptyMembers": "Aucun rapport de contribution membre n'est encore disponible.",
+      "leveeLabel": "Levée",
+      "paidLabel": "Payé",
+      "statusLabel": "Statut",
+      "fiscalSummaryTitle": "Synthèse fiscale",
+      "emptyFiscal": "Aucune synthèse fiscale n'est encore disponible.",
+      "rosterTitle": "Roster membre et parts",
+      "totalSharesValue": "{count} parts dans les lignes de roster affichées.",
+      "emptyRoster": "Aucune ligne de roster membre n'est encore disponible.",
+      "feeEarningsTitle": "Revenus de frais admin",
+      "feeEarningsDescription": "Frais accumulés, payés et totaux par administrateur d'association.",
+      "emptyFees": "Aucun revenu de frais admin n'a encore été enregistré.",
+      "auditTitle": "Journal d'audit",
+      "auditDescription": "Dernières modifications de base capturées pour la transparence. Les contenus sensibles ne sont pas stockés dans l'audit.",
+      "emptyAudit": "Aucun événement d'audit n'a encore été capturé.",
+      "whenLabel": "Quand",
+      "actorLabel": "Acteur",
+      "changedLabel": "Modifié",
+      "systemActor": "Système",
+      "auditNote": "Le journal d'audit s'applique à partir de cette migration. Il enregistre les insertions, mises à jour et suppressions sur les tables opérationnelles sans stocker les contenus complets sensibles.",
+      "leveeStatuses": {
+        "active": "Active",
+        "cancelled": "Annulée",
+        "closed": "Fermée"
+      },
+      "contributionStatuses": {
+        "paid": "Payée",
+        "partial": "Partielle",
+        "unpaid": "Non payée"
+      },
+      "memberRoles": {
+        "association_admin": "Admin association",
+        "member": "Membre"
+      }
+    }
+  },
   "pilot": {
     "admin": {
       "addAssociationAction": "Ajouter une association pilote",

@@ -268,6 +268,64 @@
       }
     }
   },
+  "reports": {
+    "admin": {
+      "title": "Reports",
+      "badge": "Reporting and audit",
+      "description": "Monitor levee collection rates, member contribution history, fiscal summaries, member rosters, share counts, admin fee earnings, and the operational audit trail.",
+      "collectedLabel": "Collected",
+      "collectionRateLabel": "Collection rate",
+      "feeEarningsLabel": "Fee earnings",
+      "leveeReportsTitle": "Levee reports",
+      "leveeReportsDescription": "Collection rate, payment timeline, targets, deadlines, and association completion for recent levees.",
+      "emptyLevees": "No levee report is available yet.",
+      "targetLabel": "Target",
+      "deadlineLabel": "Deadline",
+      "timelineLabel": "First payment",
+      "associationsLabel": "Associations remitted",
+      "notAvailable": "Not available",
+      "associationBreakdownTitle": "Per-association breakdown",
+      "emptyBreakdown": "No association breakdown is available yet.",
+      "sharesLabel": "Shares",
+      "membersLabel": "Members paid",
+      "memberReportsTitle": "Member reports",
+      "memberReportsDescription": "Contribution history by member, association, levee, amount, payment count, and status.",
+      "emptyMembers": "No member contribution report is available yet.",
+      "leveeLabel": "Levee",
+      "paidLabel": "Paid",
+      "statusLabel": "Status",
+      "fiscalSummaryTitle": "Fiscal summary",
+      "emptyFiscal": "No fiscal summary is available yet.",
+      "rosterTitle": "Member roster and share counts",
+      "totalSharesValue": "{count} shares in the displayed roster rows.",
+      "emptyRoster": "No member roster row is available yet.",
+      "feeEarningsTitle": "Admin fee earnings",
+      "feeEarningsDescription": "Accrued, paid, and total fee earnings by association admin.",
+      "emptyFees": "No admin fee earning has been recorded yet.",
+      "auditTitle": "Audit trail",
+      "auditDescription": "Recent database changes captured for transparency. Sensitive payloads are not stored in the audit log.",
+      "emptyAudit": "No audit event has been captured yet.",
+      "whenLabel": "When",
+      "actorLabel": "Actor",
+      "changedLabel": "Changed",
+      "systemActor": "System",
+      "auditNote": "The audit trail is forward-looking from this migration onward. It records inserts, updates, and deletes on operational tables without storing full sensitive row payloads.",
+      "leveeStatuses": {
+        "active": "Active",
+        "cancelled": "Cancelled",
+        "closed": "Closed"
+      },
+      "contributionStatuses": {
+        "paid": "Paid",
+        "partial": "Partial",
+        "unpaid": "Unpaid"
+      },
+      "memberRoles": {
+        "association_admin": "Association admin",
+        "member": "Member"
+      }
+    }
+  },
   "pilot": {
     "admin": {
       "addAssociationAction": "Add pilot association",
