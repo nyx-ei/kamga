@@ -8,6 +8,7 @@ export const ASSOCIATION_CLAIM_STATUSES = ['unclaimed', 'claimed', 'claim_pendin
 export const ASSOCIATION_REGISTRY_TYPES = ['neq', 'federal'] as const;
 export const ASSOCIATION_SOURCES = ['admin_entered', 'csv_import', 'self_registered'] as const;
 export const ASSOCIATION_GEOCODE_STATUSES = ['pending', 'geocoded', 'failed', 'needs_review'] as const;
+export const ASSOCIATION_CONNECT_REQUEST_STATUSES = ['queued', 'routed', 'brokered', 'closed'] as const;
 
 export type AssociationStatus = (typeof ASSOCIATION_STATUSES)[number];
 export type AssociationPrimaryLanguage = (typeof ASSOCIATION_PRIMARY_LANGUAGES)[number];
@@ -15,6 +16,7 @@ export type AssociationVerificationStatus = (typeof ASSOCIATION_VERIFICATION_STA
 export type AssociationClaimStatus = (typeof ASSOCIATION_CLAIM_STATUSES)[number];
 export type AssociationSource = (typeof ASSOCIATION_SOURCES)[number];
 export type AssociationGeocodeStatus = (typeof ASSOCIATION_GEOCODE_STATUSES)[number];
+export type AssociationConnectRequestStatus = (typeof ASSOCIATION_CONNECT_REQUEST_STATUSES)[number];
 
 export type AssociationActionCode =
   | 'KMG-AUTH-401'
@@ -124,6 +126,11 @@ export const associationDecisionSchema = z.object({
 
 export const associationJoinRequestSchema = z.object({
   associationId: z.string().uuid(),
+  locale: z.enum(['en', 'fr'])
+});
+
+export const associationConnectRequestDecisionSchema = z.object({
+  connectRequestId: z.string().uuid(),
   locale: z.enum(['en', 'fr'])
 });
 

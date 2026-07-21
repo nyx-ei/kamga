@@ -1,4 +1,4 @@
-import { BarChart3, Bell, Building2, CreditCard, FileText, FileUp, HandCoins, Link2, List, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, Building2, CreditCard, FileText, FileUp, HandCoins, Link2, List, Mail, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
@@ -10,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'associations' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals' | 'reports';
+  activeItem: 'associations' | 'connectRequests' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'referrals' | 'reports';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -37,6 +37,7 @@ const shellCopy = {
     aboutDirectory: 'About the directory',
     admin: 'Admin',
     adminAssociations: 'Associations',
+    adminConnectRequests: 'Connect requests',
     adminCsv: 'CSV import',
     adminFees: 'Admin fees',
     adminLevees: 'Levees',
@@ -60,6 +61,7 @@ const shellCopy = {
     aboutDirectory: "À propos de l'annuaire",
     admin: 'Admin',
     adminAssociations: 'Associations',
+    adminConnectRequests: 'Demandes contact',
     adminCsv: 'Import CSV',
     adminFees: 'Frais admin',
     adminLevees: 'Levées',
@@ -131,6 +133,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <UsersRound aria-hidden="true" size={20} />
               {copy.adminMembers}
             </Link>
+            <Link className={itemClassName('connectRequests')} href="/admin/connect-requests">
+              <Mail aria-hidden="true" size={20} />
+              {copy.adminConnectRequests}
+            </Link>
             <Link className={itemClassName('referrals')} href="/admin/referrals">
               <Link2 aria-hidden="true" size={20} />
               {copy.adminReferrals}
@@ -184,6 +190,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <Link className={`${itemClassName('members')} min-w-fit`} href="/admin/members">
                 <UsersRound aria-hidden="true" size={18} />
                 {copy.adminMembers}
+              </Link>
+              <Link className={`${itemClassName('connectRequests')} min-w-fit`} href="/admin/connect-requests">
+                <Mail aria-hidden="true" size={18} />
+                {copy.adminConnectRequests}
               </Link>
               <Link className={`${itemClassName('referrals')} min-w-fit`} href="/admin/referrals">
                 <Link2 aria-hidden="true" size={18} />

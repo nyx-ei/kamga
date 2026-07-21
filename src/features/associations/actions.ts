@@ -12,6 +12,7 @@ import {
   type AssociationActionCode,
   type AssociationActionState,
   associationClaimSchema,
+  associationConnectRequestDecisionSchema,
   associationConnectRequestSchema,
   associationDecisionSchema,
   associationJoinRequestSchema,
@@ -939,6 +940,43 @@ export async function submitAssociationConnectRequest(_previousState: Associatio
   return { ok: true, submitted: true };
 }
 
+
+async function updateConnectRequestStatus(formData: FormData, status: 'brokered' | 'closed'): Promise<void> {
+  await requirePlatformAdmin();
+
+  const parsed = associationConnectRequestDecisionSchema.safeParse({
+    connectRequestId: valueFromFormData(formData, 'connectRequestId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const supabase = createSupabaseServerClient();
+  const update =
+    status === 'brokered'
+      ? { brokered_at: now, status }
+      : { closed_at: now, status };
+
+  await supabase
+    .from('association_connect_requests')
+    .update(update)
+    .eq('id', parsed.data.connectRequestId)
+    .neq('status', 'closed');
+
+  revalidatePath('/admin/connect-requests');
+  revalidatePath(`/${parsed.data.locale}/admin/connect-requests`);
+}
+
+export async function markConnectRequestBrokered(formData: FormData): Promise<void> {
+  await updateConnectRequestStatus(formData, 'brokered');
+}
+
+export async function closeConnectRequest(formData: FormData): Promise<void> {
+  await updateConnectRequestStatus(formData, 'closed');
+}
 export async function requestToJoinAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   const currentUser = await getCurrentUser();
   const parsed = associationJoinRequestSchema.safeParse({
