@@ -1,4 +1,4 @@
-import { BarChart3, Bell, CreditCard, FileText, FileUp, HandCoins, Link2, List, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
+import { BarChart3, Bell, Building2, CreditCard, FileText, FileUp, HandCoins, Link2, List, ReceiptText, Rocket, ShieldCheck, UsersRound } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { LocaleSwitcher } from '@/components/kamga/LocaleSwitcher';
@@ -24,7 +24,7 @@ type AssociationWorkspaceShellProps = {
 };
 
 type MemberWorkspaceShellProps = {
-  activeItem: 'applications' | 'contributions' | 'notifications' | 'payments' | 'receipts' | 'relatives';
+  activeItem: 'applications' | 'associations' | 'contributions' | 'notifications' | 'payments' | 'receipts' | 'relatives';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -48,6 +48,7 @@ const shellCopy = {
     findAssociation: 'Find an association',
     member: 'Member',
     memberApplications: 'Applications',
+    memberAssociations: 'Associations',
     memberContributions: 'Contributions',
     memberNotifications: 'Notifications',
     memberPayments: 'Payments',
@@ -70,6 +71,7 @@ const shellCopy = {
     findAssociation: 'Trouver une association',
     member: 'Membre',
     memberApplications: 'Demandes',
+    memberAssociations: 'Associations',
     memberContributions: 'Contributions',
     memberNotifications: 'Notifications',
     memberPayments: 'Paiements',
@@ -253,6 +255,10 @@ export function MemberWorkspaceShell({ activeItem, children, locale, title, tool
               <List aria-hidden="true" size={20} />
               {copy.memberApplications}
             </Link>
+            <Link className={itemClassName('associations')} href="/dashboard/associations">
+              <Building2 aria-hidden="true" size={20} />
+              {copy.memberAssociations}
+            </Link>
             <Link className={itemClassName('contributions')} href="/dashboard/contributions">
               <BarChart3 aria-hidden="true" size={20} />
               {copy.memberContributions}
@@ -294,6 +300,10 @@ export function MemberWorkspaceShell({ activeItem, children, locale, title, tool
               <Link className={`${itemClassName('applications')} min-w-fit`} href="/dashboard/applications">
                 <List aria-hidden="true" size={18} />
                 {copy.memberApplications}
+              </Link>
+              <Link className={`${itemClassName('associations')} min-w-fit`} href="/dashboard/associations">
+                <Building2 aria-hidden="true" size={18} />
+                {copy.memberAssociations}
               </Link>
               <Link className={`${itemClassName('contributions')} min-w-fit`} href="/dashboard/contributions">
                 <BarChart3 aria-hidden="true" size={18} />

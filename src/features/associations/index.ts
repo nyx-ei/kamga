@@ -14,6 +14,7 @@ export type {
   AssociationStatus,
   AssociationVerificationStatus
 } from '@/features/associations/association-types';
+export { AssociationRecordManagementForm } from '@/features/associations/components/AssociationRecordManagementForm';
 export { ClaimAssociationForm } from '@/features/associations/components/ClaimAssociationForm';
 export { RequestToConnectAssociationForm } from '@/features/associations/components/RequestToConnectAssociationForm';
 export { RequestToJoinAssociationForm } from '@/features/associations/components/RequestToJoinAssociationForm';
