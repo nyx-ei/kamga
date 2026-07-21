@@ -19,6 +19,7 @@ import {
   RPN_PROOF_MIME_TYPES,
   type RpnProofMimeType
 } from '@/features/associations/association-types';
+import { sendContactOptInConfirmation } from '@/lib/associations/contact-opt-in';
 import { getCurrentUser, requirePlatformAdmin } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
 import { notifyJoinRequestSubmitted } from '@/lib/notifications/server';
@@ -233,6 +234,15 @@ export async function registerAssociation(
     return { ok: false, code: 'KMG-SYS-000' };
   }
 
+  if (contactEmail !== null) {
+    await sendContactOptInConfirmation({
+      associationId,
+      associationName: displayName,
+      email: contactEmail,
+      locale: parsedFields.data.locale
+    }).catch(() => undefined);
+  }
+
   revalidatePath('/admin/associations');
   revalidatePath('/dashboard');
   redirect(`/${parsedFields.data.locale}/dashboard/applications?associationSubmitted=1`);
@@ -385,27 +395,41 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
     }
 
     const displayName = optionalValue(row.common_name || '') ?? officialName;
-    const { error } = await supabase.from('associations').insert({
-      aliases: [],
-      city,
-      claim_status: 'unclaimed',
-      common_name: displayName,
-      contact_email: optionalValue(row.contact_email || ''),
-      contact_notification_opt_in_status: optionalValue(row.contact_email || '') === null ? 'withdrawn' : 'pending',
-      description: optionalValue(row.description || ''),
-      geocode_status: 'pending',
-      name: displayName,
-      official_name: officialName,
-      postal_code: postalCode,
-      primary_language: primaryLanguage,
-      province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
-      public_precision: 'neighbourhood',
-      registry_number: registryNumber,
-      registry_type: optionalValue(registryType),
-      source: 'csv_import',
-      status: 'active',
-      verification_status: registryNumber === null ? 'unverified' : 'needs_review'
-    });
+    const contactEmail = optionalValue(row.contact_email || '');
+    const { data: insertedAssociation, error } = await supabase
+      .from('associations')
+      .insert({
+        aliases: [],
+        city,
+        claim_status: 'unclaimed',
+        common_name: displayName,
+        contact_email: contactEmail,
+        contact_notification_opt_in_status: contactEmail === null ? 'withdrawn' : 'pending',
+        description: optionalValue(row.description || ''),
+        geocode_status: 'pending',
+        name: displayName,
+        official_name: officialName,
+        postal_code: postalCode,
+        primary_language: primaryLanguage,
+        province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
+        public_precision: 'neighbourhood',
+        registry_number: registryNumber,
+        registry_type: optionalValue(registryType),
+        source: 'csv_import',
+        status: 'active',
+        verification_status: registryNumber === null ? 'unverified' : 'needs_review'
+      })
+      .select('id')
+      .maybeSingle();
+
+    if (error === null && insertedAssociation !== null && contactEmail !== null) {
+      await sendContactOptInConfirmation({
+        associationId: insertedAssociation.id,
+        associationName: displayName,
+        email: contactEmail,
+        locale: primaryLanguage === 'en' ? 'en' : 'fr'
+      }).catch(() => undefined);
+    }
 
     results.push({ rowNumber, status: error === null ? 'imported' : 'skipped', message: error === null ? 'KMG-CSV-OK' : 'KMG-SYS-000', name: officialName });
   }
