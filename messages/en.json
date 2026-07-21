@@ -612,6 +612,7 @@
         "KMG-RG-002": "Upload an RPN affiliation proof.",
         "KMG-RG-003": "The proof file must be 10 MB or smaller.",
         "KMG-RG-004": "Use a PDF, PNG, or JPEG proof file.",
+        "KMG-RG-409": "This registry number already belongs to a claimed listing. Contact the platform administrator if you believe it is your association.",
         "KMG-SYS-000": "We could not complete the request. Try again or contact support."
       }
     },
