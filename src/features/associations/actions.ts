@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { createHash } from 'crypto';
 
 import {
+  ASSOCIATION_PRIMARY_LANGUAGES,
+  ASSOCIATION_REGISTRY_TYPES,
   type AssociationActionState,
   associationConnectRequestSchema,
   associationDecisionSchema,
@@ -210,6 +212,159 @@ async function runAssociationDecision(
   revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
 
   return { ok: true };
+}
+
+export type AssociationCsvImportRowResult = {
+  rowNumber: number;
+  status: 'imported' | 'skipped';
+  message: string;
+  name?: string;
+};
+
+export type AssociationCsvImportState = {
+  ok: boolean;
+  imported: number;
+  skipped: number;
+  rows: AssociationCsvImportRowResult[];
+};
+
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = '';
+  let quoted = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+
+    if (char === '"' && quoted && next === '"') {
+      current += '"';
+      index += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      quoted = !quoted;
+      continue;
+    }
+
+    if (char === ',' && !quoted) {
+      values.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function parseCsv(content: string): Array<Record<string, string>> {
+  const lines = content
+    .replace(/^\uFEFF/u, '')
+    .split(/\r?\n/u)
+    .filter((line) => line.trim().length > 0);
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  const headers = parseCsvLine(lines[0] ?? '').map((header) => header.trim().toLowerCase());
+  return lines.slice(1).map((line) => {
+    const values = parseCsvLine(line);
+    return Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? '']));
+  });
+}
+
+export async function importAssociationsCsv(_previousState: AssociationCsvImportState, formData: FormData): Promise<AssociationCsvImportState> {
+  await requirePlatformAdmin();
+
+  const file = formData.get('csvFile');
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, imported: 0, skipped: 0, rows: [{ rowNumber: 0, status: 'skipped', message: 'KMG-CSV-001' }] };
+  }
+
+  if (file.size > 1024 * 1024) {
+    return { ok: false, imported: 0, skipped: 0, rows: [{ rowNumber: 0, status: 'skipped', message: 'KMG-CSV-003' }] };
+  }
+
+  const rows = parseCsv(await file.text());
+  if (rows.length === 0) {
+    return { ok: false, imported: 0, skipped: 0, rows: [{ rowNumber: 0, status: 'skipped', message: 'KMG-CSV-001' }] };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const results: AssociationCsvImportRowResult[] = [];
+
+  for (const [index, row] of rows.entries()) {
+    const rowNumber = index + 2;
+    const officialName = (row.official_name || row.name || '').trim();
+    const city = (row.city || '').trim();
+    const postalCode = (row.postal_code || row.postalcode || '').trim();
+    const primaryLanguage = (row.primary_language || 'fr').trim();
+    const registryType = (row.registry_type || '').trim();
+
+    if (officialName.length === 0 || city.length === 0 || postalCode.length === 0) {
+      results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-002', name: officialName || undefined });
+      continue;
+    }
+
+    if (!ASSOCIATION_PRIMARY_LANGUAGES.includes(primaryLanguage as (typeof ASSOCIATION_PRIMARY_LANGUAGES)[number])) {
+      results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-004', name: officialName });
+      continue;
+    }
+
+    if (registryType !== '' && !ASSOCIATION_REGISTRY_TYPES.includes(registryType as (typeof ASSOCIATION_REGISTRY_TYPES)[number])) {
+      results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-004', name: officialName });
+      continue;
+    }
+
+    const registryNumber = optionalValue(row.registry_number || '');
+    if (registryNumber !== null) {
+      const { data: duplicate } = await supabase.from('associations').select('id').eq('registry_number', registryNumber).limit(1).maybeSingle();
+      if (duplicate !== null) {
+        results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-409', name: officialName });
+        continue;
+      }
+    }
+
+    const displayName = optionalValue(row.common_name || '') ?? officialName;
+    const { error } = await supabase.from('associations').insert({
+      aliases: [],
+      city,
+      claim_status: 'unclaimed',
+      common_name: displayName,
+      contact_email: optionalValue(row.contact_email || ''),
+      contact_notification_opt_in_status: optionalValue(row.contact_email || '') === null ? 'withdrawn' : 'pending',
+      description: optionalValue(row.description || ''),
+      geocode_status: 'pending',
+      name: displayName,
+      official_name: officialName,
+      postal_code: postalCode,
+      primary_language: primaryLanguage,
+      province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
+      public_precision: 'neighbourhood',
+      registry_number: registryNumber,
+      registry_type: optionalValue(registryType),
+      source: 'csv_import',
+      status: 'active',
+      verification_status: registryNumber === null ? 'unverified' : 'needs_review'
+    });
+
+    results.push({ rowNumber, status: error === null ? 'imported' : 'skipped', message: error === null ? 'KMG-CSV-OK' : 'KMG-SYS-000', name: officialName });
+  }
+
+  revalidatePath('/en/admin/csv');
+  revalidatePath('/fr/admin/csv');
+  revalidatePath('/en');
+  revalidatePath('/fr');
+
+  const imported = results.filter((row) => row.status === 'imported').length;
+  const skipped = results.length - imported;
+  return { ok: skipped === 0, imported, skipped, rows: results };
 }
 
 export async function approveAssociation(_previousState: AssociationActionState, formData: FormData): Promise<AssociationActionState> {

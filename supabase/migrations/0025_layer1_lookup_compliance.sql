@@ -1,7 +1,7 @@
-﻿-- Layer 1 lookup compliance: public directory, privacy-safe contact routing, and association metadata.
+-- Layer 1 lookup compliance: public directory, privacy-safe contact routing, and association metadata.
 create extension if not exists pg_trgm with schema extensions;
 
-do $
+do $$
 begin
   if not exists (select 1 from pg_type where typname = 'association_verification_status' and typnamespace = 'public'::regnamespace) then
     create type public.association_verification_status as enum ('unverified', 'verified', 'needs_review');
@@ -30,7 +30,7 @@ begin
   if not exists (select 1 from pg_type where typname = 'connect_request_status' and typnamespace = 'public'::regnamespace) then
     create type public.connect_request_status as enum ('queued', 'routed', 'brokered', 'closed');
   end if;
-end $;
+end $$;
 
 alter table public.associations
 add column if not exists official_name text,
