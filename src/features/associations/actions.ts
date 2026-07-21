@@ -86,6 +86,144 @@ function requesterIpHash(): string | null {
   return ip === undefined || ip.length === 0 ? null : hashSensitiveRateLimitValue(ip);
 }
 
+type DuplicateAssociationCandidate = {
+  city: string | null;
+  claim_status: string | null;
+  common_name: string | null;
+  id: string;
+  latitude: number | null;
+  longitude: number | null;
+  name: string | null;
+  official_name: string | null;
+  province: string | null;
+  registry_number: string | null;
+};
+
+type AssociationDuplicateCheckParams = {
+  city: string;
+  displayName: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  province: string;
+  registryNumber: string | null;
+};
+
+type AssociationDuplicateCheckResult =
+  | { associationId: string; kind: 'exact_claimable' }
+  | { associationId: string; kind: 'exact_blocked' }
+  | { associationId: string; kind: 'fuzzy_nearby' };
+
+function normalizeLookupText(value: string | null): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, ' ')
+    .trim();
+}
+
+function bigrams(value: string): Set<string> {
+  const normalized = normalizeLookupText(value).replace(/\s+/gu, '');
+
+  if (normalized.length < 2) {
+    return new Set(normalized.length === 0 ? [] : [normalized]);
+  }
+
+  const pairs = new Set<string>();
+  for (let index = 0; index < normalized.length - 1; index += 1) {
+    pairs.add(normalized.slice(index, index + 2));
+  }
+
+  return pairs;
+}
+
+function similarityScore(left: string, right: string): number {
+  const leftPairs = bigrams(left);
+  const rightPairs = bigrams(right);
+
+  if (leftPairs.size === 0 || rightPairs.size === 0) {
+    return 0;
+  }
+
+  const intersection = [...leftPairs].filter((pair) => rightPairs.has(pair)).length;
+  const union = new Set([...leftPairs, ...rightPairs]).size;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function degreesToRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function distanceInKilometers(leftLatitude: number, leftLongitude: number, rightLatitude: number, rightLongitude: number): number {
+  const earthRadiusKm = 6371;
+  const latitudeDelta = degreesToRadians(rightLatitude - leftLatitude);
+  const longitudeDelta = degreesToRadians(rightLongitude - leftLongitude);
+  const a =
+    Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2) +
+    Math.cos(degreesToRadians(leftLatitude)) * Math.cos(degreesToRadians(rightLatitude)) * Math.sin(longitudeDelta / 2) * Math.sin(longitudeDelta / 2);
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function candidateDisplayName(candidate: DuplicateAssociationCandidate): string {
+  return candidate.common_name ?? candidate.official_name ?? candidate.name ?? '';
+}
+
+async function findAssociationDuplicate(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  params: AssociationDuplicateCheckParams
+): Promise<AssociationDuplicateCheckResult | null> {
+  if (params.registryNumber !== null) {
+    const { data: exactDuplicate } = await supabase
+      .from('associations')
+      .select('id,claim_status')
+      .eq('registry_number', params.registryNumber)
+      .limit(1)
+      .maybeSingle();
+
+    if (exactDuplicate !== null) {
+      return {
+        associationId: exactDuplicate.id,
+        kind: exactDuplicate.claim_status === 'unclaimed' ? 'exact_claimable' : 'exact_blocked'
+      };
+    }
+  }
+
+  const normalizedCity = normalizeLookupText(params.city);
+  const normalizedProvince = params.province.trim().toUpperCase();
+  const { data: candidates } = await supabase
+    .from('associations')
+    .select('id,name,official_name,common_name,city,province,registry_number,claim_status,latitude,longitude')
+    .eq('province', normalizedProvince)
+    .limit(500);
+
+  const rows = (candidates ?? []) as DuplicateAssociationCandidate[];
+  const origin =
+    typeof params.latitude === 'number' && typeof params.longitude === 'number'
+      ? { latitude: params.latitude, longitude: params.longitude }
+      : null;
+
+  for (const candidate of rows) {
+    const candidateName = candidateDisplayName(candidate);
+    const score = similarityScore(params.displayName, candidateName);
+
+    if (score < 0.82) {
+      continue;
+    }
+
+    const sameCity = normalizeLookupText(candidate.city) === normalizedCity;
+    const nearby =
+      origin !== null && typeof candidate.latitude === 'number' && typeof candidate.longitude === 'number'
+        ? distanceInKilometers(origin.latitude, origin.longitude, candidate.latitude, candidate.longitude) <= 2
+        : sameCity && score >= 0.92;
+
+    if (nearby) {
+      return { associationId: candidate.id, kind: 'fuzzy_nearby' };
+    }
+  }
+
+  return null;
+}
 type AssociationVerificationNotificationParams = {
   associationId: string;
   associationName: string;
@@ -452,6 +590,27 @@ export async function registerAssociation(
     };
   }
 
+  const displayName = optionalValue(parsedFields.data.commonName ?? '') ?? parsedFields.data.name;
+  const registryNumber = optionalValue(parsedFields.data.registryNumber ?? '');
+  const registryType = optionalValue(parsedFields.data.registryType ?? '');
+  const contactEmail = optionalValue(parsedFields.data.contactEmail ?? '');
+  const supabase = createSupabaseServerClient();
+  const adminSupabase = createSupabaseAdminClient();
+  const duplicate = await findAssociationDuplicate(adminSupabase, {
+    city: parsedFields.data.city,
+    displayName,
+    province: parsedFields.data.province,
+    registryNumber
+  });
+
+  if (duplicate?.kind === 'exact_claimable') {
+    redirect(`/${parsedFields.data.locale}/register?claim=${duplicate.associationId}`);
+  }
+
+  if (duplicate?.kind === 'exact_blocked') {
+    return { ok: false, code: 'KMG-RG-409', fieldErrors: { registryNumber: 'KMG-RG-409' } };
+  }
+
   const parsedProof = parseRpnProof(formData);
 
   if (!('valid' in parsedProof)) {
@@ -460,9 +619,6 @@ export async function registerAssociation(
 
   const associationId = crypto.randomUUID();
   const storagePath = parsedProof.file === null ? null : `associations/${associationId}/rpn-affiliation-proof-${Date.now()}.${parsedProof.extension}`;
-
-  const supabase = createSupabaseServerClient();
-  const adminSupabase = createSupabaseAdminClient();
 
   if (parsedProof.file !== null && storagePath !== null) {
     // CV-DB-04 / CV-SEC-07: private evidence upload is a trusted server-side storage operation.
@@ -474,11 +630,6 @@ export async function registerAssociation(
       return { ok: false, code: 'KMG-SYS-000' };
     }
   }
-
-  const displayName = optionalValue(parsedFields.data.commonName ?? '') ?? parsedFields.data.name;
-  const registryNumber = optionalValue(parsedFields.data.registryNumber ?? '');
-  const registryType = optionalValue(parsedFields.data.registryType ?? '');
-  const contactEmail = optionalValue(parsedFields.data.contactEmail ?? '');
 
   const { error: insertError } = await supabase.from('associations').insert({
     id: associationId,
@@ -664,15 +815,18 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
     }
 
     const registryNumber = optionalValue(row.registry_number || '');
-    if (registryNumber !== null) {
-      const { data: duplicate } = await supabase.from('associations').select('id').eq('registry_number', registryNumber).limit(1).maybeSingle();
-      if (duplicate !== null) {
-        results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-409', name: officialName });
-        continue;
-      }
-    }
-
     const displayName = optionalValue(row.common_name || '') ?? officialName;
+    const duplicate = await findAssociationDuplicate(supabase, {
+      city,
+      displayName,
+      province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
+      registryNumber
+    });
+
+    if (duplicate !== null) {
+      results.push({ rowNumber, status: 'skipped', message: 'KMG-CSV-409', name: officialName });
+      continue;
+    }
     const contactEmail = optionalValue(row.contact_email || '');
     const { data: insertedAssociation, error } = await supabase
       .from('associations')

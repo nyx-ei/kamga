@@ -612,6 +612,7 @@
         "KMG-RG-002": "Téléversez une preuve d’affiliation RPN.",
         "KMG-RG-003": "La preuve doit peser 10 Mo ou moins.",
         "KMG-RG-004": "Utilisez un fichier PDF, PNG ou JPEG.",
+        "KMG-RG-409": "Ce numéro de registre correspond déjà à une fiche revendiquée. Contactez l’administrateur plateforme si vous pensez qu’il s’agit de votre association.",
         "KMG-SYS-000": "La demande n’a pas pu être complétée. Réessayez ou contactez le support."
       }
     },
