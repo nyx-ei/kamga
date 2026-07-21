@@ -106,6 +106,65 @@ export async function sendContactOptInConfirmation(params: SendContactOptInConfi
   });
 }
 
+type PendingContactOptInAssociation = {
+  contact_email: string | null;
+  contact_notification_confirmation_send_count: number;
+  id: string;
+  name: string | null;
+  primary_language: string | null;
+};
+
+export type ContactOptInResendResult = {
+  failed: number;
+  processed: number;
+  scanned: number;
+};
+
+function associationEmailLocale(value: string | null): EmailLocale {
+  return value === 'en' ? 'en' : 'fr';
+}
+
+export async function resendDueContactOptInConfirmations(limit = 50): Promise<ContactOptInResendResult> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from('associations')
+    .select('id,name,contact_email,primary_language,contact_notification_confirmation_send_count')
+    .eq('contact_notification_opt_in_status', 'pending')
+    .not('contact_email', 'is', null)
+    .lte('contact_notification_confirmation_next_send_at', new Date().toISOString())
+    .lt('contact_notification_confirmation_send_count', 5)
+    .order('contact_notification_confirmation_next_send_at', { ascending: true })
+    .limit(limit);
+
+  if (error || data === null) {
+    return { failed: 0, processed: 0, scanned: 0 };
+  }
+
+  const rows = data as PendingContactOptInAssociation[];
+  let processed = 0;
+  let failed = 0;
+
+  for (const association of rows) {
+    if (association.contact_email === null) {
+      continue;
+    }
+
+    try {
+      await sendContactOptInConfirmation({
+        associationId: association.id,
+        associationName: association.name ?? 'Kamga',
+        email: association.contact_email,
+        locale: associationEmailLocale(association.primary_language)
+      });
+      processed += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return { failed, processed, scanned: rows.length };
+}
+
 type ConfirmContactOptInResult =
   | { ok: true; associationName: string }
   | { ok: false; code: 'expired' | 'invalid' | 'used' };
