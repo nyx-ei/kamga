@@ -1,23 +1,25 @@
-import { notFound } from 'next/navigation';
-import { getFormatter, getTranslations } from 'next-intl/server';
-import { Building2, Mail, MapPin, Users } from 'lucide-react';
+﻿import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { Building2, Languages, MapPin, ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
 
-import { RequestToJoinAssociationForm } from '@/features/associations';
-import { ASSOCIATION_STATUSES, type AssociationStatus } from '@/features/associations/association-types';
-import { AssociationStatusBadge } from '@/features/associations/components/AssociationStatusBadge';
+import { RequestToConnectAssociationForm } from '@/features/associations';
+import { ASSOCIATION_CLAIM_STATUSES, ASSOCIATION_PRIMARY_LANGUAGES, ASSOCIATION_VERIFICATION_STATUSES } from '@/features/associations/association-types';
 import { Link } from '@/i18n/navigation';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 const publicAssociationSchema = z.object({
+  claim_status: z.enum(ASSOCIATION_CLAIM_STATUSES),
   city: z.string(),
-  contact_email: z.string().nullable(),
   description: z.string().nullable(),
+  display_name: z.string(),
   id: z.string().uuid(),
-  name: z.string(),
-  status: z.enum(ASSOCIATION_STATUSES)
+  primary_language: z.enum(ASSOCIATION_PRIMARY_LANGUAGES),
+  province: z.string(),
+  public_street_address: z.string().nullable(),
+  verification_status: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
 
 type AssociationProfilePageProps = {
@@ -35,12 +37,11 @@ async function getPublicAssociationProfile(associationId: string) {
   }
 
   const supabase = createSupabaseAdminClient();
-  // CV-SEC-06: public profile is shaped server-side and selects only public-facing association fields.
+  // CV-SEC-06 / BR-PE-02: public profile is shaped from the privacy-safe public directory view.
   const { data, error } = await supabase
-    .from('associations')
-    .select('id,name,city,status,description,contact_email')
+    .from('public_association_directory')
+    .select('id,display_name,city,province,description,primary_language,verification_status,claim_status,public_street_address')
     .eq('id', parsedId.data)
-    .eq('status', 'active')
     .maybeSingle();
 
   if (error || data === null) {
@@ -51,13 +52,6 @@ async function getPublicAssociationProfile(associationId: string) {
   return parsed.success ? parsed.data : null;
 }
 
-async function activeMemberCount(associationId: string): Promise<number> {
-  const supabase = createSupabaseAdminClient();
-  const { count, error } = await supabase.from('association_members').select('id', { count: 'exact', head: true }).eq('association_id', associationId).eq('status', 'active');
-
-  return error === null ? (count ?? 0) : 0;
-}
-
 export default async function AssociationProfilePage({ params }: AssociationProfilePageProps) {
   const association = await getPublicAssociationProfile(params.associationId);
 
@@ -66,9 +60,6 @@ export default async function AssociationProfilePage({ params }: AssociationProf
   }
 
   const t = await getTranslations('associations.profile');
-  const statusT = await getTranslations('associations.status');
-  const format = await getFormatter();
-  const memberCount = await activeMemberCount(association.id);
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -76,8 +67,13 @@ export default async function AssociationProfilePage({ params }: AssociationProf
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase text-muted">{t('badge')}</p>
-            <AssociationStatusBadge label={statusT(association.status)} status={association.status as AssociationStatus} />
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{association.name}</h1>
+            {association.verification_status === 'verified' ? (
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-positive-bg px-3 py-1 text-xs font-semibold text-positive">
+                <ShieldCheck aria-hidden="true" size={14} />
+                {t('verifiedBadge')}
+              </span>
+            ) : null}
+            <h1 className="text-3xl font-semibold leading-tight text-heading">{association.display_name}</h1>
           </div>
           <Link
             className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
@@ -92,29 +88,33 @@ export default async function AssociationProfilePage({ params }: AssociationProf
 
         <dl className="grid gap-4 rounded-md border border-border bg-sunken p-5 md:grid-cols-3">
           <div className="space-y-2">
-            <dt className="text-sm font-medium text-secondary">{t('cityLabel')}</dt>
+            <dt className="text-sm font-medium text-secondary">{t('locationLabel')}</dt>
             <dd className="inline-flex items-center gap-2 text-heading">
               <MapPin aria-hidden="true" size={16} />
-              {association.city}
+              {association.public_street_address ?? `${association.city}, ${association.province}`}
             </dd>
           </div>
           <div className="space-y-2">
-            <dt className="text-sm font-medium text-secondary">{t('memberCountLabel')}</dt>
+            <dt className="text-sm font-medium text-secondary">{t('languageLabel')}</dt>
             <dd className="inline-flex items-center gap-2 text-heading">
-              <Users aria-hidden="true" size={16} />
-              {format.number(memberCount)}
+              <Languages aria-hidden="true" size={16} />
+              {t(`languages.${association.primary_language}`)}
             </dd>
           </div>
           <div className="space-y-2">
             <dt className="text-sm font-medium text-secondary">{t('contactLabel')}</dt>
-            <dd className="inline-flex items-center gap-2 text-heading">
-              <Mail aria-hidden="true" size={16} />
-              {association.contact_email ?? t('contactDescription')}
-            </dd>
+            <dd className="text-heading">{t('contactDescription')}</dd>
           </div>
         </dl>
 
-        <RequestToJoinAssociationForm associationId={association.id} locale={params.locale} />
+        {association.claim_status === 'unclaimed' ? (
+          <Link className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-card px-4 py-2 text-sm font-semibold text-heading shadow-card" href={{ pathname: '/register', query: { claim: association.id } }}>
+            <ShieldCheck aria-hidden="true" size={16} />
+            {t('claimAction')}
+          </Link>
+        ) : null}
+
+        <RequestToConnectAssociationForm associationId={association.id} locale={params.locale} />
       </section>
     </main>
   );

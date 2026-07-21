@@ -563,7 +563,7 @@
       "contactEmailLabel": "Courriel de contact administratif",
       "contactEmailPlaceholder": "admin@example.org",
       "proofLabel": "Preuve d’affiliation RPN",
-      "proofHelp": "Téléversez un document PDF, PNG ou JPEG. Le fichier est stocké en privé et visible uniquement par les administrateurs plateforme pendant la revue.",
+      "proofHelp": "Téléversez un document PDF, PNG ou JPEG si cela aide les administrateurs plateforme à vérifier la fiche. Le fichier reste privé pendant la revue.",
       "submit": "Soumettre pour revue",
       "submitting": "Soumission en cours...",
       "wizard": {
@@ -571,7 +571,8 @@
         "legitimacyStep": "Verifier la legitimite",
         "publicStep": "Choisir ce qui est public",
         "back": "Retour",
-        "next": "Suivant"
+        "next": "Suivant",
+        "title": "Étapes d’inscription association"
       },
       "fields": {
         "identityLabel": "Identite",
@@ -580,21 +581,30 @@
         "commonNamePlaceholder": "Optionnel",
         "commonNameHelp": "Nom affiche s il est different",
         "locationLabel": "Localisation",
-        "locationHelp": "Seule la ville est stockee aujourd hui. Rue, province, code postal et geocodage restent desactives tant que le modele de donnees ne les supporte pas.",
+        "locationHelp": "Les coordonnées seront dérivées du code postal lorsque le géocodage sera connecté. L’adresse exacte reste privée sauf option explicite ultérieure.",
         "streetLabel": "Adresse",
-        "streetPlaceholder": "Les champs d adresse ne sont pas encore stockes",
+        "streetPlaceholder": "123 Rue Saint-Viateur O",
         "provinceLabel": "Province",
         "postalCodeLabel": "Code postal",
-        "postalCodePlaceholder": "Stockage du code postal en attente",
-        "geocodingPending": "Le geocodage sera active lorsque les champs adresse et coordonnees seront ajoutes au modele de donnees.",
+        "postalCodePlaceholder": "H2T 1S9",
+        "geocodingPending": "Le géocodage est préparé à partir du code postal. Les résultats publics utilisent la précision quartier par défaut.",
         "legitimacyTitle": "Verifier la legitimite",
-        "legitimacyDescription": "Les administrateurs plateforme verifient manuellement la preuve televersee. Les controles automatiques de registre sont une integration future.",
+        "legitimacyDescription": "Renseignez les informations de registre lorsqu’elles sont disponibles. Les administrateurs plateforme peuvent revoir la fiche manuellement tant que les contrôles REQ automatiques ne sont pas connectés.",
         "legalFormLabel": "Forme legale",
         "languageLabel": "Langue principale",
-        "registryPendingTitle": "Verification registre en attente",
-        "registryPendingDescription": "La verification automatique REQ n est pas encore connectee.",
+        "registryPendingTitle": "Vérification du registre",
+        "registryPendingDescription": "La vérification REQ automatique n’est pas encore connectée. Les informations de registre et les preuves fournies sont conservées pour la revue plateforme.",
         "publicTitle": "Choisir ce qui est public",
-        "publicDescription": "Les coordonnees restent privees sauf si une future fonctionnalite de confidentialite les expose explicitement."
+        "publicDescription": "Les coordonnées restent privées par défaut. Kamga médie les demandes membres tant qu’aucune option explicite de publication du contact n’est activée.",
+        "languageFrench": "Français",
+        "languageEnglish": "Anglais",
+        "languageBilingual": "Français et anglais",
+        "registryTypeLabel": "Type de registre",
+        "registryTypePlaceholder": "Non fourni",
+        "registryTypeNeq": "NEQ du Québec",
+        "registryTypeFederal": "Fédéral",
+        "registryNumberLabel": "Numéro de registre",
+        "registryNumberPlaceholder": "1169920034"
       },
       "errors": {
         "KMG-AUTH-401": "Connectez-vous avant de soumettre une association.",
@@ -633,7 +643,16 @@
       "contactLabel": "Contact admin",
       "contactDescription": "Le contact est médié par Kamga tant que l’association n’a pas explicitement choisi de publier un canal de contact.",
       "descriptionFallback": "Cette association n a pas encore publie de description detaillee.",
-      "memberCountLabel": "Membres actifs"
+      "memberCountLabel": "Membres actifs",
+      "locationLabel": "Localisation publique",
+      "languageLabel": "Langue principale",
+      "verifiedBadge": "Vérifiée",
+      "claimAction": "C’est votre association ? Revendiquez-la",
+      "languages": {
+        "en": "Anglais",
+        "fr": "Français",
+        "fr_en": "Français et anglais"
+      }
     },
     "join": {
       "action": "Demander a rejoindre",
@@ -645,6 +664,25 @@
         "KMG-RG-404": "Cette association active est introuvable.",
         "KMG-RG-409": "Une demande existe deja pour cette association.",
         "KMG-SYS-000": "La demande n a pas pu etre envoyee. Reessayez ou contactez le support."
+      }
+    },
+    "connect": {
+      "title": "Demande de mise en relation",
+      "description": "Partagez vos coordonnées et un court message. Kamga acheminera la demande sans exposer les coordonnées privées de l’association.",
+      "action": "Envoyer la demande",
+      "sentAction": "Demande envoyée",
+      "submitting": "Envoi en cours...",
+      "success": "Votre demande a été enregistrée. Kamga l’acheminera vers le bon administrateur lorsqu’un canal de contact sera disponible.",
+      "nameLabel": "Votre nom complet",
+      "emailLabel": "Adresse courriel",
+      "phoneLabel": "Numéro de téléphone",
+      "messageLabel": "Message",
+      "privacyNotice": "Vos coordonnées servent uniquement à acheminer cette demande. Elles ne sont pas publiées dans l’annuaire.",
+      "errors": {
+        "KMG-RC-001": "Vérifiez votre nom, votre message et au moins un canal de réponse.",
+        "KMG-RC-404": "Cette association n’est pas disponible pour les demandes médiées.",
+        "KMG-RC-429": "Trop de demandes ont été envoyées récemment. Réessayez plus tard.",
+        "KMG-SYS-000": "La demande n’a pas pu être envoyée. Réessayez ou contactez le support."
       }
     }
   },

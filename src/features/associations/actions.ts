@@ -1,10 +1,13 @@
 ﻿'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { createHash } from 'crypto';
 
 import {
   type AssociationActionState,
+  associationConnectRequestSchema,
   associationDecisionSchema,
   associationJoinRequestSchema,
   associationRegistrationSchema,
@@ -26,6 +29,11 @@ function valueFromFormData(formData: FormData, key: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+function optionalValue(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function mimeExtension(mimeType: RpnProofMimeType): 'pdf' | 'jpg' | 'png' {
   switch (mimeType) {
     case 'application/pdf':
@@ -37,11 +45,11 @@ function mimeExtension(mimeType: RpnProofMimeType): 'pdf' | 'jpg' | 'png' {
   }
 }
 
-function parseRpnProof(formData: FormData): { valid: true; file: File; extension: string } | AssociationActionFailure {
+function parseRpnProof(formData: FormData): { valid: true; file: File; extension: string } | { valid: true; file: null; extension: null } | AssociationActionFailure {
   const proof = formData.get('rpnAffiliationProof');
 
   if (!(proof instanceof File) || proof.size === 0) {
-    return { ok: false, code: 'KMG-RG-002', fieldErrors: { rpnAffiliationProof: 'KMG-RG-002' } };
+    return { valid: true, file: null, extension: null };
   }
 
   if (proof.size > MAX_RPN_PROOF_BYTES) {
@@ -55,6 +63,19 @@ function parseRpnProof(formData: FormData): { valid: true; file: File; extension
   return { valid: true, file: proof, extension: mimeExtension(proof.type as RpnProofMimeType) };
 }
 
+function hashSensitiveRateLimitValue(value: string): string {
+  return createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
+}
+
+function requesterIpHash(): string | null {
+  const headerList = headers();
+  const forwardedFor = headerList.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const realIp = headerList.get('x-real-ip')?.trim();
+  const ip = forwardedFor !== undefined && forwardedFor.length > 0 ? forwardedFor : realIp;
+
+  return ip === undefined || ip.length === 0 ? null : hashSensitiveRateLimitValue(ip);
+}
+
 export async function registerAssociation(
   _previousState: AssociationActionState = INITIAL_ERROR_STATE,
   formData: FormData
@@ -66,10 +87,17 @@ export async function registerAssociation(
   }
 
   const parsedFields = associationRegistrationSchema.safeParse({
-    name: valueFromFormData(formData, 'name'),
     city: valueFromFormData(formData, 'city'),
+    commonName: valueFromFormData(formData, 'commonName'),
     contactEmail: valueFromFormData(formData, 'contactEmail'),
-    locale: valueFromFormData(formData, 'locale')
+    locale: valueFromFormData(formData, 'locale'),
+    name: valueFromFormData(formData, 'name'),
+    postalCode: valueFromFormData(formData, 'postalCode'),
+    primaryLanguage: valueFromFormData(formData, 'primaryLanguage'),
+    province: valueFromFormData(formData, 'province') || 'QC',
+    registryNumber: valueFromFormData(formData, 'registryNumber'),
+    registryType: valueFromFormData(formData, 'registryType'),
+    streetAddress: valueFromFormData(formData, 'streetAddress')
   });
 
   if (!parsedFields.success) {
@@ -79,9 +107,13 @@ export async function registerAssociation(
       ok: false,
       code: 'KMG-RG-001',
       fieldErrors: {
-        name: flattened.name === undefined ? undefined : 'KMG-RG-001',
         city: flattened.city === undefined ? undefined : 'KMG-RG-001',
-        contactEmail: flattened.contactEmail === undefined ? undefined : 'KMG-RG-001'
+        contactEmail: flattened.contactEmail === undefined ? undefined : 'KMG-RG-001',
+        name: flattened.name === undefined ? undefined : 'KMG-RG-001',
+        postalCode: flattened.postalCode === undefined ? undefined : 'KMG-RG-001',
+        primaryLanguage: flattened.primaryLanguage === undefined ? undefined : 'KMG-RG-001',
+        registryNumber: flattened.registryNumber === undefined ? undefined : 'KMG-RG-001',
+        streetAddress: flattened.streetAddress === undefined ? undefined : 'KMG-RG-001'
       }
     };
   }
@@ -93,32 +125,56 @@ export async function registerAssociation(
   }
 
   const associationId = crypto.randomUUID();
-  const storagePath = `associations/${associationId}/rpn-affiliation-proof-${Date.now()}.${parsedProof.extension}`;
+  const storagePath = parsedProof.file === null ? null : `associations/${associationId}/rpn-affiliation-proof-${Date.now()}.${parsedProof.extension}`;
 
   const supabase = createSupabaseServerClient();
   const adminSupabase = createSupabaseAdminClient();
 
-  // CV-DB-04 / CV-SEC-07: private evidence upload is a trusted server-side storage operation.
-  const { error: uploadError } = await adminSupabase.storage
-    .from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET)
-    .upload(storagePath, parsedProof.file, { contentType: parsedProof.file.type, upsert: false });
+  if (parsedProof.file !== null && storagePath !== null) {
+    // CV-DB-04 / CV-SEC-07: private evidence upload is a trusted server-side storage operation.
+    const { error: uploadError } = await adminSupabase.storage
+      .from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET)
+      .upload(storagePath, parsedProof.file, { contentType: parsedProof.file.type, upsert: false });
 
-  if (uploadError) {
-    return { ok: false, code: 'KMG-SYS-000' };
+    if (uploadError) {
+      return { ok: false, code: 'KMG-SYS-000' };
+    }
   }
+
+  const displayName = optionalValue(parsedFields.data.commonName ?? '') ?? parsedFields.data.name;
+  const registryNumber = optionalValue(parsedFields.data.registryNumber ?? '');
+  const registryType = optionalValue(parsedFields.data.registryType ?? '');
+  const contactEmail = optionalValue(parsedFields.data.contactEmail ?? '');
 
   const { error: insertError } = await supabase.from('associations').insert({
     id: associationId,
-    name: parsedFields.data.name,
+    aliases: [],
     city: parsedFields.data.city,
-    contact_email: parsedFields.data.contactEmail,
+    claim_status: 'claimed',
+    common_name: displayName,
+    contact_email: contactEmail,
+    contact_notification_opt_in_status: contactEmail === null ? 'withdrawn' : 'pending',
+    geocode_status: 'pending',
+    name: displayName,
+    official_name: parsedFields.data.name,
+    postal_code: parsedFields.data.postalCode,
+    primary_language: parsedFields.data.primaryLanguage,
+    province: parsedFields.data.province.toUpperCase(),
+    public_precision: 'neighbourhood',
+    registry_number: registryNumber,
+    registry_type: registryType,
+    rpn_affiliation_proof_path: storagePath,
+    source: 'self_registered',
     status: 'pending_review',
-    created_by: currentUser.user.id,
-    rpn_affiliation_proof_path: storagePath
+    street_address: optionalValue(parsedFields.data.streetAddress ?? ''),
+    verification_status: registryNumber === null ? 'unverified' : 'needs_review',
+    created_by: currentUser.user.id
   });
 
   if (insertError) {
-    await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).remove([storagePath]);
+    if (storagePath !== null) {
+      await adminSupabase.storage.from(env.SUPABASE_STORAGE_EVIDENCE_BUCKET).remove([storagePath]);
+    }
     return { ok: false, code: 'KMG-SYS-000' };
   }
 
@@ -164,6 +220,61 @@ export async function suspendAssociation(_previousState: AssociationActionState,
   return runAssociationDecision(formData, 'suspend_association');
 }
 
+export async function submitAssociationConnectRequest(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const parsed = associationConnectRequestSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    locale: valueFromFormData(formData, 'locale'),
+    message: valueFromFormData(formData, 'message'),
+    requesterEmail: valueFromFormData(formData, 'requesterEmail'),
+    requesterName: valueFromFormData(formData, 'requesterName'),
+    requesterPhone: valueFromFormData(formData, 'requesterPhone')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-RC-001',
+      fieldErrors: {
+        message: flattened.message === undefined ? undefined : 'KMG-RC-001',
+        requesterEmail: flattened.requesterEmail === undefined ? undefined : 'KMG-RC-001',
+        requesterName: flattened.requesterName === undefined ? undefined : 'KMG-RC-001',
+        requesterPhone: flattened.requesterPhone === undefined ? undefined : 'KMG-RC-001'
+      }
+    };
+  }
+
+  const replyChannel = parsed.data.requesterEmail !== '' ? parsed.data.requesterEmail : parsed.data.requesterPhone;
+  // Anonymous public requests are inserted through a SECURITY DEFINER RPC that owns validation and rate limits.
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.rpc('submit_association_connect_request', {
+    association_uuid: parsed.data.associationId,
+    locale_value: parsed.data.locale,
+    message_value: parsed.data.message,
+    reply_channel_hash_value: hashSensitiveRateLimitValue(replyChannel ?? ''),
+    requester_email_value: optionalValue(parsed.data.requesterEmail ?? ''),
+    requester_ip_hash_value: requesterIpHash(),
+    requester_name_value: parsed.data.requesterName,
+    requester_phone_value: optionalValue(parsed.data.requesterPhone ?? '')
+  });
+
+  if (error) {
+    if (error.message === 'KMG-RC-404') {
+      return { ok: false, code: 'KMG-RC-404' };
+    }
+
+    if (error.message === 'KMG-RC-429') {
+      return { ok: false, code: 'KMG-RC-429' };
+    }
+
+    return { ok: false, code: error.message === 'KMG-RC-001' ? 'KMG-RC-001' : 'KMG-SYS-000' };
+  }
+
+  revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
+  return { ok: true, submitted: true };
+}
+
 export async function requestToJoinAssociation(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   const currentUser = await getCurrentUser();
   const parsed = associationJoinRequestSchema.safeParse({
@@ -207,7 +318,5 @@ export async function requestToJoinAssociation(_previousState: AssociationAction
   revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
   redirect(`/${parsed.data.locale}/dashboard/applications?joinRequest=1`);
 }
-
-
 
 

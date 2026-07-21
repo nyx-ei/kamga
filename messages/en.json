@@ -563,7 +563,7 @@
       "contactEmailLabel": "Administrative contact email",
       "contactEmailPlaceholder": "admin@example.org",
       "proofLabel": "RPN affiliation proof",
-      "proofHelp": "Upload a PDF, PNG, or JPEG document. The file is stored privately and visible only to platform administrators during review.",
+      "proofHelp": "Upload a PDF, PNG, or JPEG document if it helps platform administrators verify the listing. The file is stored privately during review.",
       "submit": "Submit for review",
       "submitting": "Submitting...",
       "wizard": {
@@ -571,7 +571,8 @@
         "legitimacyStep": "Verify legitimacy",
         "publicStep": "Choose what's public",
         "back": "Back",
-        "next": "Next"
+        "next": "Next",
+        "title": "Association registration steps"
       },
       "fields": {
         "identityLabel": "Identity",
@@ -580,21 +581,30 @@
         "commonNamePlaceholder": "Optional",
         "commonNameHelp": "Display name if different",
         "locationLabel": "Location",
-        "locationHelp": "Only city is stored today. Street, province, postal code, and geocoding are disabled until the data model supports them.",
+        "locationHelp": "Coordinates are derived from the postal code when geocoding is connected. Exact street address stays private unless the association opts in later.",
         "streetLabel": "Street address",
-        "streetPlaceholder": "Address fields are not stored yet",
+        "streetPlaceholder": "123 Rue Saint-Viateur O",
         "provinceLabel": "Province",
         "postalCodeLabel": "Postal code",
-        "postalCodePlaceholder": "Postal code storage pending",
-        "geocodingPending": "Geocoding will be enabled when address and coordinate fields are added to the data model.",
+        "postalCodePlaceholder": "H2T 1S9",
+        "geocodingPending": "Geocoding is queued from the postal code. Public results use neighbourhood precision by default.",
         "legitimacyTitle": "Verify legitimacy",
-        "legitimacyDescription": "Platform admins review the uploaded proof manually. Automatic registry checks are a future integration.",
+        "legitimacyDescription": "Enter registry details when available. Platform administrators can review the record manually until automatic REQ checks are connected.",
         "legalFormLabel": "Legal form",
         "languageLabel": "Primary language",
-        "registryPendingTitle": "Registry verification pending",
-        "registryPendingDescription": "Automatic REQ verification is not connected yet.",
+        "registryPendingTitle": "Registry verification",
+        "registryPendingDescription": "Automatic REQ verification is not connected yet. Supplied registry details and proofs are retained for platform review.",
         "publicTitle": "Choose what's public",
-        "publicDescription": "Contact details stay private unless a later privacy feature explicitly exposes them."
+        "publicDescription": "Contact details stay private by default. Kamga mediates member requests until an explicit contact-publishing option is enabled.",
+        "languageFrench": "French",
+        "languageEnglish": "English",
+        "languageBilingual": "French & English",
+        "registryTypeLabel": "Registry type",
+        "registryTypePlaceholder": "Not provided",
+        "registryTypeNeq": "Quebec NEQ",
+        "registryTypeFederal": "Federal",
+        "registryNumberLabel": "Registry number",
+        "registryNumberPlaceholder": "1169920034"
       },
       "errors": {
         "KMG-AUTH-401": "Sign in before submitting an association.",
@@ -633,7 +643,16 @@
       "contactLabel": "Admin contact",
       "contactDescription": "Contact is mediated by Kamga until the association explicitly opts in to publish a contact channel.",
       "descriptionFallback": "This association has not published a detailed description yet.",
-      "memberCountLabel": "Active members"
+      "memberCountLabel": "Active members",
+      "locationLabel": "Public location",
+      "languageLabel": "Primary language",
+      "verifiedBadge": "Verified",
+      "claimAction": "Is this your association? Claim it",
+      "languages": {
+        "en": "English",
+        "fr": "French",
+        "fr_en": "French & English"
+      }
     },
     "join": {
       "action": "Request to join",
@@ -644,6 +663,25 @@
         "KMG-RG-001": "The request is invalid.",
         "KMG-RG-404": "This active association could not be found.",
         "KMG-RG-409": "A request already exists for this association.",
+        "KMG-SYS-000": "The request could not be submitted. Try again or contact support."
+      }
+    },
+    "connect": {
+      "title": "Request to connect",
+      "description": "Share your contact details and a short message. Kamga will route the request without exposing private association contact details.",
+      "action": "Send request",
+      "sentAction": "Request sent",
+      "submitting": "Sending...",
+      "success": "Your request has been recorded. Kamga will route it to the right administrator when a contact channel is available.",
+      "nameLabel": "Your full name",
+      "emailLabel": "Email address",
+      "phoneLabel": "Phone number",
+      "messageLabel": "Message",
+      "privacyNotice": "Your contact details are used only to route this request. They are not published in the directory.",
+      "errors": {
+        "KMG-RC-001": "Check your name, message, and at least one reply channel.",
+        "KMG-RC-404": "This association is not available for mediated requests.",
+        "KMG-RC-429": "Too many requests were submitted recently. Try again later.",
         "KMG-SYS-000": "The request could not be submitted. Try again or contact support."
       }
     }

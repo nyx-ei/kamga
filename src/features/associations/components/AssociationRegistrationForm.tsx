@@ -60,16 +60,18 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [contactEmail, setContactEmail] = useState('');
-  const [hasProof, setHasProof] = useState(false);
+  const [postalCode, setPostalCode] = useState('');
+  const [primaryLanguage, setPrimaryLanguage] = useState<'fr' | 'en' | 'fr_en'>('fr');
+  const [, setHasProof] = useState(false);
   const messageCode = actionMessage(state);
 
   const completedSteps = useMemo(
     () => ({
-      1: name.trim().length > 0 && city.trim().length > 0,
-      2: hasProof,
-      3: contactEmail.trim().length > 0
+      1: name.trim().length > 0 && city.trim().length > 0 && postalCode.trim().length > 0,
+      2: primaryLanguage.length > 0,
+      3: true
     }),
-    [city, contactEmail, hasProof, name]
+    [city, name, postalCode, primaryLanguage]
   );
 
   const canAdvance = completedSteps[currentStep];
@@ -142,9 +144,10 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
                 {t('fields.commonNameLabel')}
               </label>
               <input
-                className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card"
-                disabled
+                className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition placeholder:text-muted focus:border-focus"
                 id="association-common-name"
+                maxLength={180}
+                name="commonName"
                 placeholder={t('fields.commonNamePlaceholder')}
                 type="text"
               />
@@ -164,9 +167,10 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
                 {t('fields.streetLabel')}
               </label>
               <input
-                className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card"
-                disabled
+                className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition placeholder:text-muted focus:border-focus"
                 id="association-street"
+                maxLength={220}
+                name="streetAddress"
                 placeholder={t('fields.streetPlaceholder')}
                 type="text"
               />
@@ -194,19 +198,23 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
             </div>
             <label className="grid gap-2 text-sm font-semibold text-heading">
               {t('fields.provinceLabel')}
-              <select className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card" defaultValue="QC" disabled>
-                <option>QC</option>
-                <option>ON</option>
-                <option>NB</option>
+              <select className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition focus:border-focus" defaultValue="QC" name="province">
+                <option value="QC">QC</option>
+                <option value="ON">ON</option>
+                <option value="NB">NB</option>
               </select>
             </label>
             <label className="grid gap-2 text-sm font-semibold text-heading">
               {t('fields.postalCodeLabel')}
               <input
-                className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 font-mono text-sm text-muted shadow-card"
-                disabled
+                className="h-12 rounded-sm border border-input bg-raised px-4 font-mono text-sm text-body shadow-card transition placeholder:text-muted focus:border-focus"
+                maxLength={12}
+                name="postalCode"
+                onChange={(event) => setPostalCode(event.target.value)}
                 placeholder={t('fields.postalCodePlaceholder')}
+                required
                 type="text"
+                value={postalCode}
               />
             </label>
           </div>
@@ -231,11 +239,36 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
             </label>
             <label className="grid gap-2 text-sm font-semibold text-heading">
               {t('fields.languageLabel')}
-              <select className="h-12 cursor-not-allowed rounded-sm border border-input bg-sunken px-4 text-sm text-muted shadow-card" defaultValue="French" disabled>
-                <option>French</option>
-                <option>English</option>
-                <option>French & English</option>
+              <select
+                className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition focus:border-focus"
+                name="primaryLanguage"
+                onChange={(event) => setPrimaryLanguage(event.target.value as 'fr' | 'en' | 'fr_en')}
+                value={primaryLanguage}
+              >
+                <option value="fr">{t('fields.languageFrench')}</option>
+                <option value="en">{t('fields.languageEnglish')}</option>
+                <option value="fr_en">{t('fields.languageBilingual')}</option>
               </select>
+            </label>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+            <label className="grid gap-2 text-sm font-semibold text-heading">
+              {t('fields.registryTypeLabel')}
+              <select className="h-12 rounded-sm border border-input bg-raised px-4 text-sm text-body shadow-card transition focus:border-focus" defaultValue="" name="registryType">
+                <option value="">{t('fields.registryTypePlaceholder')}</option>
+                <option value="neq">{t('fields.registryTypeNeq')}</option>
+                <option value="federal">{t('fields.registryTypeFederal')}</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm font-semibold text-heading">
+              {t('fields.registryNumberLabel')}
+              <input
+                className="h-12 rounded-sm border border-input bg-raised px-4 font-mono text-sm text-body shadow-card transition placeholder:text-muted focus:border-focus"
+                maxLength={64}
+                name="registryNumber"
+                placeholder={t('fields.registryNumberPlaceholder')}
+                type="text"
+              />
             </label>
           </div>
           <div className="flex items-start gap-4 rounded-sm border border-border bg-sunken px-6 py-5 text-secondary">
@@ -262,7 +295,6 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
               id="association-proof"
               name="rpnAffiliationProof"
               onChange={(event) => setHasProof((event.target.files?.length ?? 0) > 0)}
-              required
               type="file"
             />
           </div>
@@ -289,7 +321,6 @@ export function AssociationRegistrationForm({ locale }: AssociationRegistrationF
               name="contactEmail"
               onChange={(event) => setContactEmail(event.target.value)}
               placeholder={t('contactEmailPlaceholder')}
-              required
               type="email"
               value={contactEmail}
             />
