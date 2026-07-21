@@ -13,11 +13,11 @@ select
   claim_status,
   public_precision,
   case when public_precision = 'exact' then street_address else null end as public_street_address,
-  case when public_contact_email then contact_email else null end as public_contact_email,
   latitude,
   longitude,
   geocode_status,
-  updated_at
+  updated_at,
+  case when public_contact_email then contact_email else null end as public_contact_email
 from public.associations
 where status = 'active'
   and (geocode_status in ('pending', 'geocoded') or latitude is null or longitude is null);
