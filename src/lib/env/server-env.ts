@@ -4,6 +4,8 @@ import { publicEnv } from '@/lib/env/public-env';
 
 import 'server-only';
 
+const optionalUrl = z.preprocess((value) => value === '' ? undefined : value, z.string().url().optional());
+
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_EVIDENCE_BUCKET: z.string().min(1),
@@ -17,8 +19,8 @@ const serverEnvSchema = z.object({
   GEOCODING_PROVIDER: z.enum(['mapbox', 'nominatim']).optional(),
   MAPBOX_GEOCODING_TOKEN: z.string().optional(),
   GEOCODING_USER_AGENT: z.string().optional(),
-  REQ_REGISTRY_DATA_URL: z.string().url().optional(),
-  FEDERAL_REGISTRY_DATA_URL: z.string().url().optional()
+  REQ_REGISTRY_DATA_URL: optionalUrl,
+  FEDERAL_REGISTRY_DATA_URL: optionalUrl
 });
 
 const serverEnv = serverEnvSchema.parse({
