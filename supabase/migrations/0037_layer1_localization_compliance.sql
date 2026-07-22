@@ -1,5 +1,7 @@
 -- Layer 1 localization compliance: bilingual public content and locale-aware lookup.
 
+create extension if not exists pg_trgm with schema extensions;
+
 alter table public.associations
   add column if not exists common_name_en text,
   add column if not exists common_name_fr text,
@@ -7,11 +9,11 @@ alter table public.associations
   add column if not exists description_fr text;
 
 create index if not exists associations_common_name_en_trgm_idx
-on public.associations using gin (common_name_en gin_trgm_ops)
+on public.associations using gin (common_name_en extensions.gin_trgm_ops)
 where common_name_en is not null;
 
 create index if not exists associations_common_name_fr_trgm_idx
-on public.associations using gin (common_name_fr gin_trgm_ops)
+on public.associations using gin (common_name_fr extensions.gin_trgm_ops)
 where common_name_fr is not null;
 
 drop view if exists public.public_association_directory;
