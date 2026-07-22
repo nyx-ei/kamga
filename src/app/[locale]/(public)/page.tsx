@@ -108,6 +108,9 @@ const directoryCopy = {
         'KMG-MG-001': 'The selected records cannot be merged.',
         'KMG-MG-404': 'One of the selected records could not be found.',
         'KMG-MG-409': 'The selected duplicate has already been merged.',
+        'KMG-PC-001': 'The privacy request is invalid.',
+        'KMG-PC-404': 'The privacy request could not be found.',
+        'KMG-PC-409': 'A pending privacy request already exists.',
         'KMG-SYS-000': 'The lead could not be recorded. Try again or contact support.'
       },
       messageLabel: 'Context for the Kamga team',
@@ -196,6 +199,9 @@ const directoryCopy = {
         'KMG-MG-001': 'Les fiches selectionnees ne peuvent pas etre fusionnees.',
         'KMG-MG-404': 'Une des fiches selectionnees est introuvable.',
         'KMG-MG-409': 'Le doublon selectionne a deja ete fusionne.',
+        'KMG-PC-001': 'La demande privacy est invalide.',
+        'KMG-PC-404': 'La demande privacy est introuvable.',
+        'KMG-PC-409': 'Une demande privacy est deja en attente.',
         'KMG-SYS-000': 'La piste nâ€™a pas pu Ãªtre enregistrÃ©e. RÃ©essayez ou contactez le support.'
       },
       messageLabel: 'Contexte pour lâ€™Ã©quipe Kamga',

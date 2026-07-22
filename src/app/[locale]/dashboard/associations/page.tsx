@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { MemberWorkspaceShell } from '@/components/kamga/MockupShell';
+import { AssociationPrivacyRequestForm } from '@/features/associations/components/AssociationPrivacyRequestForm';
 import { AssociationRecordManagementForm } from '@/features/associations/components/AssociationRecordManagementForm';
 import { Link } from '@/i18n/navigation';
 import { requireUser } from '@/lib/auth';
@@ -59,6 +60,28 @@ const copy = {
     provinceLabel: 'Province',
     publicContactEmailLabel: 'Publish this email on the public profile',
     publicPrecisionHelp: 'Neighbourhood precision is the privacy-preserving default. Exact address should be used only for a public venue.',
+    privacy: {
+      description: 'Ask Kamga to remove private contact details or delist this record from the public directory. Admin review is required before any terminal privacy action is applied.',
+      reasonLabel: 'Reason or context',
+      reasonPlaceholder: 'Add the operational context the admin should consider.',
+      requestAction: 'Submit privacy request',
+      requestPending: 'Submitting...',
+      requestSubmitted: 'Privacy request submitted for admin review.',
+      title: 'Privacy and removal request',
+      typeLabel: 'Request type',
+      requestTypes: {
+        delist_record: 'Delist this association record',
+        remove_contact: 'Remove private contact details'
+      },
+      errors: {
+        'KMG-AUTH-401': 'Sign in again before submitting this request.',
+        'KMG-AUTH-403': 'Only an active association admin can submit this request.',
+        'KMG-PC-001': 'Check the privacy request fields and try again.',
+        'KMG-PC-404': 'This privacy request could not be found.',
+        'KMG-PC-409': 'A pending request of this type already exists.',
+        'KMG-SYS-000': 'The privacy request could not be submitted. Try again or contact support.'
+      }
+    },
     publicPrecisionLabel: 'Public location precision',
     saved: 'Association record saved.',
     saveAction: 'Save record',
@@ -109,6 +132,28 @@ const copy = {
     publicContactEmailLabel: 'Publier ce courriel sur la fiche publique',
     publicPrecisionHelp: 'La prÃ©cision quartier est le choix par dÃ©faut pour protÃ©ger la vie privÃ©e. Lâ€™adresse exacte doit Ãªtre rÃ©servÃ©e aux lieux publics.',
     publicPrecisionLabel: 'PrÃ©cision publique de localisation',
+    privacy: {
+      description: 'Demandez a Kamga de retirer les coordonnees privees ou de retirer cette fiche de l annuaire public. Une revue admin est requise avant toute action privacy terminale.',
+      reasonLabel: 'Motif ou contexte',
+      reasonPlaceholder: 'Ajoutez le contexte operationnel que l admin doit prendre en compte.',
+      requestAction: 'Envoyer la demande privacy',
+      requestPending: 'Envoi...',
+      requestSubmitted: 'Demande privacy envoyee pour revue admin.',
+      title: 'Confidentialite et retrait',
+      typeLabel: 'Type de demande',
+      requestTypes: {
+        delist_record: 'Retirer cette fiche association',
+        remove_contact: 'Retirer les coordonnees privees'
+      },
+      errors: {
+        'KMG-AUTH-401': 'Reconnectez-vous avant d envoyer cette demande.',
+        'KMG-AUTH-403': 'Seul un admin association actif peut envoyer cette demande.',
+        'KMG-PC-001': 'Verifiez les champs de la demande privacy puis reessayez.',
+        'KMG-PC-404': 'Cette demande privacy est introuvable.',
+        'KMG-PC-409': 'Une demande de ce type est deja en attente.',
+        'KMG-SYS-000': 'La demande privacy n a pas pu etre envoyee. Reessayez ou contactez le support.'
+      }
+    },
     saved: 'Fiche association enregistrÃ©e.',
     saveAction: 'Enregistrer la fiche',
     saving: 'Enregistrement...',
@@ -202,6 +247,7 @@ export default async function DashboardAssociationsPage({ params }: DashboardAss
                 </dl>
               </div>
               <AssociationRecordManagementForm association={association} copy={c} locale={params.locale} />
+              <AssociationPrivacyRequestForm associationId={association.id} copy={c.privacy} locale={params.locale} />
             </article>
           ))
         )}

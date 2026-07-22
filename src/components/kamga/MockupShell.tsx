@@ -10,7 +10,7 @@ type PublicDirectoryHeaderProps = {
 };
 
 type AdminWorkspaceShellProps = {
-  activeItem: 'associations' | 'claimRequests' | 'connectRequests' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'recruitLeads' | 'referrals' | 'reports';
+  activeItem: 'associations' | 'claimRequests' | 'connectRequests' | 'csv' | 'fees' | 'levees' | 'members' | 'notifications' | 'pilot' | 'privacyRequests' | 'recruitLeads' | 'referrals' | 'reports';
   children: ReactNode;
   locale: 'en' | 'fr';
   title: string;
@@ -45,6 +45,7 @@ const shellCopy = {
     adminMembers: 'Members',
     adminNotifications: 'Notifications',
     adminPilot: 'Pilot program',
+    adminPrivacyRequests: 'Privacy requests',
     adminRecruitLeads: 'Recruit leads',
     adminReferrals: 'Referrals',
     adminReports: 'Reports',
@@ -71,6 +72,7 @@ const shellCopy = {
     adminMembers: 'Membres',
     adminNotifications: 'Notifications',
     adminPilot: 'Programme pilote',
+    adminPrivacyRequests: 'Demandes privacy',
     adminRecruitLeads: 'Pistes annuaire',
     adminReferrals: 'Parrainages',
     adminReports: 'Rapports',
@@ -149,6 +151,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <Megaphone aria-hidden="true" size={20} />
               {copy.adminRecruitLeads}
             </Link>
+            <Link className={itemClassName('privacyRequests')} href="/admin/privacy-requests">
+              <ShieldCheck aria-hidden="true" size={20} />
+              {copy.adminPrivacyRequests}
+            </Link>
             <Link className={itemClassName('referrals')} href="/admin/referrals">
               <Link2 aria-hidden="true" size={20} />
               {copy.adminReferrals}
@@ -214,6 +220,10 @@ export function AdminWorkspaceShell({ activeItem, children, locale, title, toolb
               <Link className={`${itemClassName('recruitLeads')} min-w-fit`} href="/admin/recruit-leads">
                 <Megaphone aria-hidden="true" size={18} />
                 {copy.adminRecruitLeads}
+              </Link>
+              <Link className={`${itemClassName('privacyRequests')} min-w-fit`} href="/admin/privacy-requests">
+                <ShieldCheck aria-hidden="true" size={18} />
+                {copy.adminPrivacyRequests}
               </Link>
               <Link className={`${itemClassName('referrals')} min-w-fit`} href="/admin/referrals">
                 <Link2 aria-hidden="true" size={18} />
