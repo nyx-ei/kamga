@@ -13,7 +13,10 @@ const serverEnvSchema = z.object({
   CRON_SECRET: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  SUPABASE_WEBHOOK_SECRET: z.string().optional()
+  SUPABASE_WEBHOOK_SECRET: z.string().optional(),
+  GEOCODING_PROVIDER: z.enum(['mapbox', 'nominatim']).optional(),
+  MAPBOX_GEOCODING_TOKEN: z.string().optional(),
+  GEOCODING_USER_AGENT: z.string().optional()
 });
 
 const serverEnv = serverEnvSchema.parse({
@@ -25,7 +28,10 @@ const serverEnv = serverEnvSchema.parse({
   CRON_SECRET: process.env.CRON_SECRET,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-  SUPABASE_WEBHOOK_SECRET: process.env.SUPABASE_WEBHOOK_SECRET
+  SUPABASE_WEBHOOK_SECRET: process.env.SUPABASE_WEBHOOK_SECRET,
+  GEOCODING_PROVIDER: process.env.GEOCODING_PROVIDER,
+  MAPBOX_GEOCODING_TOKEN: process.env.MAPBOX_GEOCODING_TOKEN,
+  GEOCODING_USER_AGENT: process.env.GEOCODING_USER_AGENT
 });
 
 export const env = {
