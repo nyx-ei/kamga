@@ -12,6 +12,7 @@ const publicAssociationSearchRowSchema = z.object({
   ambiguous_location: z.boolean().nullable(),
   city: z.string().nullable(),
   claim_status: z.enum(ASSOCIATION_CLAIM_STATUSES).nullable(),
+  content_locale: z.enum(['en', 'fr', 'fr_en']).nullable(),
   description: z.string().nullable(),
   display_name: z.string().nullable(),
   distance_km: z.number().nullable(),
@@ -34,6 +35,7 @@ const publicAssociationSearchRowSchema = z.object({
 export type PublicAssociationSearchResult = {
   city: string;
   claimStatus: (typeof ASSOCIATION_CLAIM_STATUSES)[number];
+  contentLocale: 'en' | 'fr' | 'fr_en';
   description: string | null;
   displayName: string;
   distanceKm: number | null;
@@ -61,6 +63,7 @@ type PublicAssociationSearchParams = {
   originLabel: string | null;
   query: string;
   radiusKm: number;
+  uiLocale: 'en' | 'fr';
   userLatitude: number | null;
   userLongitude: number | null;
   verifiedOnly: boolean;
@@ -75,6 +78,7 @@ function toSearchResult(row: z.infer<typeof publicAssociationSearchRowSchema>): 
     row.id === null ||
     row.city === null ||
     row.claim_status === null ||
+    row.content_locale === null ||
     row.display_name === null ||
     row.latitude === null ||
     row.longitude === null ||
@@ -91,6 +95,7 @@ function toSearchResult(row: z.infer<typeof publicAssociationSearchRowSchema>): 
   return {
     city: row.city,
     claimStatus: row.claim_status,
+    contentLocale: row.content_locale,
     description: row.description,
     displayName: row.display_name,
     distanceKm: row.distance_km,
@@ -112,6 +117,7 @@ export async function searchPublicAssociations(params: PublicAssociationSearchPa
     origin_label_value: params.originLabel,
     radius_km_value: params.radiusKm,
     search_query_value: params.query,
+    ui_locale_value: params.uiLocale,
     user_latitude_value: params.userLatitude,
     user_longitude_value: params.userLongitude,
     verified_only_value: params.verifiedOnly

@@ -13,9 +13,13 @@ const associationRecordSchema = z.object({
   city: z.string(),
   claim_status: z.enum(['unclaimed', 'claimed', 'claim_pending', 'claim_locked']),
   common_name: z.string().nullable(),
+  common_name_en: z.string().nullable(),
+  common_name_fr: z.string().nullable(),
   contact_email: z.string().nullable(),
   contact_notification_opt_in_status: z.enum(['pending', 'confirmed', 'withdrawn']),
   description: z.string().nullable(),
+  description_en: z.string().nullable(),
+  description_fr: z.string().nullable(),
   id: z.string().uuid(),
   official_name: z.string(),
   postal_code: z.string().nullable(),
@@ -46,10 +50,14 @@ const copy = {
     cityLabel: 'City',
     commonNameHelp: 'Displayed when different from the official name.',
     commonNameLabel: 'Common name',
+    commonNameEnLabel: 'English public name',
+    commonNameFrLabel: 'French public name',
     contactEmailHelp: 'Changing this email sends a new confirmation request. It is never used for notifications before confirmation.',
     contactEmailLabel: 'Private contact email',
     description: 'Edit your claimed association listing. Verification, source and platform status remain controlled by Kamga administrators.',
     descriptionLabel: 'Public description',
+    descriptionEnLabel: 'English public description',
+    descriptionFrLabel: 'French public description',
     emptyAction: 'Register an association',
     emptyState: 'No claimed association is attached to this account yet.',
     exactPrecisionLabel: 'Exact address',
@@ -117,10 +125,14 @@ const copy = {
     cityLabel: 'Ville',
     commonNameHelp: 'Affiche si le nom public diffÃ¨re du nom officiel.',
     commonNameLabel: 'Nom courant',
+    commonNameEnLabel: 'Nom public anglais',
+    commonNameFrLabel: 'Nom public francais',
     contactEmailHelp: 'Modifier ce courriel envoie une nouvelle demande de confirmation. Il nâ€™est jamais utilisÃ© pour les notifications avant confirmation.',
     contactEmailLabel: 'Courriel de contact privÃ©',
     description: 'Modifiez la fiche revendiquÃ©e de votre association. La vÃ©rification, la source et le statut plateforme restent contrÃ´lÃ©s par les administrateurs Kamga.',
     descriptionLabel: 'Description publique',
+    descriptionEnLabel: 'Description publique anglaise',
+    descriptionFrLabel: 'Description publique francaise',
     emptyAction: 'Inscrire une association',
     emptyState: 'Aucune association revendiquÃ©e nâ€™est encore rattachÃ©e Ã  ce compte.',
     exactPrecisionLabel: 'Adresse exacte',
@@ -191,7 +203,7 @@ async function listManagedAssociations(): Promise<AssociationRecord[]> {
   const { data, error } = await supabase
     .from('association_members')
     .select(
-      'id,associations:association_id(id,name,official_name,common_name,description,city,province,postal_code,street_address,primary_language,public_precision,contact_email,public_contact_email,contact_notification_opt_in_status,verification_status,claim_status,status)'
+      'id,associations:association_id(id,name,official_name,common_name,common_name_en,common_name_fr,description,description_en,description_fr,city,province,postal_code,street_address,primary_language,public_precision,contact_email,public_contact_email,contact_notification_opt_in_status,verification_status,claim_status,status)'
     )
     .eq('role', 'association_admin')
     .eq('status', 'active')

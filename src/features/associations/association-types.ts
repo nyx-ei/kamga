@@ -65,6 +65,8 @@ export type AssociationActionState =
           | 'duplicateAssociationId'
           | 'city'
           | 'commonName'
+          | 'commonNameEn'
+          | 'commonNameFr'
           | 'contactEmail'
           | 'message'
           | 'name'
@@ -111,8 +113,12 @@ export const associationRecordUpdateSchema = z.object({
   associationId: z.string().uuid(),
   city: z.string().trim().min(2).max(120),
   commonName: optionalTrimmedString,
+  commonNameEn: optionalTrimmedString,
+  commonNameFr: optionalTrimmedString,
   contactEmail: z.string().trim().email().max(254).optional().or(z.literal('')),
   description: z.string().trim().max(1200).optional().or(z.literal('')),
+  descriptionEn: z.string().trim().max(1200).optional().or(z.literal('')),
+  descriptionFr: z.string().trim().max(1200).optional().or(z.literal('')),
   locale: z.enum(['en', 'fr']),
   officialName: z.string().trim().min(2).max(180),
   postalCode: z.string().trim().min(3).max(12),

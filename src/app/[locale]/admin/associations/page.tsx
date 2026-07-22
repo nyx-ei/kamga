@@ -25,10 +25,14 @@ const adminAssociationSchema = z.object({
   city: z.string(),
   claim_status: z.enum(ASSOCIATION_CLAIM_STATUSES),
   common_name: z.string().nullable(),
+  common_name_en: z.string().nullable(),
+  common_name_fr: z.string().nullable(),
   contact_email: z.string().nullable(),
   contact_notification_opt_in_status: z.enum(['confirmed', 'pending', 'withdrawn']),
   created_at: z.string(),
   description: z.string().nullable(),
+  description_en: z.string().nullable(),
+  description_fr: z.string().nullable(),
   geocode_status: z.enum(ASSOCIATION_GEOCODE_STATUSES),
   id: z.string().uuid(),
   official_name: z.string(),
@@ -93,9 +97,13 @@ const copy = {
       claimStatusLabel: 'Claim status',
       commonNameHelp: 'Displayed publicly when different from the official name.',
       commonNameLabel: 'Common name',
+      commonNameEnLabel: 'English public name',
+      commonNameFrLabel: 'French public name',
       contactEmailHelp: 'Changing this email restarts the double opt-in confirmation. Admins cannot confirm opt-in on behalf of an association.',
       contactEmailLabel: 'Private contact email',
       descriptionLabel: 'Public description',
+      descriptionEnLabel: 'English public description',
+      descriptionFrLabel: 'French public description',
       exactPrecisionLabel: 'Exact address',
       geocodeStatusLabel: 'Geocode status',
       languageLabel: 'Primary language',
@@ -206,9 +214,13 @@ const copy = {
       claimStatusLabel: 'État de revendication',
       commonNameHelp: 'Affiché publiquement lorsqu’il diffère du nom officiel.',
       commonNameLabel: 'Nom courant',
+      commonNameEnLabel: 'Nom public anglais',
+      commonNameFrLabel: 'Nom public francais',
       contactEmailHelp: 'Modifier cet email relance la confirmation double opt-in. Un admin ne peut pas confirmer l’opt-in à la place de l’association.',
       contactEmailLabel: 'Email de contact privé',
       descriptionLabel: 'Description publique',
+      descriptionEnLabel: 'Description publique anglaise',
+      descriptionFrLabel: 'Description publique francaise',
       exactPrecisionLabel: 'Adresse exacte',
       geocodeStatusLabel: 'État du géocodage',
       languageLabel: 'Langue principale',
@@ -290,7 +302,7 @@ async function listAdminAssociations(): Promise<AdminAssociation[]> {
   const adminSupabase = createSupabaseAdminClient();
   const { data, error } = await adminSupabase
     .from('associations')
-    .select('id,official_name,common_name,description,city,province,postal_code,street_address,primary_language,public_precision,public_contact_email,contact_email,contact_notification_opt_in_status,registry_type,registry_number,verification_status,claim_status,geocode_status,source,status,created_at,updated_at,rpn_affiliation_proof_path')
+    .select('id,official_name,common_name,common_name_en,common_name_fr,description,description_en,description_fr,city,province,postal_code,street_address,primary_language,public_precision,public_contact_email,contact_email,contact_notification_opt_in_status,registry_type,registry_number,verification_status,claim_status,geocode_status,source,status,created_at,updated_at,rpn_affiliation_proof_path')
     .order('updated_at', { ascending: false });
 
   if (error || data === null) {

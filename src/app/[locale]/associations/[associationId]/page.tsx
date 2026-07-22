@@ -14,7 +14,11 @@ const publicAssociationSchema = z.object({
   claim_status: z.enum(ASSOCIATION_CLAIM_STATUSES),
   city: z.string(),
   description: z.string().nullable(),
+  description_en: z.string().nullable(),
+  description_fr: z.string().nullable(),
   display_name: z.string(),
+  display_name_en: z.string(),
+  display_name_fr: z.string(),
   id: z.string().uuid(),
   primary_language: z.enum(ASSOCIATION_PRIMARY_LANGUAGES),
   province: z.string(),
@@ -41,7 +45,7 @@ async function getPublicAssociationProfile(associationId: string) {
   // CV-SEC-06 / BR-PE-02: public profile is shaped from the privacy-safe public directory view.
   const { data, error } = await supabase
     .from('public_association_directory')
-    .select('id,display_name,city,province,description,primary_language,verification_status,claim_status,public_contact_email,public_street_address')
+    .select('id,display_name,display_name_en,display_name_fr,city,province,description,description_en,description_fr,primary_language,verification_status,claim_status,public_contact_email,public_street_address')
     .eq('id', parsedId.data)
     .maybeSingle();
 
@@ -53,6 +57,19 @@ async function getPublicAssociationProfile(associationId: string) {
   return parsed.success ? parsed.data : null;
 }
 
+function localizedAssociationContent(association: z.infer<typeof publicAssociationSchema>, locale: 'en' | 'fr') {
+  const displayName = locale === 'fr' ? association.display_name_fr : association.display_name_en;
+  const localizedDescription = locale === 'fr' ? association.description_fr : association.description_en;
+  const fallbackDescription = locale === 'fr' ? association.description_en : association.description_fr;
+
+  return {
+    description: localizedDescription ?? association.description ?? fallbackDescription,
+    descriptionLocale:
+      localizedDescription !== null ? locale : association.description !== null ? association.primary_language : fallbackDescription !== null ? (locale === 'fr' ? 'en' : 'fr') : locale,
+    displayName
+  };
+}
+
 export default async function AssociationProfilePage({ params }: AssociationProfilePageProps) {
   const association = await getPublicAssociationProfile(params.associationId);
 
@@ -61,6 +78,11 @@ export default async function AssociationProfilePage({ params }: AssociationProf
   }
 
   const t = await getTranslations('associations.profile');
+  const content = localizedAssociationContent(association, params.locale);
+  const fallbackLabel =
+    params.locale === 'fr'
+      ? `Affiche en ${content.descriptionLocale === 'fr' ? 'francais' : content.descriptionLocale === 'en' ? 'anglais' : 'langue disponible'}`
+      : `Shown in ${content.descriptionLocale === 'fr' ? 'French' : content.descriptionLocale === 'en' ? 'English' : 'the available language'}`;
 
   return (
     <main className="min-h-screen bg-page px-6 py-10 text-body">
@@ -74,7 +96,7 @@ export default async function AssociationProfilePage({ params }: AssociationProf
                 {t('verifiedBadge')}
               </span>
             ) : null}
-            <h1 className="text-3xl font-semibold leading-tight text-heading">{association.display_name}</h1>
+            <h1 className="text-3xl font-semibold leading-tight text-heading">{content.displayName}</h1>
           </div>
           <Link
             className="inline-flex w-fit items-center gap-2 rounded-sm border border-border bg-raised px-4 py-2 text-sm font-medium text-body shadow-card transition hover:border-border-strong"
@@ -85,7 +107,12 @@ export default async function AssociationProfilePage({ params }: AssociationProf
           </Link>
         </div>
 
-        <p className="max-w-3xl text-base leading-7 text-secondary">{association.description ?? t('descriptionFallback')}</p>
+        <div className="space-y-2">
+          <p className="max-w-3xl text-base leading-7 text-secondary">{content.description ?? t('descriptionFallback')}</p>
+          {content.description !== null && content.descriptionLocale !== params.locale ? (
+            <span className="inline-flex w-fit rounded-full bg-sunken px-3 py-1 text-xs font-semibold text-muted">{fallbackLabel}</span>
+          ) : null}
+        </div>
 
         <dl className="grid gap-4 rounded-md border border-border bg-sunken p-5 md:grid-cols-3">
           <div className="space-y-2">
