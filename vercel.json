@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/contact-opt-in",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/connect-request-cleanup",
+      "schedule": "30 4 * * *"
     }
   ]
 }
