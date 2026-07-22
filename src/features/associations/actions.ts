@@ -33,6 +33,7 @@ import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
 import { geocodeAssociationAddress, geocodeUpdate } from '@/lib/geocoding/server';
 import { notifyJoinRequestSubmitted } from '@/lib/notifications/server';
+import { registryVerificationUpdate, verifyAssociationRegistry } from '@/lib/registry/verification';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -57,6 +58,14 @@ async function geocodeAssociationFields(params: { city: string; postalCode: stri
     streetAddress: params.streetAddress
   }));
 }
+async function verifyAssociationRegistryFields(params: { officialName: string; registryNumber: string | null; registryType: string | null }) {
+  return registryVerificationUpdate(await verifyAssociationRegistry({
+    officialName: params.officialName,
+    registryNumber: params.registryNumber,
+    registryType: params.registryType === 'neq' || params.registryType === 'federal' ? params.registryType : null
+  }));
+}
+
 function mimeExtension(mimeType: RpnProofMimeType): 'pdf' | 'jpg' | 'png' {
   switch (mimeType) {
     case 'application/pdf':
@@ -345,6 +354,11 @@ export async function updateAdminAssociationRecord(_previousState: AssociationAc
     province: parsed.data.province,
     streetAddress: optionalValue(parsed.data.streetAddress ?? '')
   });
+  const registryVerification = await verifyAssociationRegistryFields({
+    officialName: parsed.data.officialName,
+    registryNumber: optionalValue(parsed.data.registryNumber ?? ''),
+    registryType: optionalValue(parsed.data.registryType ?? '')
+  });
 
   const { error: updateError } = await adminSupabase
     .from('associations')
@@ -368,6 +382,7 @@ export async function updateAdminAssociationRecord(_previousState: AssociationAc
       province: parsed.data.province.toUpperCase(),
       public_contact_email: parsed.data.publicContactEmail,
       public_precision: parsed.data.publicPrecision,
+      ...registryVerification,
       registry_number: optionalValue(parsed.data.registryNumber ?? ''),
       registry_type: optionalValue(parsed.data.registryType ?? ''),
       source: parsed.data.source,
@@ -478,7 +493,6 @@ export async function updateOwnedAssociationRecord(_previousState: AssociationAc
     province: parsed.data.province,
     streetAddress: optionalValue(parsed.data.streetAddress ?? '')
   });
-
   const { error: updateError } = await supabase
     .from('associations')
     .update({
@@ -657,6 +671,11 @@ export async function registerAssociation(
     province: parsedFields.data.province,
     streetAddress: optionalValue(parsedFields.data.streetAddress ?? '')
   });
+  const registryVerification = await verifyAssociationRegistryFields({
+    officialName: parsedFields.data.name,
+    registryNumber,
+    registryType
+  });
   const duplicate = await findAssociationDuplicate(adminSupabase, {
     city: parsedFields.data.city,
     displayName,
@@ -709,13 +728,14 @@ export async function registerAssociation(
     primary_language: parsedFields.data.primaryLanguage,
     province: parsedFields.data.province.toUpperCase(),
     public_precision: 'neighbourhood',
+    ...registryVerification,
     registry_number: registryNumber,
     registry_type: registryType,
     rpn_affiliation_proof_path: storagePath,
     source: 'self_registered',
     status: 'pending_review',
     street_address: optionalValue(parsedFields.data.streetAddress ?? ''),
-    verification_status: registryNumber === null ? 'unverified' : 'needs_review',
+    verification_status: registryVerification.verification_status,
     created_by: currentUser.user.id
   });
 
@@ -886,6 +906,11 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
       province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
       streetAddress: rowStreetAddress
     });
+    const registryVerification = await verifyAssociationRegistryFields({
+      officialName,
+      registryNumber,
+      registryType: optionalValue(registryType)
+    });
     const duplicate = await findAssociationDuplicate(supabase, {
       city,
       displayName,
@@ -917,12 +942,13 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
         primary_language: primaryLanguage,
         province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
         public_precision: 'neighbourhood',
+        ...registryVerification,
         registry_number: registryNumber,
         registry_type: optionalValue(registryType),
         source: 'csv_import',
         status: 'active',
         street_address: rowStreetAddress,
-        verification_status: registryNumber === null ? 'unverified' : 'needs_review'
+        verification_status: registryVerification.verification_status
       })
       .select('id')
       .maybeSingle();
@@ -1181,5 +1207,3 @@ export async function requestToJoinAssociation(_previousState: AssociationAction
   revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.associationId}`);
   redirect(`/${parsed.data.locale}/dashboard/applications?joinRequest=1`);
 }
-
-
