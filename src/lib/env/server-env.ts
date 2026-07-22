@@ -16,7 +16,9 @@ const serverEnvSchema = z.object({
   SUPABASE_WEBHOOK_SECRET: z.string().optional(),
   GEOCODING_PROVIDER: z.enum(['mapbox', 'nominatim']).optional(),
   MAPBOX_GEOCODING_TOKEN: z.string().optional(),
-  GEOCODING_USER_AGENT: z.string().optional()
+  GEOCODING_USER_AGENT: z.string().optional(),
+  REQ_REGISTRY_DATA_URL: z.string().url().optional(),
+  FEDERAL_REGISTRY_DATA_URL: z.string().url().optional()
 });
 
 const serverEnv = serverEnvSchema.parse({
@@ -31,7 +33,9 @@ const serverEnv = serverEnvSchema.parse({
   SUPABASE_WEBHOOK_SECRET: process.env.SUPABASE_WEBHOOK_SECRET,
   GEOCODING_PROVIDER: process.env.GEOCODING_PROVIDER,
   MAPBOX_GEOCODING_TOKEN: process.env.MAPBOX_GEOCODING_TOKEN,
-  GEOCODING_USER_AGENT: process.env.GEOCODING_USER_AGENT
+  GEOCODING_USER_AGENT: process.env.GEOCODING_USER_AGENT,
+  REQ_REGISTRY_DATA_URL: process.env.REQ_REGISTRY_DATA_URL,
+  FEDERAL_REGISTRY_DATA_URL: process.env.FEDERAL_REGISTRY_DATA_URL
 });
 
 export const env = {
