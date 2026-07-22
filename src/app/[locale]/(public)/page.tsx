@@ -3,6 +3,7 @@ import { Bell, Building2, Flag, MapPin, Search, ShieldCheck } from 'lucide-react
 
 import { PublicDirectoryHeader } from '@/components/kamga/MockupShell';
 import { AssociationRecruitLeadForm } from '@/features/associations/components/AssociationRecruitLeadForm';
+import { PublicDirectoryMap } from '@/features/associations/components/PublicDirectoryMap';
 import { PublicUseLocationButton } from '@/features/associations/components/PublicUseLocationButton';
 import { type PublicAssociationSearchResult,searchPublicAssociations } from '@/features/associations/public-search';
 import { Link } from '@/i18n/navigation';
@@ -25,6 +26,7 @@ type HomePageProps = {
     page?: string;
     q?: string;
     radius?: string;
+    selected?: string;
     verified?: string;
   };
 };
@@ -46,6 +48,9 @@ const directoryCopy = {
     languageFilter: 'French or English',
     languages: { en: 'English', fr: 'French', fr_en: 'French & English' },
     listFirst: 'List-first + toggle',
+    areaGroup: (count: number) => `${count} in this area`,
+    clusterAction: 'Open grouped associations',
+    clusterLabel: (count: number) => `${count} associations grouped`,
     locationOnlyMap: 'Only location-band matches are plotted. Name matches stay in the list.',
     mapLayout: 'Map layout',
     mapPrecision: 'Approximate - respects public precision',
@@ -66,10 +71,13 @@ const directoryCopy = {
     resultCard: 'Result card',
     search: 'Search',
     searchLabel: 'Postal code, address, or city',
+    selectedLabel: 'Selected on map',
     searchWider: 'Search wider',
     sideBySide: 'Side-by-side',
     useLocation: 'Use my location',
     useLocationLoading: 'Locating...',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
     userLocation: 'your location',
     verified: 'Verified',
     verifiedOnly: 'Verified only',
@@ -110,82 +118,88 @@ const directoryCopy = {
     }
   },
   fr: {
-    ambiguousLocation: 'Ce nom de ville est ambigu. Les résultats par nom sont affichés, mais les résultats de proximité nécessitent une ville plus précise, un code postal ou votre position.',
-    askRegister: 'L’inviter à s’inscrire',
+    ambiguousLocation: 'Ce nom de ville est ambigu. Les rÃ©sultats par nom sont affichÃ©s, mais les rÃ©sultats de proximitÃ© nÃ©cessitent une ville plus prÃ©cise, un code postal ou votre position.',
+    askRegister: 'Lâ€™inviter Ã  sâ€™inscrire',
     associationPlural: 'associations',
     associationSingular: 'association',
     compact: 'Compact',
     compareOptions: 'Comparer les options',
-    detailed: 'Détaillé',
+    detailed: 'DÃ©taillÃ©',
     distanceAway: (distance: number) => `${distance.toFixed(1)} km`,
     distanceFilter: (radius: number) => `Dans un rayon de ${radius} km`,
     emptyDescription:
-      'L’annuaire continue de grandir. Si vous connaissez une association RPN dans cette zone, aidez-nous à l’ajouter ; elle sera invitée à confirmer sa propre fiche.',
+      'Lâ€™annuaire continue de grandir. Si vous connaissez une association RPN dans cette zone, aidez-nous Ã  lâ€™ajouter ; elle sera invitÃ©e Ã  confirmer sa propre fiche.',
     filter: 'Filtrer',
-    languageFilter: 'Français ou anglais',
-    languages: { en: 'Anglais', fr: 'Français', fr_en: 'Français et anglais' },
-    listFirst: 'Liste d’abord + bascule',
-    locationOnlyMap: 'Seuls les résultats de localisation sont affichés sur la carte. Les résultats par nom restent dans la liste.',
+    languageFilter: 'FranÃ§ais ou anglais',
+    languages: { en: 'Anglais', fr: 'FranÃ§ais', fr_en: 'FranÃ§ais et anglais' },
+    listFirst: 'Liste dâ€™abord + bascule',
+    areaGroup: (count: number) => `${count} dans cette zone`,
+    clusterAction: 'Ouvrir les associations groupÃ©es',
+    clusterLabel: (count: number) => `${count} associations groupées`,
+    locationOnlyMap: 'Seuls les rÃ©sultats de localisation sont affichÃ©s sur la carte. Les rÃ©sultats par nom restent dans la liste.',
     mapLayout: 'Disposition de la carte',
-    mapPrecision: 'Approximation - respecte la précision publique',
-    mapTitle: 'Carte approximative de l’annuaire',
-    matching: (query: string) => ` correspondant à « ${query} »`,
+    mapPrecision: 'Approximation - respecte la prÃ©cision publique',
+    mapTitle: 'Carte approximative de lâ€™annuaire',
+    matching: (query: string) => ` correspondant Ã  Â« ${query} Â»`,
     nameMatch: 'Nom correspondant',
-    near: (origin: string) => ` près de ${origin}`,
-    nearest: 'Associations référencées les plus proches',
-    nearestDescription: 'Affichées parce qu’aucun résultat ne correspond au rayon actuel.',
+    near: (origin: string) => ` prÃ¨s de ${origin}`,
+    nearest: 'Associations rÃ©fÃ©rencÃ©es les plus proches',
+    nearestDescription: 'AffichÃ©es parce quâ€™aucun rÃ©sultat ne correspond au rayon actuel.',
     next: 'Suivant',
-    noDatabaseResults: 'Aucune fiche association active et géocodée ne correspond à cette recherche.',
-    noMockData: 'Aucune donnée de secours n’est fabriquée depuis les maquettes.',
-    noResults: (query: string) => `Aucune association trouvée pour « ${query} »`,
-    notify: 'Me notifier lorsqu’une association est ajoutée',
+    noDatabaseResults: 'Aucune fiche association active et gÃ©ocodÃ©e ne correspond Ã  cette recherche.',
+    noMockData: 'Aucune donnÃ©e de secours nâ€™est fabriquÃ©e depuis les maquettes.',
+    noResults: (query: string) => `Aucune association trouvÃ©e pour Â« ${query} Â»`,
+    notify: 'Me notifier lorsquâ€™une association est ajoutÃ©e',
     pagination: (current: number, total: number) => `Page ${current} sur ${total}`,
-    previous: 'Précédent',
-    requestToConnect: 'Demander à être mis en relation',
-    resultCard: 'Carte de résultat',
+    previous: 'PrÃ©cÃ©dent',
+    requestToConnect: 'Demander Ã  Ãªtre mis en relation',
+    resultCard: 'Carte de rÃ©sultat',
     search: 'Rechercher',
     searchLabel: 'Code postal, adresse ou ville',
-    searchWider: 'Élargir la recherche',
-    sideBySide: 'Côte à côte',
+    selectedLabel: 'SÃ©lectionnÃ©e sur la carte',
+    searchWider: 'Ã‰largir la recherche',
+    sideBySide: 'CÃ´te Ã  cÃ´te',
     useLocation: 'Utiliser ma position',
     useLocationLoading: 'Localisation...',
+    zoomIn: 'Zoomer',
+    zoomOut: 'DÃ©zoomer',
     userLocation: 'votre position',
-    verified: 'Vérifiée',
-    verifiedOnly: 'Vérifiées uniquement',
-    claimAction: 'C’est votre association ? Revendiquez-la',
+    verified: 'VÃ©rifiÃ©e',
+    verifiedOnly: 'VÃ©rifiÃ©es uniquement',
+    claimAction: 'Câ€™est votre association ? Revendiquez-la',
     recruit: {
-      associationNameLabel: 'Nom de l’association si vous le connaissez',
+      associationNameLabel: 'Nom de lâ€™association si vous le connaissez',
       associationNamePlaceholder: 'Exemple : association RPN de votre secteur',
       cityLabel: 'Ville',
-      description: 'Envoyez l’association ou la zone manquante à l’équipe Kamga afin qu’elle puisse être invitée et vérifiée.',
+      description: 'Envoyez lâ€™association ou la zone manquante Ã  lâ€™Ã©quipe Kamga afin quâ€™elle puisse Ãªtre invitÃ©e et vÃ©rifiÃ©e.',
       emailLabel: 'Adresse courriel',
       errors: {
-        'KMG-AUTH-401': 'Connectez-vous avant d’envoyer cette demande.',
-        'KMG-AUTH-403': 'Vous n’êtes pas autorisé à envoyer cette demande.',
+        'KMG-AUTH-401': 'Connectez-vous avant dâ€™envoyer cette demande.',
+        'KMG-AUTH-403': 'Vous nâ€™Ãªtes pas autorisÃ© Ã  envoyer cette demande.',
         'KMG-CL-001': 'La demande de revendication est invalide.',
-        'KMG-CL-403': 'Vous n’êtes pas autorisé à revendiquer cette fiche.',
+        'KMG-CL-403': 'Vous nâ€™Ãªtes pas autorisÃ© Ã  revendiquer cette fiche.',
         'KMG-CL-404': 'Cette fiche est introuvable.',
-        'KMG-CL-409': 'Cette fiche ne peut pas être revendiquée pour le moment.',
-        'KMG-CL-422': 'Le numéro de registre ne correspond pas à cette fiche.',
-        'KMG-RC-001': 'Ajoutez un terme de recherche ou un nom d’association, et utilisez un courriel valide s’il est renseigné.',
-        'KMG-RC-404': 'La cible de cette demande n’est pas disponible.',
-        'KMG-RC-429': 'Trop de demandes ont été envoyées récemment. Réessayez plus tard.',
-        'KMG-RG-001': 'Vérifiez les valeurs envoyées puis réessayez.',
-        'KMG-RG-002': 'Téléversez la preuve demandée.',
-        'KMG-RG-003': 'Le fichier téléversé est trop volumineux.',
-        'KMG-RG-004': 'Utilisez un type de fichier supporté.',
+        'KMG-CL-409': 'Cette fiche ne peut pas Ãªtre revendiquÃ©e pour le moment.',
+        'KMG-CL-422': 'Le numÃ©ro de registre ne correspond pas Ã  cette fiche.',
+        'KMG-RC-001': 'Ajoutez un terme de recherche ou un nom dâ€™association, et utilisez un courriel valide sâ€™il est renseignÃ©.',
+        'KMG-RC-404': 'La cible de cette demande nâ€™est pas disponible.',
+        'KMG-RC-429': 'Trop de demandes ont Ã©tÃ© envoyÃ©es rÃ©cemment. RÃ©essayez plus tard.',
+        'KMG-RG-001': 'VÃ©rifiez les valeurs envoyÃ©es puis rÃ©essayez.',
+        'KMG-RG-002': 'TÃ©lÃ©versez la preuve demandÃ©e.',
+        'KMG-RG-003': 'Le fichier tÃ©lÃ©versÃ© est trop volumineux.',
+        'KMG-RG-004': 'Utilisez un type de fichier supportÃ©.',
         'KMG-RG-404': 'Cette association est introuvable.',
-        'KMG-RG-409': 'Cette association existe déjà.',
-        'KMG-SYS-000': 'La piste n’a pas pu être enregistrée. Réessayez ou contactez le support.'
+        'KMG-RG-409': 'Cette association existe dÃ©jÃ .',
+        'KMG-SYS-000': 'La piste nâ€™a pas pu Ãªtre enregistrÃ©e. RÃ©essayez ou contactez le support.'
       },
-      messageLabel: 'Contexte pour l’équipe Kamga',
-      messagePlaceholder: 'Indiquez le quartier, le contexte de contact ou pourquoi cette association devrait être invitée.',
+      messageLabel: 'Contexte pour lâ€™Ã©quipe Kamga',
+      messagePlaceholder: 'Indiquez le quartier, le contexte de contact ou pourquoi cette association devrait Ãªtre invitÃ©e.',
       nameLabel: 'Votre nom',
-      privacyNotice: 'Cela crée une piste interne pour développer l’annuaire Kamga. Vos coordonnées ne sont pas publiées.',
+      privacyNotice: 'Cela crÃ©e une piste interne pour dÃ©velopper lâ€™annuaire Kamga. Vos coordonnÃ©es ne sont pas publiÃ©es.',
       submit: 'Envoyer la piste',
       submitting: 'Envoi en cours...',
-      success: 'Piste enregistrée. L’équipe Kamga peut la traiter depuis l’espace admin.',
-      title: 'Aidez Kamga à recruter cette association'
+      success: 'Piste enregistrÃ©e. Lâ€™Ã©quipe Kamga peut la traiter depuis lâ€™espace admin.',
+      title: 'Aidez Kamga Ã  recruter cette association'
     }
   }
 } as const;
@@ -202,19 +216,6 @@ function numericQuery(value: string | undefined, fallback: number): number {
 function coordinateQuery(value: string | undefined): number | null {
   const parsed = Number.parseFloat(value ?? '');
   return Number.isFinite(parsed) ? parsed : null;
-}
-
-function markerPosition(association: PublicAssociationSearchResult, associations: PublicAssociationSearchResult[]) {
-  const latitudes = associations.map((item) => item.latitude);
-  const longitudes = associations.map((item) => item.longitude);
-  const minLat = Math.min(...latitudes);
-  const maxLat = Math.max(...latitudes);
-  const minLon = Math.min(...longitudes);
-  const maxLon = Math.max(...longitudes);
-  const top = maxLat === minLat ? 50 : 12 + ((maxLat - association.latitude) / (maxLat - minLat)) * 76;
-  const left = maxLon === minLon ? 50 : 12 + ((association.longitude - minLon) / (maxLon - minLon)) * 76;
-
-  return { left: `${left}%`, top: `${top}%` };
 }
 
 function pageHref(params: { lat: number | null; lng: number | null; origin: string | null; page: number; query: string; radius: number; verifiedOnly: boolean }) {
@@ -236,6 +237,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
   const query = searchQuery(searchParams.q);
   const radius = Math.min(numericQuery(searchParams.radius, DEFAULT_RADIUS_KM), MAX_RADIUS_KM);
   const currentPage = numericQuery(searchParams.page, 1);
+  const selectedAssociationId = searchParams.selected ?? null;
   const verifiedOnly = searchParams.verified === '1';
   const userLatitude = coordinateQuery(searchParams.lat);
   const userLongitude = coordinateQuery(searchParams.lng);
@@ -248,6 +250,12 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
   const paginatedAssociations = ranked.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const hasDirectoryResults = ranked.length > 0;
   const canSearchWider = search.locationResolved && locationBand.length < 3 && radius < MAX_RADIUS_KM;
+  const mapUrlParams = {
+    ...(query.length > 0 ? { q: query } : {}),
+    ...(userLatitude !== null && userLongitude !== null ? { lat: String(userLatitude), lng: String(userLongitude), origin: searchParams.origin ?? 'device' } : {}),
+    ...(verifiedOnly ? { verified: '1' } : {}),
+    radius: String(radius)
+  };
 
   return (
     <main className="min-h-screen bg-page text-body">
@@ -335,7 +343,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
             <div className="grid gap-8 xl:grid-cols-[1fr_0.95fr]">
               <div className="grid content-start gap-4">
                 {paginatedAssociations.map((association) => (
-                  <article className="grid rounded-md border border-border bg-card p-5 shadow-card" key={association.id}>
+                  <article className={`grid scroll-mt-8 rounded-md border bg-card p-5 shadow-card ${association.id === selectedAssociationId ? 'border-brand ring-2 ring-brand/30' : 'border-border'}`} id={`association-${association.id}`} key={association.id}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex gap-5">
                         <span className="grid size-10 place-items-center rounded-full bg-[#4d67c7] text-sm font-semibold text-white shadow-card">{association.rank}</span>
@@ -401,31 +409,24 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
                 ) : null}
               </div>
 
-              <div className="relative min-h-[520px] overflow-hidden rounded-md border border-border bg-[#eef3fb] shadow-card">
-                <div className="absolute inset-0 bg-[linear-gradient(#dfe6f3_1px,transparent_1px),linear-gradient(90deg,#dfe6f3_1px,transparent_1px)] bg-[size:56px_56px]" />
-                <div className="absolute left-5 top-5 z-10 rounded-sm border border-border bg-card/95 px-4 py-3 shadow-card">
-                  <p className="font-semibold text-heading">{copy.mapTitle}</p>
-                  <p className="mt-1 text-xs text-secondary">{copy.locationOnlyMap}</p>
-                </div>
-                {locationBand.length === 0 ? (
-                  <div className="relative grid h-full min-h-[520px] place-items-center p-8 text-center">
-                    <p className="rounded-md border border-border bg-card/95 px-5 py-4 text-sm leading-6 text-secondary shadow-card">{copy.locationOnlyMap}</p>
-                  </div>
-                ) : (
-                  locationBand.map((association) => (
-                    <Link
-                      aria-label={association.displayName}
-                      className="absolute z-20 grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-[#314ca8] bg-[#4d67c7] text-sm font-semibold text-white shadow-card transition hover:scale-105"
-                      href={`/associations/${association.id}`}
-                      key={association.id}
-                      style={markerPosition(association, locationBand)}
-                    >
-                      {association.rank}
-                    </Link>
-                  ))
-                )}
-                <p className="absolute bottom-4 right-4 rounded-sm bg-card/95 px-3 py-2 text-xs text-secondary shadow-card">{copy.mapPrecision}</p>
-              </div>
+              <PublicDirectoryMap
+                associations={locationBand}
+                copy={{
+                  areaGroup: copy.areaGroup,
+                  clusterAction: copy.clusterAction,
+                  clusterLabel: copy.clusterLabel,
+                  locationOnlyMap: copy.locationOnlyMap,
+                  mapPrecision: copy.mapPrecision,
+                  mapTitle: copy.mapTitle,
+                  selectedLabel: copy.selectedLabel,
+                  zoomIn: copy.zoomIn,
+                  zoomOut: copy.zoomOut
+                }}
+                locale={params.locale}
+                pageSize={PAGE_SIZE}
+                selectedAssociationId={selectedAssociationId}
+                urlParams={mapUrlParams}
+              />
             </div>
           </section>
         ) : (
