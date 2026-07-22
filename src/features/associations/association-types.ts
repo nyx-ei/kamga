@@ -37,6 +37,9 @@ export type AssociationActionCode =
   | 'KMG-RG-004'
   | 'KMG-RG-404'
   | 'KMG-RG-409'
+  | 'KMG-MG-001'
+  | 'KMG-MG-404'
+  | 'KMG-MG-409'
   | 'KMG-SYS-000';
 
 export type AssociationActionState =
@@ -51,6 +54,8 @@ export type AssociationActionState =
         Record<
           | 'associationName'
           | 'authorized'
+          | 'canonicalAssociationId'
+          | 'duplicateAssociationId'
           | 'city'
           | 'commonName'
           | 'contactEmail'
@@ -115,6 +120,17 @@ export const adminAssociationRecordUpdateSchema = associationRecordUpdateSchema.
   status: z.enum(ASSOCIATION_STATUSES),
   verificationStatus: z.enum(ASSOCIATION_VERIFICATION_STATUSES)
 });
+export const associationMergeSchema = z
+  .object({
+    canonicalAssociationId: z.string().uuid(),
+    duplicateAssociationId: z.string().uuid(),
+    locale: z.enum(['en', 'fr'])
+  })
+  .refine((value) => value.canonicalAssociationId !== value.duplicateAssociationId, {
+    message: 'KMG-MG-001',
+    path: ['duplicateAssociationId']
+  });
+
 export const associationClaimRequestDecisionSchema = z.object({
   claimRequestId: z.string().uuid(),
   decision: z.enum(['approved', 'rejected', 'locked']),

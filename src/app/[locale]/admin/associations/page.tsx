@@ -13,6 +13,7 @@ import {
   ASSOCIATION_STATUSES,
   ASSOCIATION_VERIFICATION_STATUSES
 } from '@/features/associations/association-types';
+import { AdminAssociationMergeForm } from '@/features/associations/components/AdminAssociationMergeForm';
 import { AdminAssociationRecordForm } from '@/features/associations/components/AdminAssociationRecordForm';
 import { requirePlatformAdmin } from '@/lib/auth';
 import { env } from '@/lib/env/server-env';
@@ -70,7 +71,24 @@ const copy = {
     pendingReview: 'Needs review',
     activeRecords: 'Active records',
     verifiedRecords: 'Verified records',
-    form: {
+    merge: {
+      description: 'Absorb a duplicate record into this canonical association while keeping member, claim, referral and financial history attached to the kept record.',
+      duplicateLabel: 'Duplicate record to merge',
+      mergeAction: 'Merge duplicate',
+      merged: 'Duplicate record merged.',
+      noDuplicateOptions: 'No other association record is available to merge.',
+      pendingAction: 'Merging...',
+      title: 'Duplicate merge',
+      warning: 'This operation is transactional and should only be used after admin review.',
+      errors: {
+        'KMG-AUTH-401': 'Sign in before merging records.',
+        'KMG-AUTH-403': 'Only platform admins can merge association records.',
+        'KMG-MG-001': 'Select two different association records.',
+        'KMG-MG-404': 'One of the selected association records could not be found.',
+        'KMG-MG-409': 'The duplicate record has already been merged.',
+        'KMG-SYS-000': 'The records could not be merged. Try again or contact support.'
+      }
+    },    form: {
       cityLabel: 'City',
       claimStatusLabel: 'Claim status',
       commonNameHelp: 'Displayed publicly when different from the official name.',
@@ -166,7 +184,24 @@ const copy = {
     pendingReview: 'À revoir',
     activeRecords: 'Fiches actives',
     verifiedRecords: 'Fiches vérifiées',
-    form: {
+    merge: {
+      description: 'Absorbez une fiche doublon dans cette fiche canonique en conservant l historique membres, revendications, parrainages et finance sur la fiche gardee.',
+      duplicateLabel: 'Fiche doublon a fusionner',
+      mergeAction: 'Fusionner le doublon',
+      merged: 'Fiche doublon fusionnee.',
+      noDuplicateOptions: 'Aucune autre fiche association n est disponible pour une fusion.',
+      pendingAction: 'Fusion en cours...',
+      title: 'Fusion de doublon',
+      warning: 'Cette operation est transactionnelle et doit etre utilisee seulement apres revue admin.',
+      errors: {
+        'KMG-AUTH-401': 'Connectez-vous avant de fusionner les fiches.',
+        'KMG-AUTH-403': 'Seuls les admins plateforme peuvent fusionner les fiches association.',
+        'KMG-MG-001': 'Selectionnez deux fiches association differentes.',
+        'KMG-MG-404': 'Une des fiches association selectionnees est introuvable.',
+        'KMG-MG-409': 'La fiche doublon a deja ete fusionnee.',
+        'KMG-SYS-000': 'Les fiches n ont pas pu etre fusionnees. Reessayez ou contactez le support.'
+      }
+    },    form: {
       cityLabel: 'Ville',
       claimStatusLabel: 'État de revendication',
       commonNameHelp: 'Affiché publiquement lorsqu’il diffère du nom officiel.',
@@ -291,6 +326,13 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
   const pendingReviewCount = associations.filter((association) => association.status === 'pending_review' || association.verification_status === 'needs_review' || association.geocode_status === 'needs_review').length;
   const activeCount = associations.filter((association) => association.status === 'active').length;
   const verifiedCount = associations.filter((association) => association.verification_status === 'verified').length;
+  const mergeOptions = associations.map((association) => ({
+    city: association.city + ', ' + association.province,
+    id: association.id,
+    label: association.common_name ?? association.official_name,
+    source: c.form.sources[association.source],
+    status: c.form.statuses[association.status]
+  }));
 
   return (
     <AdminWorkspaceShell activeItem="associations" locale={params.locale} title={c.title} userEmail={currentUser.user.email}>
@@ -354,6 +396,18 @@ export default async function AdminAssociationsPage({ params }: AdminAssociation
                 </div>
 
                 <AdminAssociationRecordForm association={association} copy={c.form} locale={params.locale} />
+                <AdminAssociationMergeForm
+                  association={{
+                    city: association.city + ', ' + association.province,
+                    id: association.id,
+                    label: association.common_name ?? association.official_name,
+                    source: c.form.sources[association.source],
+                    status: c.form.statuses[association.status]
+                  }}
+                  copy={c.merge}
+                  locale={params.locale}
+                  options={mergeOptions}
+                />
               </article>
             ))}
           </div>
