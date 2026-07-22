@@ -18,9 +18,13 @@ type AdminAssociationRecord = {
   city: string;
   claim_status: AssociationClaimStatus;
   common_name: string | null;
+  common_name_en: string | null;
+  common_name_fr: string | null;
   contact_email: string | null;
   contact_notification_opt_in_status: 'confirmed' | 'pending' | 'withdrawn';
   description: string | null;
+  description_en: string | null;
+  description_fr: string | null;
   geocode_status: AssociationGeocodeStatus;
   id: string;
   official_name: string;
@@ -44,9 +48,13 @@ type AdminAssociationRecordFormProps = {
     claimStatusLabel: string;
     commonNameHelp: string;
     commonNameLabel: string;
+    commonNameEnLabel: string;
+    commonNameFrLabel: string;
     contactEmailHelp: string;
     contactEmailLabel: string;
     descriptionLabel: string;
+    descriptionEnLabel: string;
+    descriptionFrLabel: string;
     exactPrecisionLabel: string;
     geocodeStatusLabel: string;
     languageLabel: string;
@@ -160,10 +168,31 @@ export function AdminAssociationRecordForm({ association, copy, locale }: AdminA
         </label>
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-2">
+        <label className="grid gap-2 text-sm font-semibold text-heading">
+          {copy.commonNameEnLabel}
+          <input className="h-12 rounded-sm border border-input bg-card px-4 text-sm text-body shadow-card focus:border-focus" defaultValue={association.common_name_en ?? ''} maxLength={180} name="commonNameEn" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-heading">
+          {copy.commonNameFrLabel}
+          <input className="h-12 rounded-sm border border-input bg-card px-4 text-sm text-body shadow-card focus:border-focus" defaultValue={association.common_name_fr ?? ''} maxLength={180} name="commonNameFr" />
+        </label>
+      </div>
+
       <label className="grid gap-2 text-sm font-semibold text-heading">
         {copy.descriptionLabel}
         <textarea className="min-h-24 rounded-sm border border-input bg-card px-4 py-3 text-sm text-body shadow-card focus:border-focus" defaultValue={association.description ?? ''} maxLength={1200} name="description" />
       </label>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <label className="grid gap-2 text-sm font-semibold text-heading">
+          {copy.descriptionEnLabel}
+          <textarea className="min-h-24 rounded-sm border border-input bg-card px-4 py-3 text-sm text-body shadow-card focus:border-focus" defaultValue={association.description_en ?? ''} maxLength={1200} name="descriptionEn" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-heading">
+          {copy.descriptionFrLabel}
+          <textarea className="min-h-24 rounded-sm border border-input bg-card px-4 py-3 text-sm text-body shadow-card focus:border-focus" defaultValue={association.description_fr ?? ''} maxLength={1200} name="descriptionFr" />
+        </label>
+      </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_160px_180px]">
         <label className="grid gap-2 text-sm font-semibold text-heading lg:col-span-3">

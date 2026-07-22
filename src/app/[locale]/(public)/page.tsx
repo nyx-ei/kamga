@@ -47,6 +47,7 @@ const directoryCopy = {
     filter: 'Filter',
     languageFilter: 'French or English',
     languages: { en: 'English', fr: 'French', fr_en: 'French & English' },
+    localizedFallback: (locale: 'en' | 'fr' | 'fr_en') => `Shown in ${locale === 'fr' ? 'French' : locale === 'en' ? 'English' : 'the available language'}`,
     listFirst: 'List-first + toggle',
     areaGroup: (count: number) => `${count} in this area`,
     clusterAction: 'Open grouped associations',
@@ -138,6 +139,7 @@ const directoryCopy = {
     filter: 'Filtrer',
     languageFilter: 'FranÃ§ais ou anglais',
     languages: { en: 'Anglais', fr: 'FranÃ§ais', fr_en: 'FranÃ§ais et anglais' },
+    localizedFallback: (locale: 'en' | 'fr' | 'fr_en') => `Affiche en ${locale === 'fr' ? 'francais' : locale === 'en' ? 'anglais' : 'langue disponible'}`,
     listFirst: 'Liste dâ€™abord + bascule',
     areaGroup: (count: number) => `${count} dans cette zone`,
     clusterAction: 'Ouvrir les associations groupÃ©es',
@@ -254,7 +256,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
   const userLatitude = coordinateQuery(searchParams.lat);
   const userLongitude = coordinateQuery(searchParams.lng);
   const originLabel = userLatitude !== null && userLongitude !== null && searchParams.origin === 'device' ? copy.userLocation : null;
-  const search = await searchPublicAssociations({ originLabel, query, radiusKm: radius, userLatitude, userLongitude, verifiedOnly });
+  const search = await searchPublicAssociations({ originLabel, query, radiusKm: radius, uiLocale: params.locale, userLatitude, userLongitude, verifiedOnly });
   const ranked = search.results;
   const locationBand = ranked.filter((association) => association.matchReason === 'location');
   const totalPages = Math.max(1, Math.ceil(ranked.length / PAGE_SIZE));
@@ -384,7 +386,12 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
                               {copy.languages[association.primaryLanguage]}
                             </span>
                           </div>
-                          <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-secondary">{association.description ?? t('descriptionFallback')}</p>
+                          <div className="space-y-2">
+                            <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-secondary">{association.description ?? t('descriptionFallback')}</p>
+                            {association.description !== null && association.contentLocale !== params.locale ? (
+                              <span className="inline-flex w-fit rounded-full bg-sunken px-3 py-1 text-xs font-semibold text-muted">{copy.localizedFallback(association.contentLocale)}</span>
+                            ) : null}
+                          </div>
                           <div className="flex flex-wrap gap-3">
                             <Link
                               className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong"
