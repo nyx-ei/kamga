@@ -31,6 +31,7 @@ import { emailDefaults, resend } from '@/lib/email/resend';
 import { notificationEmail } from '@/lib/email/templates';
 import { publicEnv } from '@/lib/env/public-env';
 import { env } from '@/lib/env/server-env';
+import { geocodeAssociationAddress, geocodeUpdate } from '@/lib/geocoding/server';
 import { notifyJoinRequestSubmitted } from '@/lib/notifications/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -48,6 +49,14 @@ function optionalValue(value: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+async function geocodeAssociationFields(params: { city: string; postalCode: string; province: string; streetAddress: string | null }) {
+  return geocodeUpdate(await geocodeAssociationAddress({
+    city: params.city,
+    postalCode: params.postalCode,
+    province: params.province.toUpperCase(),
+    streetAddress: params.streetAddress
+  }));
+}
 function mimeExtension(mimeType: RpnProofMimeType): 'pdf' | 'jpg' | 'png' {
   switch (mimeType) {
     case 'application/pdf':
@@ -330,6 +339,12 @@ export async function updateAdminAssociationRecord(_previousState: AssociationAc
   const nextEmail = contactEmail?.trim().toLowerCase() ?? null;
   const emailChanged = previousEmail !== nextEmail;
   const now = new Date().toISOString();
+  const geocoding = await geocodeAssociationFields({
+    city: parsed.data.city,
+    postalCode: parsed.data.postalCode,
+    province: parsed.data.province,
+    streetAddress: optionalValue(parsed.data.streetAddress ?? '')
+  });
 
   const { error: updateError } = await adminSupabase
     .from('associations')
@@ -345,7 +360,7 @@ export async function updateAdminAssociationRecord(_previousState: AssociationAc
       contact_notification_opted_in_at: emailChanged ? null : undefined,
       contact_notification_withdrawn_at: contactEmail === null ? now : undefined,
       description: optionalValue(parsed.data.description ?? ''),
-      geocode_status: parsed.data.geocodeStatus,
+      ...geocoding,
       name: displayName,
       official_name: parsed.data.officialName,
       postal_code: parsed.data.postalCode,
@@ -457,6 +472,12 @@ export async function updateOwnedAssociationRecord(_previousState: AssociationAc
   const previousEmail = typeof existingAssociation.contact_email === 'string' ? existingAssociation.contact_email.trim().toLowerCase() : null;
   const nextEmail = contactEmail?.trim().toLowerCase() ?? null;
   const emailChanged = previousEmail !== nextEmail;
+  const geocoding = await geocodeAssociationFields({
+    city: parsed.data.city,
+    postalCode: parsed.data.postalCode,
+    province: parsed.data.province,
+    streetAddress: optionalValue(parsed.data.streetAddress ?? '')
+  });
 
   const { error: updateError } = await supabase
     .from('associations')
@@ -471,6 +492,7 @@ export async function updateOwnedAssociationRecord(_previousState: AssociationAc
       contact_notification_opted_in_at: emailChanged ? null : undefined,
       contact_notification_withdrawn_at: contactEmail === null ? new Date().toISOString() : undefined,
       description: optionalValue(parsed.data.description ?? ''),
+      ...geocoding,
       name: displayName,
       official_name: parsed.data.officialName,
       postal_code: parsed.data.postalCode,
@@ -629,9 +651,17 @@ export async function registerAssociation(
   const contactEmail = optionalValue(parsedFields.data.contactEmail ?? '');
   const supabase = createSupabaseServerClient();
   const adminSupabase = createSupabaseAdminClient();
+  const geocoding = await geocodeAssociationFields({
+    city: parsedFields.data.city,
+    postalCode: parsedFields.data.postalCode,
+    province: parsedFields.data.province,
+    streetAddress: optionalValue(parsedFields.data.streetAddress ?? '')
+  });
   const duplicate = await findAssociationDuplicate(adminSupabase, {
     city: parsedFields.data.city,
     displayName,
+    latitude: geocoding.latitude,
+    longitude: geocoding.longitude,
     province: parsedFields.data.province,
     registryNumber
   });
@@ -672,7 +702,7 @@ export async function registerAssociation(
     common_name: displayName,
     contact_email: contactEmail,
     contact_notification_opt_in_status: contactEmail === null ? 'withdrawn' : 'pending',
-    geocode_status: 'pending',
+    ...geocoding,
     name: displayName,
     official_name: parsedFields.data.name,
     postal_code: parsedFields.data.postalCode,
@@ -849,9 +879,18 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
 
     const registryNumber = optionalValue(row.registry_number || '');
     const displayName = optionalValue(row.common_name || '') ?? officialName;
+    const rowStreetAddress = optionalValue(row.street_address || '');
+    const geocoding = await geocodeAssociationFields({
+      city,
+      postalCode,
+      province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
+      streetAddress: rowStreetAddress
+    });
     const duplicate = await findAssociationDuplicate(supabase, {
       city,
       displayName,
+      latitude: geocoding.latitude,
+      longitude: geocoding.longitude,
       province: optionalValue(row.province || '')?.toUpperCase() ?? 'QC',
       registryNumber
     });
@@ -871,7 +910,7 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
         contact_email: contactEmail,
         contact_notification_opt_in_status: contactEmail === null ? 'withdrawn' : 'pending',
         description: optionalValue(row.description || ''),
-        geocode_status: 'pending',
+        ...geocoding,
         name: displayName,
         official_name: officialName,
         postal_code: postalCode,
@@ -882,6 +921,7 @@ export async function importAssociationsCsv(_previousState: AssociationCsvImport
         registry_type: optionalValue(registryType),
         source: 'csv_import',
         status: 'active',
+        street_address: rowStreetAddress,
         verification_status: registryNumber === null ? 'unverified' : 'needs_review'
       })
       .select('id')
