@@ -18,6 +18,8 @@ import {
   associationDecisionSchema,
   associationJoinRequestSchema,
   associationMergeSchema,
+  associationPrivacyRequestDecisionSchema,
+  associationPrivacyRequestSchema,
   associationRecordUpdateSchema,
   associationRecruitLeadDecisionSchema,
   associationRecruitLeadSchema,
@@ -327,6 +329,105 @@ export async function mergeAssociationRecords(_previousState: AssociationActionS
   revalidatePath(`/${parsed.data.locale}/admin/associations`);
   revalidatePath(`/${parsed.data.locale}`);
   revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.canonicalAssociationId}`);
+  return { ok: true, submitted: true };
+}
+export async function submitAssociationPrivacyRequest(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  const parsed = associationPrivacyRequestSchema.safeParse({
+    associationId: valueFromFormData(formData, 'associationId'),
+    locale: valueFromFormData(formData, 'locale'),
+    reason: valueFromFormData(formData, 'reason'),
+    requestType: valueFromFormData(formData, 'requestType')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-PC-001',
+      fieldErrors: {
+        privacyRequestType: flattened.requestType === undefined ? undefined : 'KMG-PC-001',
+        reason: flattened.reason === undefined ? undefined : 'KMG-PC-001'
+      }
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('submit_association_privacy_request', {
+    association_uuid: parsed.data.associationId,
+    reason_value: optionalValue(parsed.data.reason ?? ''),
+    request_type_value: parsed.data.requestType
+  });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (data !== 'ok') {
+    return {
+      ok: false,
+      code: data === 'KMG-AUTH-401' || data === 'KMG-AUTH-403' || data === 'KMG-PC-001' || data === 'KMG-PC-409'
+        ? data
+        : 'KMG-SYS-000'
+    };
+  }
+
+  revalidatePath('/dashboard/associations');
+  revalidatePath(`/${parsed.data.locale}/dashboard/associations`);
+  revalidatePath('/admin/privacy-requests');
+  revalidatePath(`/${parsed.data.locale}/admin/privacy-requests`);
+  return { ok: true, submitted: true };
+}
+
+export async function resolveAssociationPrivacyRequest(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = associationPrivacyRequestDecisionSchema.safeParse({
+    decision: valueFromFormData(formData, 'decision'),
+    locale: valueFromFormData(formData, 'locale'),
+    note: valueFromFormData(formData, 'note'),
+    privacyRequestId: valueFromFormData(formData, 'privacyRequestId')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-PC-001',
+      fieldErrors: {
+        privacyDecision: flattened.decision === undefined ? undefined : 'KMG-PC-001',
+        privacyNote: flattened.note === undefined ? undefined : 'KMG-PC-001',
+        privacyRequestId: flattened.privacyRequestId === undefined ? undefined : 'KMG-PC-001'
+      }
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('resolve_association_privacy_request', {
+    admin_note_value: optionalValue(parsed.data.note ?? ''),
+    decision_value: parsed.data.decision,
+    privacy_request_uuid: parsed.data.privacyRequestId
+  });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (data !== 'ok') {
+    return {
+      ok: false,
+      code: data === 'KMG-AUTH-401' || data === 'KMG-AUTH-403' || data === 'KMG-PC-001' || data === 'KMG-PC-404' || data === 'KMG-PC-409'
+        ? data
+        : 'KMG-SYS-000'
+    };
+  }
+
+  revalidatePath('/admin/privacy-requests');
+  revalidatePath(`/${parsed.data.locale}/admin/privacy-requests`);
+  revalidatePath('/admin/associations');
+  revalidatePath(`/${parsed.data.locale}/admin/associations`);
+  revalidatePath(`/${parsed.data.locale}`);
   return { ok: true, submitted: true };
 }
 export async function updateAdminAssociationRecord(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {

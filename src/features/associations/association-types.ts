@@ -10,6 +10,8 @@ export const ASSOCIATION_SOURCES = ['admin_entered', 'csv_import', 'self_registe
 export const ASSOCIATION_GEOCODE_STATUSES = ['pending', 'geocoded', 'failed', 'needs_review'] as const;
 export const ASSOCIATION_CONNECT_REQUEST_STATUSES = ['queued', 'routed', 'brokered', 'closed'] as const;
 export const ASSOCIATION_RECRUIT_LEAD_STATUSES = ['new', 'contacted', 'closed'] as const;
+export const ASSOCIATION_PRIVACY_REQUEST_TYPES = ['remove_contact', 'delist_record'] as const;
+export const ASSOCIATION_PRIVACY_REQUEST_DECISIONS = ['completed', 'rejected'] as const;
 
 export type AssociationStatus = (typeof ASSOCIATION_STATUSES)[number];
 export type AssociationPrimaryLanguage = (typeof ASSOCIATION_PRIMARY_LANGUAGES)[number];
@@ -19,6 +21,8 @@ export type AssociationSource = (typeof ASSOCIATION_SOURCES)[number];
 export type AssociationGeocodeStatus = (typeof ASSOCIATION_GEOCODE_STATUSES)[number];
 export type AssociationConnectRequestStatus = (typeof ASSOCIATION_CONNECT_REQUEST_STATUSES)[number];
 export type AssociationRecruitLeadStatus = (typeof ASSOCIATION_RECRUIT_LEAD_STATUSES)[number];
+export type AssociationPrivacyRequestType = (typeof ASSOCIATION_PRIVACY_REQUEST_TYPES)[number];
+export type AssociationPrivacyRequestDecision = (typeof ASSOCIATION_PRIVACY_REQUEST_DECISIONS)[number];
 
 export type AssociationActionCode =
   | 'KMG-AUTH-401'
@@ -40,6 +44,9 @@ export type AssociationActionCode =
   | 'KMG-MG-001'
   | 'KMG-MG-404'
   | 'KMG-MG-409'
+  | 'KMG-PC-001'
+  | 'KMG-PC-404'
+  | 'KMG-PC-409'
   | 'KMG-SYS-000';
 
 export type AssociationActionState =
@@ -65,6 +72,11 @@ export type AssociationActionState =
           | 'phone'
           | 'postalCode'
           | 'primaryLanguage'
+          | 'privacyDecision'
+          | 'privacyNote'
+          | 'privacyRequestId'
+          | 'privacyRequestType'
+          | 'reason'
           | 'registryNumber'
           | 'replyChannel'
           | 'requesterEmail'
@@ -131,6 +143,19 @@ export const associationMergeSchema = z
     path: ['duplicateAssociationId']
   });
 
+export const associationPrivacyRequestSchema = z.object({
+  associationId: z.string().uuid(),
+  locale: z.enum(['en', 'fr']),
+  reason: z.string().trim().max(1200).optional().or(z.literal('')),
+  requestType: z.enum(ASSOCIATION_PRIVACY_REQUEST_TYPES)
+});
+
+export const associationPrivacyRequestDecisionSchema = z.object({
+  decision: z.enum(ASSOCIATION_PRIVACY_REQUEST_DECISIONS),
+  locale: z.enum(['en', 'fr']),
+  note: z.string().trim().max(1200).optional().or(z.literal('')),
+  privacyRequestId: z.string().uuid()
+});
 export const associationClaimRequestDecisionSchema = z.object({
   claimRequestId: z.string().uuid(),
   decision: z.enum(['approved', 'rejected', 'locked']),
