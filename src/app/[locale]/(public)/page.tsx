@@ -105,6 +105,9 @@ const directoryCopy = {
         'KMG-RG-004': 'Use a supported file type.',
         'KMG-RG-404': 'This association could not be found.',
         'KMG-RG-409': 'This association already exists.',
+        'KMG-MG-001': 'The selected records cannot be merged.',
+        'KMG-MG-404': 'One of the selected records could not be found.',
+        'KMG-MG-409': 'The selected duplicate has already been merged.',
         'KMG-SYS-000': 'The lead could not be recorded. Try again or contact support.'
       },
       messageLabel: 'Context for the Kamga team',
@@ -190,6 +193,9 @@ const directoryCopy = {
         'KMG-RG-004': 'Utilisez un type de fichier supportÃ©.',
         'KMG-RG-404': 'Cette association est introuvable.',
         'KMG-RG-409': 'Cette association existe dÃ©jÃ .',
+        'KMG-MG-001': 'Les fiches selectionnees ne peuvent pas etre fusionnees.',
+        'KMG-MG-404': 'Une des fiches selectionnees est introuvable.',
+        'KMG-MG-409': 'Le doublon selectionne a deja ete fusionne.',
         'KMG-SYS-000': 'La piste nâ€™a pas pu Ãªtre enregistrÃ©e. RÃ©essayez ou contactez le support.'
       },
       messageLabel: 'Contexte pour lâ€™Ã©quipe Kamga',

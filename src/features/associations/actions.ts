@@ -17,6 +17,7 @@ import {
   associationConnectRequestSchema,
   associationDecisionSchema,
   associationJoinRequestSchema,
+  associationMergeSchema,
   associationRecordUpdateSchema,
   associationRecruitLeadDecisionSchema,
   associationRecruitLeadSchema,
@@ -281,6 +282,53 @@ async function sendAssociationVerificationNotification(params: AssociationVerifi
   });
 }
 
+export async function mergeAssociationRecords(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
+  await requirePlatformAdmin();
+
+  const parsed = associationMergeSchema.safeParse({
+    canonicalAssociationId: valueFromFormData(formData, 'canonicalAssociationId'),
+    duplicateAssociationId: valueFromFormData(formData, 'duplicateAssociationId'),
+    locale: valueFromFormData(formData, 'locale')
+  });
+
+  if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
+
+    return {
+      ok: false,
+      code: 'KMG-MG-001',
+      fieldErrors: {
+        canonicalAssociationId: flattened.canonicalAssociationId === undefined ? undefined : 'KMG-MG-001',
+        duplicateAssociationId: flattened.duplicateAssociationId === undefined ? undefined : 'KMG-MG-001'
+      }
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.rpc('merge_association_records', {
+    canonical_association_uuid: parsed.data.canonicalAssociationId,
+    duplicate_association_uuid: parsed.data.duplicateAssociationId
+  });
+
+  if (error) {
+    return { ok: false, code: 'KMG-SYS-000' };
+  }
+
+  if (data !== 'ok') {
+    return {
+      ok: false,
+      code: data === 'KMG-AUTH-401' || data === 'KMG-AUTH-403' || data === 'KMG-MG-001' || data === 'KMG-MG-404' || data === 'KMG-MG-409'
+        ? data
+        : 'KMG-SYS-000'
+    };
+  }
+
+  revalidatePath('/admin/associations');
+  revalidatePath(`/${parsed.data.locale}/admin/associations`);
+  revalidatePath(`/${parsed.data.locale}`);
+  revalidatePath(`/${parsed.data.locale}/associations/${parsed.data.canonicalAssociationId}`);
+  return { ok: true, submitted: true };
+}
 export async function updateAdminAssociationRecord(_previousState: AssociationActionState = INITIAL_ERROR_STATE, formData: FormData): Promise<AssociationActionState> {
   await requirePlatformAdmin();
 
