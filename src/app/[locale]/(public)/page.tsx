@@ -27,6 +27,7 @@ type HomePageProps = {
     q?: string;
     radius?: string;
     selected?: string;
+    view?: string;
     verified?: string;
   };
 };
@@ -49,6 +50,7 @@ const directoryCopy = {
     languages: { en: 'English', fr: 'French', fr_en: 'French & English' },
     localizedFallback: (locale: 'en' | 'fr' | 'fr_en') => `Shown in ${locale === 'fr' ? 'French' : locale === 'en' ? 'English' : 'the available language'}`,
     listFirst: 'List-first + toggle',
+    mapOnly: 'Map only',
     areaGroup: (count: number) => `${count} in this area`,
     clusterAction: 'Open grouped associations',
     clusterLabel: (count: number) => `${count} associations grouped`,
@@ -141,6 +143,7 @@ const directoryCopy = {
     languages: { en: 'Anglais', fr: 'Français', fr_en: 'Français et anglais' },
     localizedFallback: (locale: 'en' | 'fr' | 'fr_en') => `Affiché en ${locale === 'fr' ? 'français' : locale === 'en' ? 'anglais' : 'langue disponible'}`,
     listFirst: 'Liste d’abord + bascule',
+    mapOnly: 'Carte seulement',
     areaGroup: (count: number) => `${count} dans cette zone`,
     clusterAction: 'Ouvrir les associations groupées',
     clusterLabel: (count: number) => `${count} associations groupées`,
@@ -232,7 +235,13 @@ function coordinateQuery(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function pageHref(params: { lat: number | null; lng: number | null; origin: string | null; page: number; query: string; radius: number; verifiedOnly: boolean }) {
+type DirectoryViewMode = 'list' | 'map' | 'split';
+
+function viewMode(value: string | undefined): DirectoryViewMode {
+  return value === 'list' || value === 'map' || value === 'split' ? value : 'split';
+}
+
+function pageHref(params: { lat: number | null; lng: number | null; origin: string | null; page: number; query: string; radius: number; verifiedOnly: boolean; view?: DirectoryViewMode }) {
   return {
     pathname: '/',
     query: {
@@ -240,7 +249,8 @@ function pageHref(params: { lat: number | null; lng: number | null; origin: stri
       ...(params.lat !== null && params.lng !== null ? { lat: String(params.lat), lng: String(params.lng), origin: params.origin ?? 'device' } : {}),
       ...(params.verifiedOnly ? { verified: '1' } : {}),
       page: String(params.page),
-      radius: String(params.radius)
+      radius: String(params.radius),
+      ...(params.view !== undefined && params.view !== 'split' ? { view: params.view } : {})
     }
   };
 }
@@ -253,6 +263,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
   const currentPage = numericQuery(searchParams.page, 1);
   const selectedAssociationId = searchParams.selected ?? null;
   const verifiedOnly = searchParams.verified === '1';
+  const view = viewMode(searchParams.view);
   const userLatitude = coordinateQuery(searchParams.lat);
   const userLongitude = coordinateQuery(searchParams.lng);
   const originLabel = userLatitude !== null && userLongitude !== null && searchParams.origin === 'device' ? copy.userLocation : null;
@@ -268,7 +279,17 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
     ...(query.length > 0 ? { q: query } : {}),
     ...(userLatitude !== null && userLongitude !== null ? { lat: String(userLatitude), lng: String(userLongitude), origin: searchParams.origin ?? 'device' } : {}),
     ...(verifiedOnly ? { verified: '1' } : {}),
+    ...(view !== 'split' ? { view } : {}),
     radius: String(radius)
+  };
+  const viewBaseParams = {
+    lat: userLatitude,
+    lng: userLongitude,
+    origin: searchParams.origin ?? null,
+    page: 1,
+    query,
+    radius,
+    verifiedOnly
   };
 
   return (
@@ -278,6 +299,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
       <section className="px-8 py-10">
         <form className="grid gap-5" method="get">
           <input name="radius" type="hidden" value={radius} />
+          {view !== 'split' ? <input name="view" type="hidden" value={view} /> : null}
           {userLatitude !== null && userLongitude !== null ? (
             <>
               <input name="lat" type="hidden" value={userLatitude} />
@@ -321,7 +343,7 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
               {canSearchWider ? (
                 <Link
                   className="rounded-sm border border-border bg-card px-4 py-2 text-sm font-semibold text-brand shadow-card"
-                  href={pageHref({ lat: userLatitude, lng: userLongitude, origin: searchParams.origin ?? null, page: 1, query, radius: Math.min(radius === DEFAULT_RADIUS_KM ? WIDER_RADIUS_KM : MAX_RADIUS_KM, MAX_RADIUS_KM), verifiedOnly })}
+                  href={pageHref({ ...viewBaseParams, radius: Math.min(radius === DEFAULT_RADIUS_KM ? WIDER_RADIUS_KM : MAX_RADIUS_KM, MAX_RADIUS_KM), view })}
                 >
                   {copy.searchWider}
                 </Link>
@@ -343,10 +365,15 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
             <div className="flex flex-wrap items-center gap-6 rounded-md border border-dashed border-brand bg-[#f7f9ff] px-5 py-4">
               <span className="text-xs font-semibold uppercase text-[#3454b8]">{copy.compareOptions}</span>
               <span className="text-sm font-semibold text-secondary">{copy.mapLayout}</span>
-              <span className="rounded-sm bg-sunken px-4 py-2 text-sm font-semibold text-heading shadow-card">{copy.sideBySide}</span>
-              <button className="cursor-not-allowed rounded-sm bg-[#eef1f7] px-4 py-2 text-sm font-semibold text-muted" disabled type="button">
+              <Link className={`rounded-sm px-4 py-2 text-sm font-semibold shadow-card ${view === 'split' ? 'bg-sunken text-heading' : 'bg-[#eef1f7] text-secondary hover:text-heading'}`} href={pageHref({ ...viewBaseParams, view: 'split' })}>
+                {copy.sideBySide}
+              </Link>
+              <Link className={`rounded-sm px-4 py-2 text-sm font-semibold shadow-card ${view === 'list' ? 'bg-sunken text-heading' : 'bg-[#eef1f7] text-secondary hover:text-heading'}`} href={pageHref({ ...viewBaseParams, view: 'list' })}>
                 {copy.listFirst}
-              </button>
+              </Link>
+              <Link className={`rounded-sm px-4 py-2 text-sm font-semibold shadow-card ${view === 'map' ? 'bg-sunken text-heading' : 'bg-[#eef1f7] text-secondary hover:text-heading'}`} href={pageHref({ ...viewBaseParams, view: 'map' })}>
+                {copy.mapOnly}
+              </Link>
               <span className="text-sm font-semibold text-secondary">{copy.resultCard}</span>
               <span className="rounded-sm bg-sunken px-4 py-2 text-sm font-semibold text-heading shadow-card">{copy.compact}</span>
               <button className="cursor-not-allowed rounded-sm bg-[#eef1f7] px-4 py-2 text-sm font-semibold text-muted" disabled type="button">
@@ -354,98 +381,102 @@ export default async function HomePage({ params, searchParams }: HomePageProps) 
               </button>
             </div>
 
-            <div className="grid gap-8 xl:grid-cols-[1fr_0.95fr]">
-              <div className="grid content-start gap-4">
-                {paginatedAssociations.map((association) => (
-                  <article className={`grid scroll-mt-8 rounded-md border bg-card p-5 shadow-card ${association.id === selectedAssociationId ? 'border-brand ring-2 ring-brand/30' : 'border-border'}`} id={`association-${association.id}`} key={association.id}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex gap-5">
-                        <span className="grid size-10 place-items-center rounded-full bg-[#4d67c7] text-sm font-semibold text-white shadow-card">{association.rank}</span>
-                        <div className="space-y-3">
-                          <div>
-                            <h2 className="text-xl font-semibold text-heading">{association.displayName}</h2>
-                            <p className="mt-1 inline-flex items-center gap-2 text-sm text-secondary">
-                              <MapPin aria-hidden="true" size={16} />
-                              {association.city}, {association.province}
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {association.matchReason === 'identity' && query.length > 0 ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-[#eef1f7] px-3 py-1 text-xs font-semibold text-secondary">{copy.nameMatch}</span>
-                            ) : association.matchReason === 'location' && association.distanceKm !== null ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-[#eef1f7] px-3 py-1 text-xs font-semibold text-secondary">{copy.distanceAway(association.distanceKm)}</span>
-                            ) : null}
-                            {association.verificationStatus === 'verified' ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-positive-bg px-3 py-1 text-xs font-semibold text-positive">
-                                <ShieldCheck aria-hidden="true" size={13} />
-                                {copy.verified}
+            <div className={`grid gap-8 ${view === 'split' ? 'xl:grid-cols-[1fr_0.95fr]' : ''}`}>
+              {view !== 'map' ? (
+                <div className="grid content-start gap-4">
+                  {paginatedAssociations.map((association) => (
+                    <article className={`grid scroll-mt-8 rounded-md border bg-card p-5 shadow-card ${association.id === selectedAssociationId ? 'border-brand ring-2 ring-brand/30' : 'border-border'}`} id={`association-${association.id}`} key={association.id}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex gap-5">
+                          <span className="grid size-10 place-items-center rounded-full bg-[#4d67c7] text-sm font-semibold text-white shadow-card">{association.rank}</span>
+                          <div className="space-y-3">
+                            <div>
+                              <h2 className="text-xl font-semibold text-heading">{association.displayName}</h2>
+                              <p className="mt-1 inline-flex items-center gap-2 text-sm text-secondary">
+                                <MapPin aria-hidden="true" size={16} />
+                                {association.city}, {association.province}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {association.matchReason === 'identity' && query.length > 0 ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#eef1f7] px-3 py-1 text-xs font-semibold text-secondary">{copy.nameMatch}</span>
+                              ) : association.matchReason === 'location' && association.distanceKm !== null ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#eef1f7] px-3 py-1 text-xs font-semibold text-secondary">{copy.distanceAway(association.distanceKm)}</span>
+                              ) : null}
+                              {association.verificationStatus === 'verified' ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-positive-bg px-3 py-1 text-xs font-semibold text-positive">
+                                  <ShieldCheck aria-hidden="true" size={13} />
+                                  {copy.verified}
+                                </span>
+                              ) : null}
+                              <span className="inline-flex items-center gap-1 rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">
+                                <Flag aria-hidden="true" size={13} />
+                                {copy.languages[association.primaryLanguage]}
                               </span>
-                            ) : null}
-                            <span className="inline-flex items-center gap-1 rounded-full bg-info-bg px-3 py-1 text-xs font-semibold text-info">
-                              <Flag aria-hidden="true" size={13} />
-                              {copy.languages[association.primaryLanguage]}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-secondary">{association.description ?? t('descriptionFallback')}</p>
-                            {association.description !== null && association.contentLocale !== params.locale ? (
-                              <span className="inline-flex w-fit rounded-full bg-sunken px-3 py-1 text-xs font-semibold text-muted">{copy.localizedFallback(association.contentLocale)}</span>
-                            ) : null}
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            <Link
-                              className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong"
-                              href={`/associations/${association.id}`}
-                            >
-                              <Building2 aria-hidden="true" size={16} />
-                              {copy.requestToConnect}
-                            </Link>
-                            {association.claimStatus === 'unclaimed' ? (
-                              <Link className="inline-flex w-fit items-center gap-2 rounded-sm px-4 py-2 text-sm font-semibold text-brand" href={{ pathname: '/register', query: { claim: association.id } }}>
-                                <ShieldCheck aria-hidden="true" size={16} />
-                                {copy.claimAction}
+                            </div>
+                            <div className="space-y-2">
+                              <p className="line-clamp-2 max-w-2xl text-sm leading-6 text-secondary">{association.description ?? t('descriptionFallback')}</p>
+                              {association.description !== null && association.contentLocale !== params.locale ? (
+                                <span className="inline-flex w-fit rounded-full bg-sunken px-3 py-1 text-xs font-semibold text-muted">{copy.localizedFallback(association.contentLocale)}</span>
+                              ) : null}
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                              <Link
+                                className="inline-flex w-fit items-center gap-2 rounded-sm bg-brand px-4 py-2 text-sm font-semibold text-heading shadow-card transition hover:bg-brand-strong"
+                                href={`/associations/${association.id}`}
+                              >
+                                <Building2 aria-hidden="true" size={16} />
+                                {copy.requestToConnect}
                               </Link>
-                            ) : null}
+                              {association.claimStatus === 'unclaimed' ? (
+                                <Link className="inline-flex w-fit items-center gap-2 rounded-sm px-4 py-2 text-sm font-semibold text-brand" href={{ pathname: '/register', query: { claim: association.id } }}>
+                                  <ShieldCheck aria-hidden="true" size={16} />
+                                  {copy.claimAction}
+                                </Link>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  ))}
 
-                {totalPages > 1 ? (
-                  <nav className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3 text-sm shadow-card" aria-label="Pagination">
-                    <p className="font-medium text-secondary">{copy.pagination(page, totalPages)}</p>
-                    <div className="flex gap-2">
-                      <Link className={`rounded-sm border border-border px-4 py-2 font-semibold shadow-card ${page === 1 ? 'pointer-events-none text-muted' : 'text-heading'}`} href={pageHref({ lat: userLatitude, lng: userLongitude, origin: searchParams.origin ?? null, page: Math.max(1, page - 1), query, radius, verifiedOnly })}>
-                        {copy.previous}
-                      </Link>
-                      <Link className={`rounded-sm border border-border px-4 py-2 font-semibold shadow-card ${page === totalPages ? 'pointer-events-none text-muted' : 'text-heading'}`} href={pageHref({ lat: userLatitude, lng: userLongitude, origin: searchParams.origin ?? null, page: Math.min(totalPages, page + 1), query, radius, verifiedOnly })}>
-                        {copy.next}
-                      </Link>
-                    </div>
-                  </nav>
-                ) : null}
-              </div>
+                  {totalPages > 1 ? (
+                    <nav className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3 text-sm shadow-card" aria-label="Pagination">
+                      <p className="font-medium text-secondary">{copy.pagination(page, totalPages)}</p>
+                      <div className="flex gap-2">
+                        <Link className={`rounded-sm border border-border px-4 py-2 font-semibold shadow-card ${page === 1 ? 'pointer-events-none text-muted' : 'text-heading'}`} href={pageHref({ ...viewBaseParams, page: Math.max(1, page - 1), view })}>
+                          {copy.previous}
+                        </Link>
+                        <Link className={`rounded-sm border border-border px-4 py-2 font-semibold shadow-card ${page === totalPages ? 'pointer-events-none text-muted' : 'text-heading'}`} href={pageHref({ ...viewBaseParams, page: Math.min(totalPages, page + 1), view })}>
+                          {copy.next}
+                        </Link>
+                      </div>
+                    </nav>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <PublicDirectoryMap
-                associations={locationBand}
-                copy={{
-                  areaGroup: copy.areaGroup,
-                  clusterAction: copy.clusterAction,
-                  clusterLabel: copy.clusterLabel,
-                  locationOnlyMap: copy.locationOnlyMap,
-                  mapPrecision: copy.mapPrecision,
-                  mapTitle: copy.mapTitle,
-                  selectedLabel: copy.selectedLabel,
-                  zoomIn: copy.zoomIn,
-                  zoomOut: copy.zoomOut
-                }}
-                locale={params.locale}
-                pageSize={PAGE_SIZE}
-                selectedAssociationId={selectedAssociationId}
-                urlParams={mapUrlParams}
-              />
+              {view !== 'list' ? (
+                <PublicDirectoryMap
+                  associations={locationBand}
+                  copy={{
+                    areaGroup: copy.areaGroup,
+                    clusterAction: copy.clusterAction,
+                    clusterLabel: copy.clusterLabel,
+                    locationOnlyMap: copy.locationOnlyMap,
+                    mapPrecision: copy.mapPrecision,
+                    mapTitle: copy.mapTitle,
+                    selectedLabel: copy.selectedLabel,
+                    zoomIn: copy.zoomIn,
+                    zoomOut: copy.zoomOut
+                  }}
+                  locale={params.locale}
+                  pageSize={PAGE_SIZE}
+                  selectedAssociationId={selectedAssociationId}
+                  urlParams={mapUrlParams}
+                />
+              ) : null}
             </div>
           </section>
         ) : (
