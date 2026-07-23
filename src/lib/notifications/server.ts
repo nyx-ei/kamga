@@ -257,7 +257,7 @@ export async function notifyLeveeDispatched(params: { leveeId: string; locale: '
         payload: { contributionId: parsedContribution.data.id },
         recipientUserId: membership.user_id,
         sendEmail: true,
-        title: params.locale === 'fr' ? 'Nouvelle contribution a payer' : 'New contribution to pay',
+        title: params.locale === 'fr' ? 'Nouvelle contribution à payer' : 'New contribution to pay',
         type: 'new_call_to_contribute'
       });
     }
@@ -303,7 +303,7 @@ export async function notifyPaymentReminder(params: { contributionId: string; lo
   await createNotification({
     body:
       params.locale === 'fr'
-        ? `Rappel: il reste ${amount} a payer pour ${association?.name ?? 'Kamga'}.`
+        ? `Rappel : il reste ${amount} à payer pour ${association?.name ?? 'Kamga'}.`
         : `Reminder: ${amount} remains due for ${association?.name ?? 'Kamga'}.`,
     href: `/${params.locale}/dashboard`,
     payload: { contributionId: params.contributionId },

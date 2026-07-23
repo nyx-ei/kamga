@@ -72,7 +72,7 @@ const shellCopy = {
     adminMembers: 'Membres',
     adminNotifications: 'Notifications',
     adminPilot: 'Programme pilote',
-    adminPrivacyRequests: 'Demandes privacy',
+    adminPrivacyRequests: 'Demandes de confidentialité',
     adminRecruitLeads: 'Pistes annuaire',
     adminReferrals: 'Parrainages',
     adminReports: 'Rapports',
