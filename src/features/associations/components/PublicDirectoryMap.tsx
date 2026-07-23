@@ -116,6 +116,7 @@ function destinationForAssociation(locale: 'en' | 'fr', association: PublicAssoc
   const params = new URLSearchParams(urlParams);
   params.set('page', String(Math.max(1, Math.ceil(association.rank / pageSize))));
   params.set('selected', association.id);
+  params.delete('view');
   return `/${locale}?${params.toString()}#association-${association.id}`;
 }
 
@@ -124,6 +125,16 @@ export function PublicDirectoryMap({ associations, copy, locale, pageSize, selec
   const [openClusterId, setOpenClusterId] = useState<string | null>(null);
   const clusters = useMemo(() => clusterAssociations(associations, zoom), [associations, zoom]);
   const openCluster = clusters.find((cluster) => cluster.id === openClusterId) ?? null;
+
+  function handleClusterClick(cluster: MapCluster): void {
+    if (cluster.type === 'cluster' && zoom < 4) {
+      setZoom((value) => Math.min(4, value + 1));
+      setOpenClusterId(null);
+      return;
+    }
+
+    setOpenClusterId((current) => current === cluster.id ? null : cluster.id);
+  }
 
   return (
     <div className="relative min-h-[520px] overflow-hidden rounded-md border border-border bg-[#eef3fb] shadow-card">
@@ -189,8 +200,9 @@ export function PublicDirectoryMap({ associations, copy, locale, pageSize, selec
               aria-label={cluster.type === 'shared-area' ? copy.areaGroup(cluster.items.length) : copy.clusterLabel(cluster.items.length)}
               className={`absolute z-20 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 text-sm font-semibold shadow-card transition hover:scale-105 ${cluster.type === 'shared-area' ? 'size-14 border-dashed border-[#314ca8] bg-card text-[#243a93]' : 'size-12 border-[#314ca8] bg-[#4d67c7] text-white'} ${isSelected ? 'ring-4 ring-brand/40' : ''}`}
               key={cluster.id}
-              onClick={() => setOpenClusterId((current) => current === cluster.id ? null : cluster.id)}
+              onClick={() => handleClusterClick(cluster)}
               style={{ left: `${cluster.left}%`, top: `${cluster.top}%` }}
+              title={cluster.type === 'cluster' && zoom < 4 ? copy.clusterAction : undefined}
               type="button"
             >
               {cluster.items.length}
