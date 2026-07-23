@@ -123,18 +123,18 @@ const copy = {
   },
   fr: {
     cityLabel: 'Ville',
-    commonNameHelp: 'Affiche si le nom public diffÃ¨re du nom officiel.',
+    commonNameHelp: 'Affiché si le nom public diffère du nom officiel.',
     commonNameLabel: 'Nom courant',
     commonNameEnLabel: 'Nom public anglais',
-    commonNameFrLabel: 'Nom public francais',
-    contactEmailHelp: 'Modifier ce courriel envoie une nouvelle demande de confirmation. Il nâ€™est jamais utilisÃ© pour les notifications avant confirmation.',
-    contactEmailLabel: 'Courriel de contact privÃ©',
-    description: 'Modifiez la fiche revendiquÃ©e de votre association. La vÃ©rification, la source et le statut plateforme restent contrÃ´lÃ©s par les administrateurs Kamga.',
+    commonNameFrLabel: 'Nom public français',
+    contactEmailHelp: 'Modifier ce courriel envoie une nouvelle demande de confirmation. Il n’est jamais utilisé pour les notifications avant confirmation.',
+    contactEmailLabel: 'Courriel de contact privé',
+    description: 'Modifiez la fiche revendiquée de votre association. La vérification, la source et le statut plateforme restent contrôlés par les administrateurs Kamga.',
     descriptionLabel: 'Description publique',
     descriptionEnLabel: 'Description publique anglaise',
-    descriptionFrLabel: 'Description publique francaise',
+    descriptionFrLabel: 'Description publique française',
     emptyAction: 'Inscrire une association',
-    emptyState: 'Aucune association revendiquÃ©e nâ€™est encore rattachÃ©e Ã  ce compte.',
+    emptyState: 'Aucune association revendiquée n’est encore rattachée à ce compte.',
     exactPrecisionLabel: 'Adresse exacte',
     languageLabel: 'Langue principale',
     nameLabel: 'Nom officiel',
@@ -142,58 +142,58 @@ const copy = {
     postalCodeLabel: 'Code postal',
     provinceLabel: 'Province',
     publicContactEmailLabel: 'Publier ce courriel sur la fiche publique',
-    publicPrecisionHelp: 'La prÃ©cision quartier est le choix par dÃ©faut pour protÃ©ger la vie privÃ©e. Lâ€™adresse exacte doit Ãªtre rÃ©servÃ©e aux lieux publics.',
-    publicPrecisionLabel: 'PrÃ©cision publique de localisation',
+    publicPrecisionHelp: 'La précision quartier est le choix par défaut pour protéger la vie privée. L’adresse exacte doit être réservée aux lieux publics.',
+    publicPrecisionLabel: 'Précision publique de localisation',
     privacy: {
-      description: 'Demandez a Kamga de retirer les coordonnees privees ou de retirer cette fiche de l annuaire public. Une revue admin est requise avant toute action privacy terminale.',
+      description: 'Demandez à Kamga de retirer les coordonnées privées ou de retirer cette fiche de l’annuaire public. Une revue admin est requise avant toute action de confidentialité définitive.',
       reasonLabel: 'Motif ou contexte',
-      reasonPlaceholder: 'Ajoutez le contexte operationnel que l admin doit prendre en compte.',
-      requestAction: 'Envoyer la demande privacy',
+      reasonPlaceholder: 'Ajoutez le contexte opérationnel que l’admin doit prendre en compte.',
+      requestAction: 'Envoyer la demande de confidentialité',
       requestPending: 'Envoi...',
-      requestSubmitted: 'Demande privacy envoyee pour revue admin.',
-      title: 'Confidentialite et retrait',
+      requestSubmitted: 'Demande de confidentialité envoyée pour revue admin.',
+      title: 'Confidentialité et retrait',
       typeLabel: 'Type de demande',
       requestTypes: {
         delist_record: 'Retirer cette fiche association',
-        remove_contact: 'Retirer les coordonnees privees'
+        remove_contact: 'Retirer les coordonnées privées'
       },
       errors: {
-        'KMG-AUTH-401': 'Reconnectez-vous avant d envoyer cette demande.',
+        'KMG-AUTH-401': 'Reconnectez-vous avant d’envoyer cette demande.',
         'KMG-AUTH-403': 'Seul un admin association actif peut envoyer cette demande.',
-        'KMG-PC-001': 'Verifiez les champs de la demande privacy puis reessayez.',
-        'KMG-PC-404': 'Cette demande privacy est introuvable.',
-        'KMG-PC-409': 'Une demande de ce type est deja en attente.',
-        'KMG-SYS-000': 'La demande privacy n a pas pu etre envoyee. Reessayez ou contactez le support.'
+        'KMG-PC-001': 'Vérifiez les champs de la demande de confidentialité puis réessayez.',
+        'KMG-PC-404': 'Cette demande de confidentialité est introuvable.',
+        'KMG-PC-409': 'Une demande de ce type est déjà en attente.',
+        'KMG-SYS-000': 'La demande de confidentialité n’a pas pu être envoyée. Réessayez ou contactez le support.'
       }
     },
-    saved: 'Fiche association enregistrÃ©e.',
+    saved: 'Fiche association enregistrée.',
     saveAction: 'Enregistrer la fiche',
     saving: 'Enregistrement...',
     statusLabel: 'Statut plateforme',
     streetLabel: 'Adresse civique',
     title: 'Associations',
-    verificationLabel: 'Statut de vÃ©rification',
+    verificationLabel: 'Statut de vérification',
     errors: {
       'KMG-AUTH-401': 'Reconnectez-vous avant de modifier cette association.',
-      'KMG-AUTH-403': 'Vous pouvez modifier uniquement les associations oÃ¹ vous Ãªtes admin association actif.',
-      'KMG-RG-001': 'VÃ©rifiez les champs envoyÃ©s puis rÃ©essayez.',
-      'KMG-SYS-000': 'La fiche association nâ€™a pas pu Ãªtre enregistrÃ©e. RÃ©essayez ou contactez le support.'
+      'KMG-AUTH-403': 'Vous pouvez modifier uniquement les associations où vous êtes admin association actif.',
+      'KMG-RG-001': 'Vérifiez les champs envoyés puis réessayez.',
+      'KMG-SYS-000': 'La fiche association n’a pas pu être enregistrée. Réessayez ou contactez le support.'
     },
     optInStatuses: {
-      confirmed: 'Opt-in de notification confirmÃ© pour ce courriel.',
-      pending: 'Opt-in de notification en attente. Seuls les courriels de confirmation peuvent Ãªtre envoyÃ©s Ã  cette adresse.',
-      withdrawn: 'Opt-in de notification retirÃ©. Aucune notification systÃ¨me nâ€™est envoyÃ©e Ã  cette adresse.'
+      confirmed: 'Opt-in de notification confirmé pour ce courriel.',
+      pending: 'Opt-in de notification en attente. Seuls les courriels de confirmation peuvent être envoyés à cette adresse.',
+      withdrawn: 'Opt-in de notification retiré. Aucune notification système n’est envoyée à cette adresse.'
     },
     statuses: {
       active: 'Active',
-      declined: 'RefusÃ©e',
+      declined: 'Refusée',
       pending_review: 'En revue',
       suspended: 'Suspendue'
     },
     verificationStatuses: {
-      needs_review: 'Ã€ revoir',
-      unverified: 'Non vÃ©rifiÃ©e',
-      verified: 'VÃ©rifiÃ©e'
+      needs_review: 'À revoir',
+      unverified: 'Non vérifiée',
+      verified: 'Vérifiée'
     }
   }
 } as const;

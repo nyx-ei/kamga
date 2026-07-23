@@ -115,45 +115,45 @@ const copy = {
     adminNoteLabel: 'Note admin',
     adminNotePlaceholder: 'Ajoutez le contexte interne pour la piste audit.',
     associationLabel: 'Association',
-    badge: 'Confidentialite et consentement',
-    contactLabel: 'Contact prive actuel',
+    badge: 'Confidentialité et consentement',
+    contactLabel: 'Contact privé actuel',
     createdAtLabel: 'Soumise le',
     description:
-      'Traitez les demandes des associations pour retirer les coordonnees de contact ou retirer une fiche de l annuaire. La finalisation applique la mise a jour privacy-safe en base et conserve une decision auditable.',
-    emptyState: 'Aucune demande privacy ne correspond a ce filtre.',
+      'Traitez les demandes des associations pour retirer les coordonnées de contact ou retirer une fiche de l’annuaire. La finalisation applique la mise à jour de confidentialité en base et conserve une décision auditable.',
+    emptyState: 'Aucune demande de confidentialité ne correspond à ce filtre.',
     errors: {
       'KMG-AUTH-401': 'Connectez-vous avant de traiter cette demande.',
-      'KMG-AUTH-403': 'Seuls les admins plateforme peuvent traiter les demandes privacy.',
-      'KMG-PC-001': 'Verifiez les champs de decision puis reessayez.',
-      'KMG-PC-404': 'Cette demande privacy est introuvable.',
-      'KMG-PC-409': 'Cette demande privacy n est plus en attente.',
-      'KMG-SYS-000': 'La demande privacy n a pas pu etre traitee. Reessayez.'
+      'KMG-AUTH-403': 'Seuls les admins plateforme peuvent traiter les demandes de confidentialité.',
+      'KMG-PC-001': 'Vérifiez les champs de décision puis réessayez.',
+      'KMG-PC-404': 'Cette demande de confidentialité est introuvable.',
+      'KMG-PC-409': 'Cette demande de confidentialité n’est plus en attente.',
+      'KMG-SYS-000': 'La demande de confidentialité n’a pas pu être traitée. Réessayez.'
     },
     filters: {
       all: 'Toutes',
-      completed: 'Finalisees',
+      completed: 'Finalisées',
       pending: 'En attente',
-      rejected: 'Rejetees'
+      rejected: 'Rejetées'
     },
     notAvailable: 'Non disponible',
     optInLabel: 'Consentement contact',
     pendingAction: 'Enregistrement...',
     publicContactLabel: 'Contact public',
     reasonLabel: 'Motif',
-    requestedByLabel: 'Demandee par',
+    requestedByLabel: 'Demandée par',
     reviewedAtLabel: 'Revue le',
     statusLabel: 'Statut de fiche',
     statuses: {
-      completed: 'Finalisee',
+      completed: 'Finalisée',
       pending: 'En attente',
-      rejected: 'Rejetee'
+      rejected: 'Rejetée'
     },
-    submitted: 'Decision enregistree.',
-    title: 'Demandes privacy',
+    submitted: 'Décision enregistrée.',
+    title: 'Demandes de confidentialité',
     typeLabel: 'Type de demande',
     types: {
       delist_record: 'Retirer la fiche',
-      remove_contact: 'Retirer les coordonnees'
+      remove_contact: 'Retirer les coordonnées'
     },
     yesNo: {
       no: 'Non',

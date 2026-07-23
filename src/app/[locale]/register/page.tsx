@@ -65,29 +65,29 @@ const claimCopy = {
     claimedTitle: 'Fiche déjà revendiquée',
     contactEmailLabel: 'Courriel de contact associé à la fiche',
     contactEmailPlaceholder: 'admin@example.org',
-    footnote: 'Apres validation, vous pourrez modifier la fiche et gerer les informations publiques. La provenance reste invisible aux membres.',
-    invalidDescription: 'Cette association n est pas disponible pour revendication. Elle peut etre inactive, introuvable ou deja en revue.',
+    footnote: 'Après validation, vous pourrez modifier la fiche et gérer les informations publiques. La provenance reste invisible aux membres.',
+    invalidDescription: 'Cette association n’est pas disponible pour revendication. Elle peut être inactive, introuvable ou déjà en revue.',
     invalidTitle: 'Revendication indisponible',
-    notMine: 'Ce n est pas mon association',
+    notMine: 'Ce n’est pas mon association',
     proveDescription: 'Saisissez le numéro de registre et le courriel privé déjà rattachés à cette fiche. Kamga les valide sans afficher de données privées publiquement.',
-    proveTitle: 'Prouvez que vous controlez cette association',
+    proveTitle: 'Prouvez que vous contrôlez cette association',
     registryLabel: 'Numéro de registre (NEQ / fédéral)',
     registryPlaceholder: '1169920034',
     selectDescription: 'Vous revendiquez la fiche publique existante ci-dessous. Une revendication réussie crée un rôle admin association actif pour votre compte.',
     selectTitle: 'Association existante',
     signInAction: 'Se connecter pour revendiquer',
-    signInDescription: 'Creez ou ouvrez votre compte Kamga avant de revendiquer cette fiche association.',
+    signInDescription: 'Créez ou ouvrez votre compte Kamga avant de revendiquer cette fiche association.',
     signInTitle: 'Connexion requise',
     submitting: 'Revendication...',
-    title: 'Confirmez que vous gerez cette association',
+    title: 'Confirmez que vous gérez cette association',
     errors: {
       'KMG-AUTH-401': 'Connectez-vous avant de revendiquer cette fiche.',
-      'KMG-CL-001': 'Verifiez le numero de registre, le courriel de contact et la case d autorisation.',
+      'KMG-CL-001': 'Vérifiez le numéro de registre, le courriel de contact et la case d’autorisation.',
       'KMG-CL-403': 'Le numéro de registre ou le courriel doit être revu par un admin. La fiche est placée en file et limitée à une revendication active.',
       'KMG-CL-404': 'Cette association active est introuvable.',
-      'KMG-CL-409': 'Cette association est deja revendiquee ou verrouillee.',
+      'KMG-CL-409': 'Cette association est déjà revendiquée ou verrouillée.',
       'KMG-CL-422': 'Cette fiche nécessite une revue admin manuelle avant confirmation de propriété. La revendication est maintenant en file.',
-      'KMG-SYS-000': 'La fiche n a pas pu etre revendiquee. Reessayez ou contactez le support.'
+      'KMG-SYS-000': 'La fiche n’a pas pu être revendiquée. Réessayez ou contactez le support.'
     }
   }
 } as const;
